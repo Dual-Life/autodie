@@ -1,16 +1,10 @@
-Fatal
+Fatal and autodie
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+This distribution provides 'autodie', a lexical equivalent of
+'Fatal' for Perl 5.10.  The distribution also upgrades the Fatal
+module to contain better diagnostics and reporting.
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
-
+This distribution REQUIRES Perl 5.10 or later to run.
 
 INSTALLATION
 
@@ -26,6 +20,7 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
+    perldoc autodie
     perldoc Fatal
 
 You can also look for information at:
@@ -45,7 +40,12 @@ You can also look for information at:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2008 'Paul
+Original module by Lionel Cons (CERN)
+
+Prototype updates by Ilya Zakharevich <ilya@math.ohio-state.edu>
+
+Lexical support and other modifications
+Copyright 2008 by Paul Fenwick <pjf@cpan.org>
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
