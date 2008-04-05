@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use 5.010;
-use Test::More tests => 4;
+use Test::More tests => 5;
 use Socket;
 use autodie qw(socketpair);
 
@@ -12,7 +12,7 @@ my $buffer;
 send($sock1, "xyz", 0);
 my $ret = recv($sock2, $buffer, 2, 0);
 
-use autodie('recv');
+use autodie qw(recv);
 
 SKIP: {
 
@@ -34,3 +34,11 @@ eval {
 };
 
 ok($@,'recv dies on returning undef');
+
+eval {
+	use autodie qw(send);
+	# STDIN isn't a socket, so this should fail.
+	send(STDOUT,$buffer,1,0);
+};
+
+ok($@,'send dies on returning undef');
