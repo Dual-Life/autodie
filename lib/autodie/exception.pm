@@ -5,6 +5,8 @@ use warnings;
 use Carp qw(croak);
 use Hash::Util qw(fieldhashes);
 
+our $VERSION = '1.00';
+
 fieldhashes \ my(
 	%package_of,
 	%file_of,
