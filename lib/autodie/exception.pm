@@ -5,27 +5,42 @@ use warnings;
 use Carp qw(croak);
 use Hash::Util qw(fieldhashes);
 
-our $VERSION = '1.00';
-
-fieldhashes \ my(
-	%package_of,
-	%file_of,
-	%function_of,
-	%line_of,
-	%args_of,
-	%function_of,
-	%subroutine_of,
-);
-
-# TODO - Add hash of error messages.
-
 use overload
 	'~~'  => "smart_match",
 	q{""} => "stringify"
 ;
 
+our $VERSION = '1.00';
+
+
+# XXX - Function and subroutine are too confusing.  Fix.
+
+fieldhashes \ my(
+	%args_of,
+	%file_of,
+	%function_of,
+	%line_of,
+	%package_of,
+	%subroutine_of,
+);
+
+# TODO - Add hash of error messages.
+# TODO - Should this be a package var instead?
+
+my %formatter_of = (
+);
+
+sub register {
+	my ($class, $symbol, $handler) = @_;
+
+	croak "Incorrect call to autodie::register" if @_ != 3;
+
+	$formatter_of{$symbol} = $handler;
+
+}
+
 sub smart_match {
-	my ($this, $that) = @_:
+	my ($this, $that) = @_;
 
 	# XXX - Handle references
 	croak "..." if ref $that;
@@ -38,6 +53,11 @@ sub smart_match {
 
 sub stringify {
 	my ($this) = @_;
+
+	# XXX - This isn't using inheritance.  Should it?
+	if (my $sub = $formatter_of{$this->function}) {
+		return $sub->($this);
+	}
 
 	# TODO - Handle user-defined errors from hash.
 
@@ -68,12 +88,11 @@ sub new {
 # (the user-defined subroutine that caused the error).  This is stupid.
 # How about 'caller' for the subroutine?
 
-sub package    { return $package_of{    $_[0] } }
-sub file       { return $file_of{       $_[0] } }
-sub subroutine { return $subroutine_of{ $_[0] } }
-sub package    { return $package_of{    $_[0] } }
 sub args       { return $args_of{       $_[0] } }
+sub file       { return $file_of{       $_[0] } }
 sub function   { return $function_of{   $_[0] } }
+sub package    { return $package_of{    $_[0] } }
+sub subroutine { return $subroutine_of{ $_[0] } }
 
 
 1;
