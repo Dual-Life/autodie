@@ -4,6 +4,7 @@ use 5.010;	# 5.10 needed for lexical Fatal
 use Carp;
 use strict;
 use warnings;
+use autodie::exception;
 
 # When one of our wrapped subroutines is called, there are
 # possibilities:
