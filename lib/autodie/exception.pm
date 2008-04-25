@@ -59,6 +59,9 @@ sub stringify {
 		return $sub->($this);
 	}
 
+	return "Can't ".$this->function()."(".
+		join(q{, },$this->args())."): $!";
+
 	# TODO - Handle user-defined errors from hash.
 
 	# TODO - Handle default error messages.
@@ -80,7 +83,7 @@ sub new {
 	$function_of{  $this} = $args{function} ||
 		      croak("$class->new() called without function arg");
 
-	return $this;
+	return bless($this,$class);
 
 }
 

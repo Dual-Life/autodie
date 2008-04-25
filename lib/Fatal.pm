@@ -287,6 +287,17 @@ sub one_invocation {
   }
 
   local $" = ', ';
+
+  if ($void) {
+	return qq{return (defined wantarray)?$call(@argv):
+		$call(@argv) $op die autodie::exception->new(function => q{$name});
+	};
+  }
+
+  return qq{return $call(@argv) $op die autodie::exception->new(function => q{$name});};
+
+  # TODO - Trim obsolete code below.
+
   if ($void) {
     return qq/return (defined wantarray)?$call(@argv):
               $call(@argv) $op croak "Can't $name(\@_)/ .
