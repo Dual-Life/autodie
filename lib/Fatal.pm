@@ -39,12 +39,16 @@ our $Debug //= 0;
 # We have some tags that can be passed in for use with import.
 
 my %TAGS = (
-	':io'	=> [qw(open close opendir)],
+	':io'	   => [qw(:file :filesys :socket)],
+	':file'    => [qw(open close)],
+	':filesys' => [qw(opendir)],
 	# Can we use qw(getpeername getsockname)? What do they do on failure?
 	# XXX - Can socket return false?
-	':socket'=> [qw(accept bind connect getsockopt listen recv send
+	':socket'  => [qw(accept bind connect getsockopt listen recv send
 		        setsockopt shutdown socketpair)],
 );
+
+$TAGS{':all'} = [ keys %TAGS ];
 
 # Every time we're asked to Fatalise a with lexical scope subroutine,
 # we generate it a unique sequential ID number and store it in our
@@ -111,8 +115,17 @@ sub import {
 	when (':void') { $void = 1; }
 
 	when (%TAGS) {
-		foreach my $func (@{$TAGS{$_}}) {
-			$class->_make_fatal($func, $pkg, $void, $lexical);
+		my @tags = @{$TAGS{$_}};
+		while (my $func = shift @tags) {
+
+			# If we find a tag in a tag, then add its contents
+			# to the list of things to make fatal.
+
+			if ($TAGS{$func}) {
+				push(@tags, @{$TAGS{$func}});
+			} else {
+				$class->_make_fatal($func, $pkg, $void, $lexical);
+			}
 		}
 	}
 
@@ -175,6 +188,38 @@ sub unimport {
 		my $bytes = int(keys(%hints_index) / 8)+1;
 		$^H{$NO_PACKAGE} = "\x{ff}" x $bytes;
 	}
+}
+
+# XXX - This is rather terribly inefficient right now.
+sub _expand_tag {
+	my ($tag) = @_;
+
+	state %tag_cache;
+
+	if (my $cached = $tag_cache{$tag}) {
+		return $cached;
+	}
+
+	if (not $tag ~~ %TAGS) {
+		croak "Invalid exception class $tag";
+	}
+
+	my @to_process = @{$TAGS{$tag}};
+
+	my @taglist = ();
+
+	while (my $item = shift @to_process) {
+		if ($item =~ /^:/) {
+			push(@to_process, @{$TAGS{$item}} );
+		} else {
+			push(@taglist, $item);
+		}
+	}
+
+	$tag_cache{$tag} = \@taglist;
+
+	return \@taglist;
+
 }
 
 # Get, or generate and get, the bit-index of the given subroutine.

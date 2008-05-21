@@ -12,23 +12,36 @@ use overload
 
 our $VERSION = '1.00';
 
-
-# XXX - Function and subroutine are too confusing.  Fix.
-
 fieldhashes \ my(
 	%args_of,
 	%file_of,
-	%function_of,
+	%calling_sub_of,
 	%line_of,
 	%package_of,
-	%subroutine_of,
+	%dying_sub_of,
+	%errno_of,
 );
 
 # TODO - Add hash of error messages.
 # TODO - Should this be a package var instead?
 
 my %formatter_of = (
+	'CORE:close' => \&format_close,
 );
+
+sub format_close {
+	my ($this) = @_;
+	my $close_arg = $args_of{$this}[0];
+
+	local $! = $errno_of{$this};
+
+	if ($close_arg and not ref $close_arg) {
+		return "Can't close($close_arg) - $!";
+	}
+
+	return "Can't close() - $!";
+
+}
 
 sub register {
 	my ($class, $symbol, $handler) = @_;
@@ -42,25 +55,42 @@ sub register {
 sub smart_match {
 	my ($this, $that) = @_;
 
+	state %cache;
+	state $tags;
+
 	# XXX - Handle references
-	croak "..." if ref $that;
+	croak "UNIMPLEMENTED" if ref $that;
 
-	return 1 if $that eq $this->function;
+	my $sub = $this->dying_sub;
 
-	# Otherwise, return false.
-	return 0;
+	# Direct subname match.
+	return 1 if $that eq $sub;
+	return 0 if $that !~ /^:/;
+
+	# Cached match / check tags.
+	require Fatal;
+	return $cache{$sub}{$that} //= (Fatal::_expand_tag($that) ~~ $sub);
+}
+
+sub add_file_and_line {
+	my ($this) = @_;
+
+	return "at $file_of{$this} line $line_of{$this}";
 }
 
 sub stringify {
 	my ($this) = @_;
 
 	# XXX - This isn't using inheritance.  Should it?
-	if (my $sub = $formatter_of{$this->function}) {
-		return $sub->($this);
+	if (my $sub = $formatter_of{$this->dying_sub}) {
+		return $sub->($this) . $this->add_file_and_line;
 	}
 
-	return "Can't ".$this->function()."(".
-		join(q{, },$this->args())."): $!";
+	local $! = $errno_of{$this};
+
+	return "Can't ".$this->dying_sub()."(".
+		join(q{, },$this->args()) . "): $!" .
+		$this->add_file_and_line;
 
 	# TODO - Handle user-defined errors from hash.
 
@@ -75,12 +105,14 @@ sub new {
 	# XXX - Check how many frames we should go back.
 	my ($package, $file, $line, $sub) = caller(1);
 
-	$package_of{   $this} = $package;
-	$file_of{      $this} = $file;
-	$subroutine_of{$this} = $sub;
-	$package_of{   $this} = $package;
-	$args_of{      $this} = $args{args}     || [];
-	$function_of{  $this} = $args{function} ||
+	$package_of{    $this} = $package;
+	$file_of{       $this} = $file;
+	$line_of{	$this} = $line;
+	$calling_sub_of{$this} = $sub;
+	$package_of{    $this} = $package;
+	$errno_of{	$this} = $!;
+	$args_of{       $this} = $args{args}     || [];
+	$dying_sub_of{  $this} = $args{function} ||
 		      croak("$class->new() called without function arg");
 
 	return bless($this,$class);
@@ -91,11 +123,11 @@ sub new {
 # (the user-defined subroutine that caused the error).  This is stupid.
 # How about 'caller' for the subroutine?
 
-sub args       { return $args_of{       $_[0] } }
-sub file       { return $file_of{       $_[0] } }
-sub function   { return $function_of{   $_[0] } }
-sub package    { return $package_of{    $_[0] } }
-sub subroutine { return $subroutine_of{ $_[0] } }
-
+sub args        { return $args_of{        $_[0] } }
+sub file        { return $file_of{        $_[0] } }
+sub dying_sub   { return $dying_sub_of{   $_[0] } }
+sub package     { return $package_of{     $_[0] } }
+sub calling_sub { return $calling_sub_of{ $_[0] } }
+sub line        { return $line_of{        $_[0] } }
 
 1;

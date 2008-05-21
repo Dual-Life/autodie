@@ -1,4 +1,6 @@
 Makefile
+Makefile.old
+META.yml
 blib
 lib/Fatal.pm~
 pm_to_blib

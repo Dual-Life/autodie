@@ -16,7 +16,9 @@ ok($@ ~~ ':file',	"Exception from class :file"	);
 ok($@ ~~ ':io',		"Exception from class :io"	);
 ok($@ ~~ ':all',	"Exception from class :all"	);
 
-like($@, qr{Can't open \w+ for reading}, "Pretty printed message");
-
+TODO: {
+	local $TODO = "Unimplemented";
+	like($@, qr{Can't open \w+ for reading}, "Pretty printed message");
+	is($@->line, '???', "TODO: line number matching.");
+}
 is($@->file, $0, "Correct file");
-is($@->line, '???', "TODO: line number matching.");
