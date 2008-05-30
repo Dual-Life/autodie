@@ -17,7 +17,7 @@ ok($@ ~~ ':io',		"Exception from class :io"	);
 ok($@ ~~ ':all',	"Exception from class :all"	);
 
 eval {
-	use autodie ':io';
+	use autodie 'close';
 	close(THIS_FILEHANDLE_AINT_OPEN);
 };
 

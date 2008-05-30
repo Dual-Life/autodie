@@ -22,6 +22,7 @@ fieldhashes \ my(
 	%package_of,
 	%dying_sub_of,
 	%errno_of,
+	%call_of,
 );
 
 # TODO - Add hash of error messages.
@@ -33,7 +34,7 @@ my %formatter_of = (
 
 sub format_close {
 	my ($this) = @_;
-	my $close_arg = $args_of{$this}[0];
+	my $close_arg = $this->args->[0];
 
 	local $! = $errno_of{$this};
 
@@ -42,7 +43,7 @@ sub format_close {
 		return "Can't close filehandle '$close_arg' - $!";
 	}
 
-	return "Can't close() filehandle - $!";
+	return "Can't close($close_arg) filehandle - $!";
 
 }
 
@@ -64,10 +65,11 @@ sub smart_match {
 	# XXX - Handle references
 	croak "UNIMPLEMENTED" if ref $that;
 
-	my $sub = $this->dying_sub;
+	my $sub = $this->call;
 
 	# Direct subname match.
 	return 1 if $that eq $sub;
+	return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
 	return 0 if $that !~ /^:/;
 
 	# Cached match / check tags.
@@ -84,23 +86,32 @@ sub add_file_and_line {
 sub stringify {
 	my ($this) = @_;
 
-	my $dying_sub = $this->dying_sub;
+	# XXX - This is a horrible guessing hack to try and figure out
+	# our sub name.
+	my $call        =  ($this->call eq '&$sref') ? $this->dying_sub : $this->call;
 
 	if (DEBUG) {
 		my $dying_pkg   = $this->package;
+		my $dying_sub   = $this->dying_sub;
 		my $calling_sub = $this->calling_sub;
-		warn "Stringifing exception for $dying_pkg :: $dying_sub / $calling_sub\n";
+		warn "Stringifing exception for $dying_pkg :: $dying_sub / $calling_sub / $call\n";
 	}
 
 	# XXX - This isn't using inheritance.  Should it?
-	if ( my $sub = $formatter_of{$dying_sub} ) {
+	if ( my $sub = $formatter_of{$call} ) {
 		return $sub->($this) . $this->add_file_and_line;
 	}
 
 	local $! = $errno_of{$this};
 
-	return "Can't $dying_sub(".
-		join(q{, },$this->args()) . "): $!" .
+	# TODO: This is probably a good idea for CORE, is it
+	# a good idea for other subs?
+
+	# Trim package name off dying sub for error messages.
+	$call =~ s/.*:://;
+
+	return "Can't $call(".
+		join(q{, },@{$this->args()}) . "): $!" .
 		$this->add_file_and_line;
 
 	# TODO - Handle user-defined errors from hash.
@@ -123,7 +134,9 @@ sub new {
 	$package_of{    $this} = $package;
 	$errno_of{	$this} = $!;
 	$args_of{       $this} = $args{args}     || [];
-	$dying_sub_of{  $this} = $args{function} ||
+	$call_of{       $this} = $args{call} or
+			croak("$class->new() called without call_of arg");
+	$dying_sub_of{  $this} = $args{function} or
 		      croak("$class->new() called without function arg");
 
 	return bless($this,$class);
@@ -140,5 +153,6 @@ sub dying_sub   { return $dying_sub_of{   $_[0] } }
 sub package     { return $package_of{     $_[0] } }
 sub calling_sub { return $calling_sub_of{ $_[0] } }
 sub line        { return $line_of{        $_[0] } }
+sub call        { return $call_of{        $_[0] } }
 
 1;

@@ -71,6 +71,11 @@ my %package_Fatal = ();	# Tracks Fatal with package scope
 my $PACKAGE    = __PACKAGE__;
 my $NO_PACKAGE = "no $PACKAGE";
 
+# XXX - We can get called multiple times per package, and we
+# may have already replaced the subroutine.  In that case, this
+# should do nothing.  However it appears that it's not always
+# the case... Why?
+
 sub import {
     my $class   = shift(@_);
     my $void    = 0;
@@ -134,6 +139,9 @@ sub import {
 		$class->_make_fatal($_, $pkg, $void, $lexical);
 	}
     }
+
+    return;
+
 }
 
 sub unimport {
@@ -332,15 +340,20 @@ sub one_invocation {
     $op = '//';
   }
 
+  # XXX - How on earth do these work?  Honestly, @argv is being
+  # converted into a string.  There are *so many* ugly things
+  # that can go wrong here, including possible *code injection*
+  # attacks via the subroutine arguments.  Oh dear me!
+
   local $" = ', ';
 
   if ($void) {
 	return qq{return (defined wantarray)?$call(@argv):
-		$call(@argv) $op die autodie::exception->new(function => q{$call});
+		$call(@argv) $op die autodie::exception->new(function => q{$sub}, call => q{$call}, args => [ @argv ]);
 	};
   }
 
-  return qq{return $call(@argv) $op die autodie::exception->new(function => q{$call});};
+  return qq{return $call(@argv) $op die autodie::exception->new(function => q{$sub}, call => q{$call}, args => [ @argv ] );};
 
   # TODO - Trim obsolete code below.
 
@@ -360,6 +373,29 @@ sub _make_fatal {
     my $ini = $sub;
 
     $sub = "${pkg}::$sub" unless $sub =~ /::/;
+
+    # If we've already got hints for this sub, then we've
+    # already Fatalised it.  So safe ourselves some effort
+    # by setting our %^H hints and returning immediately.
+
+    my ($index, $already_fatalised);
+
+    $index = $already_fatalised = $hints_index{$sub};
+
+    # Figure if we're using lexical or package semantics and
+    # twiddle the appropriate bits.
+
+    if ($lexical) {
+        $index //= _get_sub_index($sub);
+	vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
+        vec($^H{$NO_PACKAGE}, $hints_index{$sub},1) = 0;
+    } else {
+        $package_Fatal{$sub} = 1;
+    }
+
+    # Return immediately if we've already fatalised our code.
+    return if $already_fatalised;
+
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;
 
@@ -382,24 +418,12 @@ sub _make_fatal {
 	$call = "CORE::$name";
     }
 
-    # Figure if we're using lexical or package semantics and
-    # twiddle the appropriate bits.
-
-    if ($lexical) {
-        my $index = _get_sub_index($sub);
-	vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
-        vec($^H{$NO_PACKAGE}, $hints_index{$sub},1) = 0;
-    } else {
-        $package_Fatal{$sub} = 1;
-    }
-
     if (defined $proto) {
       $real_proto = " ($proto)";
     } else {
       $real_proto = '';
       $proto = '@';
     }
-
 
     $code = <<EOS;
 sub$real_proto {
