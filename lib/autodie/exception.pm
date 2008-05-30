@@ -5,6 +5,8 @@ use warnings;
 use Carp qw(croak);
 use Hash::Util qw(fieldhashes);
 
+use constant DEBUG => 0;
+
 use overload
 	'~~'  => "smart_match",
 	q{""} => "stringify"
@@ -26,7 +28,7 @@ fieldhashes \ my(
 # TODO - Should this be a package var instead?
 
 my %formatter_of = (
-	'CORE:close' => \&format_close,
+	'CORE::close' => \&format_close,
 );
 
 sub format_close {
@@ -35,11 +37,12 @@ sub format_close {
 
 	local $! = $errno_of{$this};
 
+	# If we've got an old-style filehandle, mention it.
 	if ($close_arg and not ref $close_arg) {
-		return "Can't close($close_arg) - $!";
+		return "Can't close filehandle '$close_arg' - $!";
 	}
 
-	return "Can't close() - $!";
+	return "Can't close() filehandle - $!";
 
 }
 
@@ -81,14 +84,22 @@ sub add_file_and_line {
 sub stringify {
 	my ($this) = @_;
 
+	my $dying_sub = $this->dying_sub;
+
+	if (DEBUG) {
+		my $dying_pkg   = $this->package;
+		my $calling_sub = $this->calling_sub;
+		warn "Stringifing exception for $dying_pkg :: $dying_sub / $calling_sub\n";
+	}
+
 	# XXX - This isn't using inheritance.  Should it?
-	if (my $sub = $formatter_of{$this->dying_sub}) {
+	if ( my $sub = $formatter_of{$dying_sub} ) {
 		return $sub->($this) . $this->add_file_and_line;
 	}
 
 	local $! = $errno_of{$this};
 
-	return "Can't ".$this->dying_sub()."(".
+	return "Can't $dying_sub(".
 		join(q{, },$this->args()) . "): $!" .
 		$this->add_file_and_line;
 

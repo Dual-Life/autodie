@@ -37,6 +37,7 @@ our $VERSION = 1.08;
 our $Debug //= 0;
 
 # We have some tags that can be passed in for use with import.
+# These are all assumed to be CORE::
 
 my %TAGS = (
 	':io'	   => [qw(:file :filesys :socket)],
@@ -212,7 +213,7 @@ sub _expand_tag {
 		if ($item =~ /^:/) {
 			push(@to_process, @{$TAGS{$item}} );
 		} else {
-			push(@taglist, $item);
+			push(@taglist, "CORE::$item");
 		}
 	}
 
@@ -335,11 +336,11 @@ sub one_invocation {
 
   if ($void) {
 	return qq{return (defined wantarray)?$call(@argv):
-		$call(@argv) $op die autodie::exception->new(function => q{$name});
+		$call(@argv) $op die autodie::exception->new(function => q{$call});
 	};
   }
 
-  return qq{return $call(@argv) $op die autodie::exception->new(function => q{$name});};
+  return qq{return $call(@argv) $op die autodie::exception->new(function => q{$call});};
 
   # TODO - Trim obsolete code below.
 

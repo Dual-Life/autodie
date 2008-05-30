@@ -16,6 +16,13 @@ ok($@ ~~ ':file',	"Exception from class :file"	);
 ok($@ ~~ ':io',		"Exception from class :io"	);
 ok($@ ~~ ':all',	"Exception from class :all"	);
 
+eval {
+	use autodie ':io';
+	close(THIS_FILEHANDLE_AINT_OPEN);
+};
+
+like($@, qr{Can't close filehandle 'THIS_FILEHANDLE_AINT_OPEN'},"Nice msg");
+
 TODO: {
 	local $TODO = "Unimplemented";
 	like($@, qr{Can't open \w+ for reading}, "Pretty printed message");
