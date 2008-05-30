@@ -1,12 +1,11 @@
 #!/usr/bin/perl -w
-
+use strict;
 use feature qw(say);
 
 use constant NO_SUCH_FILE => "this_file_or_dir_had_better_not_exist_XYZZY";
 
 use Test::More tests => 24;
 
-use strict;
 use Fatal qw(open close :void opendir sin);
 
 is($Fatal::VERSION, 1.08, q{Version});
