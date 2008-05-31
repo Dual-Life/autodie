@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use strict;
 
 use constant NO_SUCH_FILE => 'this_file_had_so_better_not_be_here';
 
@@ -50,6 +51,8 @@ like($@, qr{Cannot use lexical autodie with no arguments}, "No bare autodie");
 {
 	package Testing_autodie;
 
+	use constant NO_SUCH_FILE => ::NO_SUCH_FILE();
+
 	use Fatal qw(open);
 
 	eval { open(my $fh, '<', NO_SUCH_FILE); };
@@ -66,7 +69,7 @@ like($@, qr{Cannot use lexical autodie with no arguments}, "No bare autodie");
 	::ok($@,"no autodie on Fataled sub an error.");
 
 	TODO: {
-		no warnings 'once'; # Prevent $TODO warning below
+		our $TODO;
 		local $TODO = "unimplemented";
 
 		no autodie qw(close);
