@@ -458,7 +458,7 @@ changes built-ins and subroutines with lexical scope (until the end
 of the current block, file, or eval), making it easier to understand
 and debug.
 
-use C<Fatal>
+The use of C<:void> is discouraged.
 
 =head1 DESCRIPTION
 
@@ -493,6 +493,12 @@ values are ignored.  For example
 
 	# not checked, so error raises an exception
 	close FH;
+
+=head1 EXCEPTIONS
+
+As of Fatal version XXX, all exceptions from C<Fatal> are
+members of the C<autodie::exception> class.  See L<autodie>
+and L<autodie::exception> for more information.
 
 =head1 DIAGNOSTICS
 
@@ -561,7 +567,6 @@ boolean truth of its return value in scalar context.
 Fatal makes changes to your current package, including when changing
 built-in functions.  Changing to a new package will result in calls
 that do not get checked for failure (unless Fatal was called there, too).
-This is even the case when Fatal is called with the C<:lexical> option.
 
 =head1 AUTHOR
 
@@ -569,7 +574,8 @@ Original module by Lionel Cons (CERN).
 
 Prototype updates by Ilya Zakharevich <ilya@math.ohio-state.edu>.
 
-Lexical support and proverb by Paul Fenwick <pjf@perltraining.com.au>
+L<autodie> support, exception support, and additional documentation
+by Paul Fenwick <pjf@perltraining.com.au>
 
 =head1 LICENSE
 

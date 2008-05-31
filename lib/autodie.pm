@@ -39,12 +39,49 @@ autodie - Replace functions with ones that succeed or die with lexical scope
 
 =head1 DESCRIPTION
 
-The C<autodie> pragma is a shortcut to C<use Fatal qw(:lexical)>.
-Please see the L<Fatal> documentation for more information.
+        It is better to die() in the attempt than to return() in failure.
+
+                -- Klingon programming proverb.
+
+The C<autodie> pragma provides a convenient way to replace functions
+that normally return false on failure with equivalents that throw
+an exception on failure.
+
+The C<autodie> pragma has I<lexical scope>, meaning that functions
+and subroutines altered with C<autodie> will only change their behaviour
+until the end of the enclosing block, file, or C<eval>.
+
+=head1 EXCEPTIONS
+
+Exceptions produced by the C<autodie> pragma are members of the
+L<autodie::exception> class.  The preferred way to work with
+these exceptions is as follows:
+
+	use feature qw(switch);
+
+	eval {
+		use autodie ':io';
+
+		open(my $fh, '<', $some_file);
+
+		my @records = <$fh>;
+
+		close($fh);
+
+	};
+
+	given ($@) {
+		when (undef)   { say "No error";                    }
+		when ('open')  { say "Error from open";             }
+		when (':io')   { say "Non-open, IO error.";         }
+		when (':all')  { say "All other autodie errors."    }
+		default        { say "Not an autodie error at all." }
+	}
+
 
 =head1 AUTHOR
 
-Paul Fenwick <pjf@perltraining.com.au>
+Copyright 2008, Paul Fenwick E<lt>pjf@perltraining.com.auE<gt>
 
 =head1 LICENSE
 
@@ -53,6 +90,6 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<Fatal> upon which this module is merely a thin wrapper.
+L<Fatal>
 
 =cut
