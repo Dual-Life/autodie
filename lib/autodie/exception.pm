@@ -80,7 +80,7 @@ sub smart_match {
 sub add_file_and_line {
 	my ($this) = @_;
 
-	return "at $file_of{$this} line $line_of{$this}";
+	return " at $file_of{$this} line $line_of{$this}";
 }
 
 sub stringify {
