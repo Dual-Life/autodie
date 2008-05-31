@@ -10,18 +10,30 @@ eval {
 	open(my $fh, '<', NO_SUCH_FILE);
 };
 
-ok($@,			"Exception thrown"		);
-ok($@ ~~ 'open',	"Exception from open"		);
-ok($@ ~~ ':file',	"Exception from class :file"	);
-ok($@ ~~ ':io',		"Exception from class :io"	);
-ok($@ ~~ ':all',	"Exception from class :all"	);
+ok($@,			"Exception thrown"		        );
+ok($@ ~~ 'open',	"Exception from open"		        );
+ok($@ ~~ ':file',	"Exception from open / class :file"	);
+ok($@ ~~ ':io',		"Exception from open / class :io"	);
+ok($@ ~~ ':all',	"Exception from open / class :all"	);
 
 eval {
-	use autodie 'close';
 	close(THIS_FILEHANDLE_AINT_OPEN);
 };
 
-like($@, qr{Can't close filehandle 'THIS_FILEHANDLE_AINT_OPEN'},"Nice msg");
+ok(! $@, "Close without autodie should fail silent");
+
+eval {
+	use autodie ':io';
+	close(THIS_FILEHANDLE_AINT_OPEN);
+};
+
+like($@, qr{Can't close filehandle 'THIS_FILEHANDLE_AINT_OPEN'},"Nice msg from close");
+
+ok($@,			"Exception thrown"		        );
+ok($@ ~~ 'close',	"Exception from close"		        );
+ok($@ ~~ ':file',	"Exception from close / class :file"	);
+ok($@ ~~ ':io',		"Exception from close / class :io"	);
+ok($@ ~~ ':all',	"Exception from close / class :all"	);
 
 TODO: {
 	local $TODO = "Unimplemented";

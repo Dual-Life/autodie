@@ -355,16 +355,6 @@ sub one_invocation {
 
   return qq{return $call(@argv) $op die autodie::exception->new(function => q{$sub}, call => q{$call}, args => [ @argv ] );};
 
-  # TODO - Trim obsolete code below.
-
-  if ($void) {
-    return qq/return (defined wantarray)?$call(@argv):
-              $call(@argv) $op croak "Can't $name(\@_)/ .
-           ($core ? ': $!' : ', \$! is \"$!\"') . '"'
-  }
-
-  return qq{return $call(@argv) $op croak "Can't $name(\@_)} .
-         ($core ? ': $!' : ', \$! is \"$!\"') . '";';
 }
 
 sub _make_fatal {
@@ -394,7 +384,7 @@ sub _make_fatal {
     }
 
     # Return immediately if we've already fatalised our code.
-    return if $already_fatalised;
+    return if defined $already_fatalised;
 
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;

@@ -5,7 +5,7 @@ use warnings;
 use Carp qw(croak);
 use Hash::Util qw(fieldhashes);
 
-use constant DEBUG => 0;
+our $DEBUG = 0;
 
 use overload
 	'~~'  => "smart_match",
@@ -67,6 +67,11 @@ sub smart_match {
 
 	my $sub = $this->call;
 
+	if ($DEBUG) {
+		my $sub2 = $this->dying_sub;
+		warn "Smart-matching $that against $sub / $sub2\n";
+	}
+
 	# Direct subname match.
 	return 1 if $that eq $sub;
 	return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
@@ -90,7 +95,7 @@ sub stringify {
 	# our sub name.
 	my $call        =  ($this->call eq '&$sref') ? $this->dying_sub : $this->call;
 
-	if (DEBUG) {
+	if ($DEBUG) {
 		my $dying_pkg   = $this->package;
 		my $dying_sub   = $this->dying_sub;
 		my $calling_sub = $this->calling_sub;
