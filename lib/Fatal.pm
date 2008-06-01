@@ -1,6 +1,6 @@
 package Fatal;
 
-use 5.010;	# 5.10 needed for lexical Fatal
+use 5.010;  # 5.10 needed for lexical Fatal
 use Carp;
 use strict;
 use warnings;
@@ -40,13 +40,13 @@ our $Debug //= 0;
 # These are all assumed to be CORE::
 
 my %TAGS = (
-	':io'	   => [qw(:file :filesys :socket)],
-	':file'    => [qw(open close)],
-	':filesys' => [qw(opendir)],
-	# Can we use qw(getpeername getsockname)? What do they do on failure?
-	# XXX - Can socket return false?
-	':socket'  => [qw(accept bind connect getsockopt listen recv send
-		        setsockopt shutdown socketpair)],
+    ':io'      => [qw(:file :filesys :socket)],
+    ':file'    => [qw(open close)],
+    ':filesys' => [qw(opendir)],
+    # Can we use qw(getpeername getsockname)? What do they do on failure?
+    # XXX - Can socket return false?
+    ':socket'  => [qw(accept bind connect getsockopt listen recv send
+                   setsockopt shutdown socketpair)],
 );
 
 $TAGS{':all'} = [ keys %TAGS ];
@@ -58,7 +58,7 @@ $TAGS{':all'} = [ keys %TAGS ];
 # bit-strings we store in %^H to remember which subroutines have been
 # fatalised with a lexical scope.
 
-my %hints_index   = ();	# Tracks indexes used in our %^H bitstring
+my %hints_index   = (); # Tracks indexes used in our %^H bitstring
 
 # Evry time we're called with package scope, we record the subroutine
 # (including package or CORE::) in %package_Fatal.  If we find ourselves
@@ -66,7 +66,7 @@ my %hints_index   = ();	# Tracks indexes used in our %^H bitstring
 # to determine if we should be acting with package scope, or we've
 # just fallen out of lexical context.
 
-my %package_Fatal = ();	# Tracks Fatal with package scope
+my %package_Fatal = (); # Tracks Fatal with package scope
 
 my $PACKAGE    = __PACKAGE__;
 my $NO_PACKAGE = "no $PACKAGE";
@@ -82,7 +82,7 @@ sub import {
     my $pkg     = (caller)[0];
     my $lexical = 0;
 
-    @_ or return;	# 'use Fatal' is a no-op.
+    @_ or return;   # 'use Fatal' is a no-op.
 
     # Make sure our hints start with a reasonable default.
     # We have to use empty-string rather than 0, because
@@ -96,48 +96,48 @@ sub import {
 
     if ($_[0] eq LEXICAL_TAG) {
         $lexical = 1;
-	shift @_;
+        shift @_;
 
-	# Don't allow :lexical with no other arguments.  It makes
-	# no sense.
+        # Don't allow :lexical with no other arguments.  It makes
+        # no sense.
 
-	if (@_ == 0) {
-		croak(sprintf(ERROR_NOARGS, $class));
-	}
+        if (@_ == 0) {
+            croak(sprintf(ERROR_NOARGS, $class));
+        }
 
         # Don't allow :lexical with :void, it's needlessly confusing.
-	if (@_ ~~ VOID_TAG) {
+        if (@_ ~~ VOID_TAG) {
             croak(ERROR_VOID_LEX);
-	}
+        }
 
     }
 
     # If we see the lexical tag as the non-first argument, complain.
     if (@_ ~~ LEXICAL_TAG) {
-	croak(ERROR_LEX_FIRST);
+        croak(ERROR_LEX_FIRST);
     }
 
     foreach (@_) {
-	when (':void') { $void = 1; }
+        when (':void') { $void = 1; }
 
-	when (%TAGS) {
-		my @tags = @{$TAGS{$_}};
-		while (my $func = shift @tags) {
+        when (%TAGS) {
+            my @tags = @{$TAGS{$_}};
+            while (my $func = shift @tags) {
 
-			# If we find a tag in a tag, then add its contents
-			# to the list of things to make fatal.
+                # If we find a tag in a tag, then add its contents
+                # to the list of things to make fatal.
 
-			if ($TAGS{$func}) {
-				push(@tags, @{$TAGS{$func}});
-			} else {
-				$class->_make_fatal($func, $pkg, $void, $lexical);
-			}
-		}
-	}
+                if ($TAGS{$func}) {
+                    push(@tags, @{$TAGS{$func}});
+                } else {
+                    $class->_make_fatal($func, $pkg, $void, $lexical);
+                }
+            }
+        }
 
-	default {
-		$class->_make_fatal($_, $pkg, $void, $lexical);
-	}
+        default {
+            $class->_make_fatal($_, $pkg, $void, $lexical);
+        }
     }
 
     return;
@@ -145,112 +145,112 @@ sub import {
 }
 
 sub unimport {
-	my $class = shift;
+    my $class = shift;
 
-	# Calling "no Fatal" must start with ":lexical"
-	if ($_[0] ne LEXICAL_TAG) {
-		croak(sprintf(ERROR_NO_LEX,$class));
-	}
+    # Calling "no Fatal" must start with ":lexical"
+    if ($_[0] ne LEXICAL_TAG) {
+        croak(sprintf(ERROR_NO_LEX,$class));
+    }
 
-	shift @_;	# Remove :lexical
+    shift @_;   # Remove :lexical
 
-        my $pkg = (caller)[0];
+    my $pkg = (caller)[0];
 
-	# If we've been called with arguments, then the developer
-	# has explicitly stated 'no autodie qw(blah)',
-	# in which case, we disable Fatalistic behaviour for 'blah'.
+    # If we've been called with arguments, then the developer
+    # has explicitly stated 'no autodie qw(blah)',
+    # in which case, we disable Fatalistic behaviour for 'blah'.
 
-	# If 'blah' was already enabled with Fatal, this is considered
-	# an error.
+    # If 'blah' was already enabled with Fatal, this is considered
+    # an error.
 
-	if (@_) {
-		foreach (@_) {
-			my $sub = $_;
-			$sub = "${pkg}::$sub" unless $sub =~ /::/;
+    if (@_) {
+        foreach (@_) {
+            my $sub = $_;
+            $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-			if (exists $package_Fatal{$sub}) {
-				croak(sprintf(ERROR_AUTODIE_CONFLICT,$_,$_));
-			}
+            if (exists $package_Fatal{$sub}) {
+                croak(sprintf(ERROR_AUTODIE_CONFLICT,$_,$_));
+            }
 
-			# Fiddle the appropriate bits to say that this
-			# should not die for this lexical scope.  We do
-			# this even if the sub hasn't been Fatalised yet,
-			# since that may happen in a later invocation.
+            # Fiddle the appropriate bits to say that this
+            # should not die for this lexical scope.  We do
+            # this even if the sub hasn't been Fatalised yet,
+            # since that may happen in a later invocation.
 
-			my $index = _get_sub_index($sub);
-			vec($^H{$PACKAGE},    $index,1) = 0;
-			vec($^H{$NO_PACKAGE}, $index,1) = 1;
-		}
-	} else {
-		# We hit this for 'no autodie', etc.  Disable all
-		# lexical Fatal functionality.  NB, empty string rather
-		# than zero because when passed into vec, 0 gets treated
-		# like a string.
+            my $index = _get_sub_index($sub);
+            vec($^H{$PACKAGE},    $index,1) = 0;
+            vec($^H{$NO_PACKAGE}, $index,1) = 1;
+        }
+    } else {
+        # We hit this for 'no autodie', etc.  Disable all
+        # lexical Fatal functionality.  NB, empty string rather
+        # than zero because when passed into vec, 0 gets treated
+        # like a string.
 
-		$^H{$PACKAGE} = "";
+        $^H{$PACKAGE} = "";
 
-		# Enable the "don't autodie" bits for all known functions.
-		# This code may end up writing an extra byte, but we
-		# don't care, since those bytes will never be looked
-		# at.
+        # Enable the "don't autodie" bits for all known functions.
+        # This code may end up writing an extra byte, but we
+        # don't care, since those bytes will never be looked
+        # at.
 
-		my $bytes = int(keys(%hints_index) / 8)+1;
-		$^H{$NO_PACKAGE} = "\x{ff}" x $bytes;
-	}
+        my $bytes = int(keys(%hints_index) / 8)+1;
+        $^H{$NO_PACKAGE} = "\x{ff}" x $bytes;
+    }
 }
 
 # XXX - This is rather terribly inefficient right now.
 sub _expand_tag {
-	my ($tag) = @_;
+    my ($tag) = @_;
 
-	state %tag_cache;
+    state %tag_cache;
 
-	if (my $cached = $tag_cache{$tag}) {
-		return $cached;
-	}
+    if (my $cached = $tag_cache{$tag}) {
+        return $cached;
+    }
 
-	if (not $tag ~~ %TAGS) {
-		croak "Invalid exception class $tag";
-	}
+    if (not $tag ~~ %TAGS) {
+        croak "Invalid exception class $tag";
+    }
 
-	my @to_process = @{$TAGS{$tag}};
+    my @to_process = @{$TAGS{$tag}};
 
-	my @taglist = ();
+    my @taglist = ();
 
-	while (my $item = shift @to_process) {
-		if ($item =~ /^:/) {
-			push(@to_process, @{$TAGS{$item}} );
-		} else {
-			push(@taglist, "CORE::$item");
-		}
-	}
+    while (my $item = shift @to_process) {
+        if ($item =~ /^:/) {
+            push(@to_process, @{$TAGS{$item}} );
+        } else {
+            push(@taglist, "CORE::$item");
+        }
+    }
 
-	$tag_cache{$tag} = \@taglist;
+    $tag_cache{$tag} = \@taglist;
 
-	return \@taglist;
+    return \@taglist;
 
 }
 
 # Get, or generate and get, the bit-index of the given subroutine.
 sub _get_sub_index {
-        my ($sub) = @_;
-        return $hints_index{$sub} // ($hints_index{$sub} = keys %hints_index);
+    my ($sub) = @_;
+    return $hints_index{$sub} // ($hints_index{$sub} = keys %hints_index);
 }
 
 sub fill_protos {
-  my $proto = shift;
-  my ($n, $isref, @out, @out1, $seen_semi) = -1;
-  while ($proto =~ /\S/) {
-    $n++;
-    push(@out1,[$n,@out]) if $seen_semi;
-    push(@out, $1 . "{\$_[$n]}"), next if $proto =~ s/^\s*\\([\@%\$\&])//;
-    push(@out, "\$_[$n]"),        next if $proto =~ s/^\s*([_*\$&])//;
-    push(@out, "\@_[$n..\$#_]"),  last if $proto =~ s/^\s*(;\s*)?\@//;
-    $seen_semi = 1, $n--,         next if $proto =~ s/^\s*;//; # XXXX ????
-    die "Internal error: Unknown prototype letters: \"$proto\"";
-  }
-  push(@out1,[$n+1,@out]);
-  @out1;
+    my $proto = shift;
+    my ($n, $isref, @out, @out1, $seen_semi) = -1;
+    while ($proto =~ /\S/) {
+        $n++;
+        push(@out1,[$n,@out]) if $seen_semi;
+        push(@out, $1 . "{\$_[$n]}"), next if $proto =~ s/^\s*\\([\@%\$\&])//;
+        push(@out, "\$_[$n]"),        next if $proto =~ s/^\s*([_*\$&])//;
+        push(@out, "\@_[$n..\$#_]"),  last if $proto =~ s/^\s*(;\s*)?\@//;
+        $seen_semi = 1, $n--,         next if $proto =~ s/^\s*;//; # XXXX ????
+        die "Internal error: Unknown prototype letters: \"$proto\"";
+    }
+    push(@out1,[$n+1,@out]);
+    @out1;
 }
 
 # Note that we don't actually call _get_sub_index in the compiled
@@ -262,98 +262,104 @@ sub fill_protos {
 #       to doing appropriate bitwise operations on our hints.
 
 sub write_invocation {
-  my ($core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
+    my ($core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
 
-  # TODO: We have a huge hunk of duplicated code/string here.
-  #       Do something so it's only mentioned once.
-  #
-  # TODO: We'd like to get rid of 'no warnings uninitialized'.
-  #       This is here because sometimes our hints are completely
-  #       empty (being in a lexical scope that's never seen our package).
+    # TODO: We have a huge hunk of duplicated code/string here.
+    #       Do something so it's only mentioned once.
+    #
+    # TODO: We'd like to get rid of 'no warnings uninitialized'.
+    #       This is here because sometimes our hints are completely
+    #       empty (being in a lexical scope that's never seen our package).
 
-  if (@argvs == 1) {		# No optional arguments
-    my @argv = @{$argvs[0]};
-    shift @argv;
-    my $out = qq[
-          my \$hints = (caller(0))[10];    # Lexical hints hashref
-          no warnings 'uninitialized';
-          if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+    if (@argvs == 1) {        # No optional arguments
+        my @argv = @{$argvs[0]};
+        shift @argv;
+        my $out = qq[
+            my \$hints = (caller(0))[10];    # Lexical hints hashref
+            no warnings 'uninitialized';
+            if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using lexical semantics.
                   ].one_invocation($core,$call,$name,0,$sub,@argv).qq[
-          } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+            } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
-          } elsif (].($package_Fatal{$sub}||0).qq[) {
+            } elsif (].($package_Fatal{$sub}||0).qq[) {
                   # We're using package semantics.
                   ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
-          }
-          # Default: non-Fatal semantics
-          return $call(].join(', ',@argv).qq[);
-    ];
-    return $out;
-  } else {
-    my $else = "\t";
-    my (@out, @argv, $n);
-    while (@argvs) {
-      @argv = @{shift @argvs};
-      $n = shift @argv;
-      push @out, "${else}if (\@_ == $n) {\n";
-      $else = "\t} els";
-      push @out, qq[
-          my \$hints = (caller(0))[10];    # Lexical hints hashref
-          no warnings 'uninitialized';
-          if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+            }
+            # Default: non-Fatal semantics
+            return $call(].join(', ',@argv).qq[);
+        ];
+        return $out;
+
+    } else {
+        my $else = "\t";
+        my (@out, @argv, $n);
+        while (@argvs) {
+            @argv = @{shift @argvs};
+            $n = shift @argv;
+            push @out, "${else}if (\@_ == $n) {\n";
+            $else = "\t} els";
+            push @out, qq[
+            my \$hints = (caller(0))[10];    # Lexical hints hashref
+            no warnings 'uninitialized';
+            if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using lexical semantics.
                   ].one_invocation($core,$call,$name,0,$sub,@argv).qq[
-          } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+            } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
-          } elsif (].($package_Fatal{$sub}||0).qq[) {
+            } elsif (].($package_Fatal{$sub}||0).qq[) {
                   # We're using  package semantics.
                   ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
-          }
-          # Default: non-Fatal semantics
-          return $call(].join(', ',@argv).qq[);
-    ];
-    }
-    push @out, <<EOC;
-	}
-	die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
+            }
+            # Default: non-Fatal semantics
+            return $call(].join(', ',@argv).qq[);
+            ];
+        }
+        push @out, <<EOC;
+        }
+        die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
 EOC
-    return join '', @out;
-  }
+        return join '', @out;
+    }
 }
 
 # XXX - This looks ugly.  Fix it.
 
 my %use_defined_or;
 @use_defined_or{qw(
-	CORE::send CORE::recv
+    CORE::send CORE::recv
 )} = ();
 
 sub one_invocation {
-  my ($core, $call, $name, $void, $sub, @argv) = @_;
+    my ($core, $call, $name, $void, $sub, @argv) = @_;
 
-  my $op = '||';
+    my $op = '||';
 
-  if (exists $use_defined_or{$call}) {
-    $op = '//';
-  }
+    if (exists $use_defined_or{$call}) {
+        $op = '//';
+    }
 
-  # XXX - How on earth do these work?  Honestly, @argv is being
-  # converted into a string.  There are *so many* ugly things
-  # that can go wrong here, including possible *code injection*
-  # attacks via the subroutine arguments.  Oh dear me!
+    # @argv only contains the results of the in-built prototype
+    # function, and hence does what it's supposed to below.
 
-  local $" = ', ';
+    local $" = ', ';
 
-  if ($void) {
-	return qq{return (defined wantarray)?$call(@argv):
-		$call(@argv) $op die autodie::exception->new(function => q{$sub}, call => q{$call}, args => [ @argv ]);
-	};
-  }
+    if ($void) {
+        return qq{
+            return (defined wantarray)?$call(@argv):
+            $call(@argv) $op die autodie::exception->new(
+                function => q{$sub}, call => q{$call}, args => [ @argv ]
+            );
+        };
+    }
 
-  return qq{return $call(@argv) $op die autodie::exception->new(function => q{$sub}, call => q{$call}, args => [ @argv ] );};
+    return qq{
+        return $call(@argv) $op die autodie::exception->new(
+            function => q{$sub}, call => q{$call}, args => [ @argv ]
+        );
+    };
 
 }
 
@@ -377,7 +383,7 @@ sub _make_fatal {
 
     if ($lexical) {
         $index //= _get_sub_index($sub);
-	vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
+    vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
         vec($^H{$NO_PACKAGE}, $hints_index{$sub},1) = 0;
     } else {
         $package_Fatal{$sub} = 1;
@@ -392,32 +398,32 @@ sub _make_fatal {
     warn  "# _make_fatal: sub=$sub pkg=$pkg name=$name void=$void\n" if $Debug;
     croak(sprintf(ERROR_BADNAME, $class, $name)) unless $name =~ /^\w+$/;
 
-    if (defined(&$sub)) {	# user subroutine
-	$sref = \&$sub;
-	$proto = prototype $sref;
-	$call = '&$sref';
+    if (defined(&$sub)) {   # user subroutine
+        $sref = \&$sub;
+        $proto = prototype $sref;
+        $call = '&$sref';
     } elsif ($sub eq $ini && $sub !~ /^CORE::GLOBAL::/) {
-	# Stray user subroutine
-	# XXX - Should this be using $sub or $name (orig was $sub)
-	croak(sprintf(ERROR_NOTSUB,$sub));
-    } else {			# CORE subroutine
+        # Stray user subroutine
+        # XXX - Should this be using $sub or $name (orig was $sub)
+        croak(sprintf(ERROR_NOTSUB,$sub));
+    } else {            # CORE subroutine
         $proto = eval { prototype "CORE::$name" };
-	croak(sprintf(ERROR_NOT_BUILT,$name)) if $@;
-	croak(sprintf(ERROR_CANT_OVERRIDE,$name)) if not defined $proto;
-	$core = 1;
-	$call = "CORE::$name";
+        croak(sprintf(ERROR_NOT_BUILT,$name)) if $@;
+        croak(sprintf(ERROR_CANT_OVERRIDE,$name)) if not defined $proto;
+        $core = 1;
+        $call = "CORE::$name";
     }
 
     if (defined $proto) {
-      $real_proto = " ($proto)";
+        $real_proto = " ($proto)";
     } else {
-      $real_proto = '';
-      $proto = '@';
+        $real_proto = '';
+        $proto = '@';
     }
 
     $code = <<EOS;
 sub$real_proto {
-	local(\$", \$!) = (', ', 0);	# XXX - Why do we do this?
+    local(\$", \$!) = (', ', 0);    # XXX - Why do we do this?
         local \$Carp::CarpLevel = 1;    # Avoids awful __ANON__ mentions
 EOS
     my @protos = fill_protos($proto);
@@ -425,11 +431,11 @@ EOS
     $code .= "}\n";
     print $code if $Debug;
     {
-      no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
-      $code = eval("package $pkg; use Carp; $code");
-      die if $@;
-      no warnings;   # to avoid: Subroutine foo redefined ...
-      *{$sub} = $code;
+        no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
+        $code = eval("package $pkg; use Carp; $code");
+        die if $@;
+        no warnings;   # to avoid: Subroutine foo redefined ...
+        *{$sub} = $code;
     }
 }
 
@@ -462,9 +468,9 @@ The use of C<:void> is discouraged.
 
 =head1 DESCRIPTION
 
-	It is better to die() in the attempt than to return() in failure.
+    It is better to die() in the attempt than to return() in failure.
 
-		-- Klingon programming proverb.
+        -- Klingon programming proverb.
 
 C<Fatal> provides a way to conveniently replace
 functions which normally return a false value when they fail with
@@ -484,15 +490,15 @@ named later in that import list raise an exception only when
 these are called in void context--that is, when their return
 values are ignored.  For example
 
-	use Fatal qw/:void open close/;
+    use Fatal qw/:void open close/;
 
-	# properly checked, so no exception raised on error
-	if(open(FH, "< /bogotic") {
-		warn "bogo file, dude: $!";
-	}
+    # properly checked, so no exception raised on error
+    if(open(FH, "< /bogotic") {
+        warn "bogo file, dude: $!";
+    }
 
-	# not checked, so error raises an exception
-	close FH;
+    # not checked, so error raises an exception
+    close FH;
 
 =head1 EXCEPTIONS
 
