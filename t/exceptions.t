@@ -16,6 +16,9 @@ ok($@ ~~ ':file',	"Exception from open / class :file"	);
 ok($@ ~~ ':io',		"Exception from open / class :io"	);
 ok($@ ~~ ':all',	"Exception from open / class :all"	);
 
+like($@, qr/Can't open '\w+' for reading: /, "Prety printed open msg");
+is($@->file, $0, "Correct file");
+
 eval {
 	close(THIS_FILEHANDLE_AINT_OPEN);
 };
@@ -35,9 +38,3 @@ ok($@ ~~ ':file',	"Exception from close / class :file"	);
 ok($@ ~~ ':io',		"Exception from close / class :io"	);
 ok($@ ~~ ':all',	"Exception from close / class :all"	);
 
-TODO: {
-	local $TODO = "Unimplemented";
-	like($@, qr{Can't open \w+ for reading}, "Pretty printed message");
-	is($@->line, '???', "TODO: line number matching.");
-}
-is($@->file, $0, "Correct file");

@@ -30,13 +30,14 @@ fieldhashes \ my(
 
 my %formatter_of = (
 	'CORE::close' => \&format_close,
+	'CORE::open'  => \&format_open,
 );
 
 sub format_close {
 	my ($this) = @_;
 	my $close_arg = $this->args->[0];
 
-	local $! = $errno_of{$this};
+	local $! = $this->errno;
 
 	# If we've got an old-style filehandle, mention it.
 	if ($close_arg and not ref $close_arg) {
@@ -46,6 +47,32 @@ sub format_close {
 	return "Can't close($close_arg) filehandle - $!";
 
 }
+
+sub format_open {
+	my ($this) = @_;
+
+	my @open_args = @{$this->args};
+
+	# We'll only handle 3 argument open for the moment.
+	if (@open_args != 3) {
+		return $this->format_default;
+	}
+
+	my $file = $open_args[2];
+
+	local $! = $this->errno;
+
+	given($open_args[1]) {
+		when ('<')  { return "Can't open '$file' for reading: $!"    }
+		when ('>')  { return "Can't open '$file' for writing: $!"    }
+		when ('>>') { return "Can't open '$file' for appending: $!"  }
+	}
+
+	# Default message (for pipes and odd things)
+
+	return "Can't open '$file' with mode '$open_args[1]': $!";
+}
+
 
 sub register {
 	my ($class, $symbol, $handler) = @_;
@@ -107,6 +134,17 @@ sub stringify {
 		return $sub->($this) . $this->add_file_and_line;
 	}
 
+	return $this->format_default;
+
+}
+
+sub format_default {
+	my ($this) = @_;
+
+	# XXX - This is a horrible guessing hack to try and figure out
+	# our sub name.
+	my $call        =  ($this->call eq '&$sref') ? $this->dying_sub : $this->call;
+
 	local $! = $errno_of{$this};
 
 	# TODO: This is probably a good idea for CORE, is it
@@ -122,6 +160,7 @@ sub stringify {
 	# TODO - Handle user-defined errors from hash.
 
 	# TODO - Handle default error messages.
+
 }
 
 sub new {
@@ -159,5 +198,6 @@ sub package     { return $package_of{     $_[0] } }
 sub calling_sub { return $calling_sub_of{ $_[0] } }
 sub line        { return $line_of{        $_[0] } }
 sub call        { return $call_of{        $_[0] } }
+sub errno	{ return $errno_of{       $_[0] } }
 
 1;
