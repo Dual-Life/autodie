@@ -6,4 +6,4 @@ BEGIN {
 	use_ok( 'Fatal' );
 }
 
-diag( "Testing Fatal $Fatal::VERSION, Perl $], $^X" );
+# diag( "Testing Fatal $Fatal::VERSION, Perl $], $^X" );
