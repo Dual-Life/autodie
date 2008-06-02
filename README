@@ -26,16 +26,16 @@ perldoc command.
 You can also look for information at:
 
     RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Fatal
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie
 
     AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Fatal
+        http://annocpan.org/dist/autodie
 
     CPAN Ratings
-        http://cpanratings.perl.org/d/Fatal
+        http://cpanratings.perl.org/d/autodie
 
     Search CPAN
-        http://search.cpan.org/dist/Fatal
+        http://search.cpan.org/dist/autodie
 
 
 COPYRIGHT AND LICENCE
