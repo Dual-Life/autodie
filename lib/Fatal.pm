@@ -31,7 +31,9 @@ use constant ERROR_NOTSUB    => "%s is not a Perl subroutine";
 use constant ERROR_NOT_BUILT => "%s is neither a builtin, nor a Perl subroutine";
 use constant ERROR_CANT_OVERRIDE => "Cannot make the non-overridable builtin %s fatal";
 
-use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while "use Fatal '%s'" in effect};
+use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while "use Fatal '%s'" is in effect};
+
+use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
 
 our $VERSION = 1.08;
 our $Debug //= 0;
@@ -60,6 +62,10 @@ $TAGS{':all'} = [ keys %TAGS ];
 
 my %hints_index   = (); # Tracks indexes used in our %^H bitstring
 
+# Tracks which subs have already been fatalised.  Important to
+# avoid doubling up on work.
+my %already_fatalised = ();
+
 # Evry time we're called with package scope, we record the subroutine
 # (including package or CORE::) in %package_Fatal.  If we find ourselves
 # in a Fatalised sub without any %^H hints turned on, we can use this
@@ -71,10 +77,8 @@ my %package_Fatal = (); # Tracks Fatal with package scope
 my $PACKAGE    = __PACKAGE__;
 my $NO_PACKAGE = "no $PACKAGE";
 
-# XXX - We can get called multiple times per package, and we
-# may have already replaced the subroutine.  In that case, this
-# should do nothing.  However it appears that it's not always
-# the case... Why?
+# Here's where all the magic happens when someone write 'use Fatal'
+# or 'use autodie'.
 
 sub import {
     my $class   = shift(@_);
@@ -117,26 +121,50 @@ sub import {
         croak(ERROR_LEX_FIRST);
     }
 
-    foreach (@_) {
-        when (':void') { $void = 1; }
+    my @fatalise_these =  @_;
 
-        when (%TAGS) {
-            my @tags = @{$TAGS{$_}};
-            while (my $func = shift @tags) {
+    # NB: we're using while/shift rather than foreach, since
+    # we'll be modifying the array as we walk through it.
 
-                # If we find a tag in a tag, then add its contents
-                # to the list of things to make fatal.
+    while (my $func = shift @fatalise_these) {
+        given ($func) {
 
-                if ($TAGS{$func}) {
-                    push(@tags, @{$TAGS{$func}});
-                } else {
-                    $class->_make_fatal($func, $pkg, $void, $lexical);
-                }
+            # When we see :void, set the void flag.
+            when (':void') { $void = 1; }
+
+            # When it's a tag, expand it.
+            when (%TAGS) {
+                push(@fatalise_these, @{ $TAGS{$_} });
             }
-        }
 
-        default {
-            $class->_make_fatal($_, $pkg, $void, $lexical);
+            # Otherwise, fatalise it.
+            default {
+
+                # We're going to make a subroutine fatalistic.
+                # However if we're being invoked with 'use Fatal qw(x)'
+                # and we've already been called with 'no autodie qw(x)'
+                # in the same scope, we consider this to be an error.
+                # Mixing Fatal and autodie effects was considered to be
+                # needlessly confusing in p5p.
+
+                my $sub = $_;
+                $sub = "${pkg}::$sub" unless $sub =~ /::/;
+
+                my $index = _get_sub_index($sub);
+
+                # If we're being called as Fatal, and we've previously
+                # had a 'no X' in scope for the subroutine.
+
+                no warnings 'uninitialized';
+                if (! $lexical and vec($^H{$NO_PACKAGE}, $index, 1)) {
+                    croak(sprintf(ERROR_FATAL_CONFLICT, $_, $_));
+                }
+
+                # We're not being used in a confusing way, so make
+                # the sub fatal.
+
+                $class->_make_fatal($_, $pkg, $void, $lexical);
+            }
         }
     }
 
@@ -160,8 +188,8 @@ sub unimport {
     # has explicitly stated 'no autodie qw(blah)',
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
-    # If 'blah' was already enabled with Fatal, this is considered
-    # an error.
+    # If 'blah' was already enabled with Fatal (which has package scope)
+    # then, this is considered an error.
 
     if (@_) {
         foreach (@_) {
@@ -232,6 +260,13 @@ sub _expand_tag {
 }
 
 # Get, or generate and get, the bit-index of the given subroutine.
+
+# XXX - This also gets used by parts of the code to determine if we've
+# already replaced that function with a fatalised version.  This is
+# dangerous; we may wish to generate an index without dropping in a
+# replacement.  Perhaps we need a different index to keep track of
+# replaced subs?
+
 sub _get_sub_index {
     my ($sub) = @_;
     return $hints_index{$sub} // ($hints_index{$sub} = keys %hints_index);
@@ -374,16 +409,15 @@ sub _make_fatal {
     # already Fatalised it.  So safe ourselves some effort
     # by setting our %^H hints and returning immediately.
 
-    my ($index, $already_fatalised);
-
-    $index = $already_fatalised = $hints_index{$sub};
+    my $index             = _get_sub_index($sub);
+    my $already_fatalised = $already_fatalised{$sub};
 
     # Figure if we're using lexical or package semantics and
     # twiddle the appropriate bits.
 
     if ($lexical) {
         $index //= _get_sub_index($sub);
-    vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
+        vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
         vec($^H{$NO_PACKAGE}, $hints_index{$sub},1) = 0;
     } else {
         $package_Fatal{$sub} = 1;
@@ -423,7 +457,7 @@ sub _make_fatal {
 
     $code = <<EOS;
 sub$real_proto {
-    local(\$", \$!) = (', ', 0);    # XXX - Why do we do this?
+        local(\$", \$!) = (', ', 0);    # XXX - Why do we do this?
         local \$Carp::CarpLevel = 1;    # Avoids awful __ANON__ mentions
 EOS
     my @protos = fill_protos($proto);
@@ -436,6 +470,9 @@ EOS
         die if $@;
         no warnings;   # to avoid: Subroutine foo redefined ...
         *{$sub} = $code;
+
+        # Mark the sub as fatalised.
+        $already_fatalised{$sub} = 1;
     }
 }
 
