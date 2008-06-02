@@ -9,6 +9,9 @@ our @ISA = qw(Fatal);
 # When passing args to Fatal we want to keep the first arg
 # (our package) in place.  Hence the splice.
 
+# TODO: Consider making a bare 'use autodie' the same as
+# 'use autodie qw(:all)'.
+
 sub import {
 	splice(@_,1,0,Fatal::LEXICAL_TAG);
 	goto &Fatal::import;
