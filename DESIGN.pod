@@ -29,6 +29,7 @@ support it, p5p decided it would be very confusing.
 
 The following conditions are considered errors (and are
 enforced by the code):
+
 =over 4
 
 =item C<no Fatal>
