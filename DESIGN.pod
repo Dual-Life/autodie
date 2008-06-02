@@ -1,3 +1,8 @@
+=head1 NOTES
+
+PJF in this document refers to Paul Fenwick E<lt>pjf@cpan.orgE<gt>,
+the author of the C<autodie> pragma.
+
 =head1 DECIDED BEHAVIOUR
 
 =head2 Name
@@ -65,6 +70,70 @@ enabling the pragma for all built-ins for which it makes sense
 to do so.  It should be noted that this list may increase in
 later versions of the module.
 
+=head2 Overriding system
+
+The in-built C<system> function does not have a prototype.
+It's been proposed we ignore the fact that it can't be
+overridden in the traditional sense, and do it anyway.  This
+would make the exotic form of C<system> a syntax error
+within the package that C<Fatal> or C<autodie> was used:
+
+    system { $cmd } @list;
+
+It can still be invoked with:
+
+    CORE::system { $cmd } @list;
+
+Although this form is not checked for failure.
+
+The proposed method for determining "what is an error" for
+C<system> is the same as that used by L<IPC::System::Simple>,
+namely that the following are considered errors:
+
+=over 4
+
+=item Failing to start (eg, command not found)
+
+=item Returning a non-zero exit status
+
+=item Being killed by a signal (which may result in a coredump)
+
+=back
+
+PJF would like to use the existing L<IPC::System::Simple> module
+(of which he is the author) to implement the handling of
+C<autodie>'s interaction with C<system>, since it already does
+all the hard work, and works on all platforms on which it's
+been tested (including Win32 and Unix flavours, but not exotic
+systems like VMS).
+
+L<IPC::System::Simple> has no dependencies outside the core,
+but there's the question that if we want C<autodie> to be
+a core candidate, do we also wish to include L<IPC::System::Simple>?
+
+=head2 Dependencies
+
+PJF would like to make C<autodie> a candidate for Perl 5.10.1
+core, as it squashes some bad behaviour in C<Fatal>, provides
+nicer error messages, and provides a well-defined lexical
+way of having built-ins throw excpetions.  He would like to
+use some non-core modules in its creation, but if C<autodie>
+is going to be included in the core, this will contribute
+towards core bloat.
+
+PJF would like to have the option of using L<IPC::System::Simple>
+and L<Exception::Class> as part of the implementation of
+C<autodie>.  L<IPC::System::Simple> has only core dependencies,
+but L<Exception::Class> depends upon L<Devel::StackTrace>
+and L<Class::Data::Inheritable>.
+
+C<autodie> can be implemented without these modules, and
+already provides simple object-based exceptions with inspiration
+from the L<Exception::Class> design.  Implementing the proposed
+C<system> changes becomes trivial using L<IPC::System::Simple>,
+since its C<run> command already works in the same way as
+the proposed C<system> changes.
+
 =head1 BUGS
 
 =over 4
@@ -88,18 +157,5 @@ the second open is not checked in the following code:
         open(my $fh2, '<', $some_file);     # not autodying
 
     }
-
-=item Exotic system
-
-Under the proposed C<system> additions, the exotic form of
-system becomes a syntax error:
-
-    system { $cmd } @list;
-
-It can still be invoked with:
-
-    CORE::system { $cmd } @list;
-
-Although this form is not checked for failure.
 
 =back
