@@ -73,10 +73,9 @@ like($@, qr{Cannot use lexical autodie with no arguments}, "No bare autodie");
 		local $TODO = "unimplemented";
 
 		no autodie qw(close);
-		eval "use Fatal qw(close)";
+		eval { Fatal->import('close'); };
 
-		# XXX - This needs a better test
-		::like($@, qr{.}, "Using fatal after autodie is an error.");
+		::ok($@, "Using fatal after autodie is an error.");
 	}
 }
 
