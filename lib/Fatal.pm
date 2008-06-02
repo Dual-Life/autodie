@@ -436,10 +436,22 @@ sub _make_fatal {
         $sref = \&$sub;
         $proto = prototype $sref;
         $call = '&$sref';
+
     } elsif ($sub eq $ini && $sub !~ /^CORE::GLOBAL::/) {
         # Stray user subroutine
         # XXX - Should this be using $sub or $name (orig was $sub)
         croak(sprintf(ERROR_NOTSUB,$sub));
+
+    } elsif ($name eq 'system') {
+        # XXX - Experimental.  Just testing for system is
+        # incomplete (what about CORE::system), and it doesn't have
+        # a prototype.
+
+        $real_proto = '';
+        $proto = '@';
+        $core = 1;
+        $call = 'CORE::system';
+
     } else {            # CORE subroutine
         $proto = eval { prototype "CORE::$name" };
         croak(sprintf(ERROR_NOT_BUILT,$name)) if $@;
