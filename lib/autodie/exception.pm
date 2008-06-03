@@ -241,3 +241,9 @@ sub call        { return $call_of{        $_[0] } }
 sub errno       { return $errno_of{       $_[0] } }
 
 1;
+
+__END__
+
+=head1 AUTHOR
+
+Paul Fenwick E<lt>pjf@perltraining.com.auE<gt>
