@@ -55,6 +55,18 @@ effect.
 
 =head1 OPEN QUESTIONS
 
+=head2 Errors from Fatal
+
+The current implementation makes the error messages from Fatal
+look really nice.  However it also opens the possibility of those
+nice messages breaking backwards compatibility.
+
+It's been mostly decided that Fatal will retain its existing
+yet rather awful looking messages, in case people are testing
+them with $@ =~ /..../ and looking for some really odd patterns.
+
+If you want nice looking messages, one is encouraged to s/Fatal/autodie/;
+
 =head2 Vanilla autodie
 
 The vanilla form:
@@ -64,11 +76,13 @@ The vanilla form:
 is presently (June 2008) open for discussion.  PJF's opinion
 is that it should be the same as:
 
-    use autodie qw(:all);
+    use autodie qw(:default);
 
 enabling the pragma for all built-ins for which it makes sense
 to do so.  It should be noted that this list may increase in
-later versions of the module.
+later versions of the module.  The C<:default> list may also
+contain user-defined subroutines which wish to register themselves
+with that behaviour (although these should be rare).
 
 =head2 Overriding system
 
