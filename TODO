@@ -1,0 +1,31 @@
+This is not an exhaustive list of TODO items.
+
+* Make Fatal errors ugly again.
+
+* Define roles properly.
+
+* Trawl through perlfunc to find which things autodie may apply to.
+
+* Make system Fatalise/autodieable.
+
+    * Q: Can we use IPC::System::Simple for this?
+
+* Generate a good way to allow subroutines to register themselves
+  with roles and message handlers, possibly defining their own
+  exception handler to use.
+
+* Provide an autodie mixin which at least provides expected autodie
+  behaviours, even if someone wants to use their own exception class.
+
+* Provide a nice way to override message handlers.
+
+* Finalise the exception interface.
+
+* Write a huge amount of documentation.
+
+* Write a huge amount of tests.
+
+* Figure out how to get it all running on Perl 5.8
+    * Can it actually run in theory? (see autobox for an example)
+    * Remove all the 5.10 things from the code (~~ and given/when)
+    * Make things like overloading ~~ only happen in 5.10+
