@@ -50,10 +50,10 @@ sub format_close {
 
     # If we've got an old-style filehandle, mention it.
     if ($close_arg and not ref $close_arg) {
-        return "Can't close filehandle '$close_arg' - $!";
+        return "Can't close filehandle '$close_arg': '$!'";
     }
 
-    return "Can't close($close_arg) filehandle - $!";
+    return "Can't close($close_arg) filehandle: '$!'";
 
 }
 
@@ -74,14 +74,14 @@ sub format_open {
     local $! = $this->errno;
 
     given($open_args[1]) {
-        when ('<')  { return "Can't open '$file' for reading: $!"    }
-        when ('>')  { return "Can't open '$file' for writing: $!"    }
-        when ('>>') { return "Can't open '$file' for appending: $!"  }
+        when ('<')  { return "Can't open '$file' for reading: '$!'"    }
+        when ('>')  { return "Can't open '$file' for writing: '$!'"    }
+        when ('>>') { return "Can't open '$file' for appending: '$!'"  }
     }
 
     # Default message (for pipes and odd things)
 
-    return "Can't open '$file' with mode '$open_args[1]': $!";
+    return "Can't open '$file' with mode '$open_args[1]': '$!'";
 }
 
 =head2 register
