@@ -386,7 +386,8 @@ sub one_invocation {
 
     if ($void) {
         return qq{
-            return (defined wantarray)?$call(@argv):
+            return $call(@argv) if defined wantarray;
+
             $call(@argv) $op die autodie::exception->new(
                 function => q{$sub}, call => q{$call}, args => [ @argv ]
             );
@@ -394,6 +395,20 @@ sub one_invocation {
     }
 
     return qq{
+        if (wantarray) {
+            my \@results = $call(@argv);
+            # If we got back nothing, or we got back a single
+            # undef, we die.
+            if (! \@results or (\@results == 1 and ! defined \$results[0])) {
+                die autodie::exception->new(
+                    function => q{$sub}, call => q{$call}, args => [ @argv ]
+                );
+            };
+            return \@results;
+        }
+
+        # Otherwise, we're in scalar context.
+
         return $call(@argv) $op die autodie::exception->new(
             function => q{$sub}, call => q{$call}, args => [ @argv ]
         );
@@ -600,11 +615,14 @@ the C<perlbug> command.
 
 =back
 
-=head1 BUGS
+=head1 GOTCHAS
 
-You should not fatalize functions that are called in list context,
-because this module tests whether a function has failed by testing the
-boolean truth of its return value in scalar context.
+As of Fatal XXX, subroutines that normally return a list can
+be Fatalised without clobbering their context.  It should be noted
+that Fatal will consider the subroutine to fail if it returns
+either an empty list, or a list consisting of a single undef.
+
+=head1 BUGS
 
 Fatal makes changes to your current package, including when changing
 built-in functions.  Changing to a new package will result in calls

@@ -13,18 +13,23 @@ sub list_return2 {
     return qw(foo bar baz);
 }
 
+# Returns a list presented to it, but also returns a single
+# undef if given a list of a single undef.  This mimics the
+# behaviour of many user-defined subs and built-ins (eg: open) that
+# always return undef regardless of context.
+
+sub list_mirror {
+    return undef if (@_ == 1 and not defined $_[0]);
+    return @_;
+
+}
+
 use Fatal qw(list_return);
 use Fatal qw(:void list_return2);
 
-TODO: {
+my @list = list_return();
 
-    local $TODO = "Unimplemented: Fatal still clobbers context";
-
-    my @list = list_return();
-
-    is_deeply(\@list,[qw(foo bar baz)],'fatal sub works in list context');
-
-}
+is_deeply(\@list,[qw(foo bar baz)],'fatal sub works in list context');
 
 eval {
     my @line = list_return(1);  # Should die
@@ -34,9 +39,9 @@ ok($@,"List return fatalised");
 
 ### Tests where we've fatalised our function with :void ###
 
-my @list = list_return2();
+my @list2 = list_return2();
 
-is_deeply(\@list,[qw(foo bar baz)],'fatal sub works in list context');
+is_deeply(\@list2,[qw(foo bar baz)],'fatal sub works in list context');
 
 eval {
     my @line = list_return2(1);  # Shouldn't die
@@ -46,8 +51,63 @@ ok(! $@,"void List return fatalised survives when non-void");
 
 eval {
     list_return2(1);
-    1;  # Needed to force previous line to void context.
 };
 
 ok($@,"void List return fatalised");
 
+### autodie clobbering tests ###
+
+eval {
+    list_mirror();
+};
+
+ok(! $@, "No autodie, no fatality");
+
+eval {
+    use autodie qw(list_mirror);
+    list_mirror();
+};
+
+ok($@, "Autodie fatality for empty return in void context");
+
+eval {
+    use autodie qw(list_mirror);
+    list_mirror(undef);
+};
+
+ok($@, "Autodie fatality for undef return in void context");
+
+eval {
+    use autodie qw(list_mirror);
+    my @list = list_mirror();
+};
+
+ok($@,"Autodie fality for empty list return");
+
+eval {
+    use autodie qw(list_mirror);
+    my @list = list_mirror(undef);
+};
+
+ok($@,"Autodie fality for undef list return");
+
+eval {
+    use autodie qw(list_mirror);
+    my @list = list_mirror("tada");
+};
+
+ok(! $@,"No Autodie fality for defined list return");
+
+eval {
+    use autodie qw(list_mirror);
+    my $single = list_mirror("tada");
+};
+
+ok(! $@,"No Autodie fality for defined scalar return");
+
+eval {
+    use autodie qw(list_mirror);
+    my $single = list_mirror(undef);
+};
+
+ok($@,"Autodie fality for undefined scalar return");

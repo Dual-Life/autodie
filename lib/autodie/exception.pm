@@ -193,7 +193,7 @@ sub format_default {
     $call =~ s/.*:://;
 
     return "Can't $call(".
-        join(q{, },@{$this->args()}) . "): $!" .
+        join(q{, }, map { defined($_) ? "'$_'" : "undef" } @{$this->args()}) . "): $!" .
         $this->add_file_and_line;
 
     # TODO - Handle user-defined errors from hash.
