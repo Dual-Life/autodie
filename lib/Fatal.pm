@@ -53,6 +53,16 @@ my %TAGS = (
 
 $TAGS{':all'} = [ keys %TAGS ];
 
+# This hash contains subroutines for which we should
+# subroutine() // die() rather than subroutine() || die()
+
+my %use_defined_or;
+
+@use_defined_or{qw(
+    CORE::send CORE::recv
+)} = ();
+
+
 # Every time we're asked to Fatalise a with lexical scope subroutine,
 # we generate it a unique sequential ID number and store it in our
 # %hints_index using the full package name as a key (or
@@ -360,13 +370,6 @@ EOC
     }
 }
 
-# XXX - This looks ugly.  Fix it.
-
-my %use_defined_or;
-@use_defined_or{qw(
-    CORE::send CORE::recv
-)} = ();
-
 sub one_invocation {
     my ($core, $call, $name, $void, $sub, @argv) = @_;
 
@@ -505,7 +508,9 @@ The use of C<:void> is discouraged.
 
 =head1 DESCRIPTION
 
-    It is better to die() in the attempt than to return() in failure.
+    bIlujDI' yIchegh()Qo'; yIHegh()!
+
+    It is better to die() than to return() in failure.
 
         -- Klingon programming proverb.
 
@@ -536,12 +541,6 @@ values are ignored.  For example
 
     # not checked, so error raises an exception
     close FH;
-
-=head1 EXCEPTIONS
-
-As of Fatal version XXX, all exceptions from C<Fatal> are
-members of the C<autodie::exception> class.  See L<autodie>
-and L<autodie::exception> for more information.
 
 =head1 DIAGNOSTICS
 
@@ -630,5 +629,9 @@ same terms as Perl itself.
 L<autodie> for a nicer way to use lexical Fatal.
 
 L<IPC::System::Simple> for a similar idea for calls to C<system()>.
+
+=head1 ACKNOWLEDGEMENTS
+
+Mark Reed and Roland Giersig -- Klingon translators.
 
 =cut
