@@ -1,8 +1,5 @@
 This is not an exhaustive list of TODO items.
 
-* Make Fatal package/class variables start with an uppercase
-  character.  They look way too local right now.
-
 * Don't clobber the context of functions called with Fatal/autodie.
     * Test needed!
 

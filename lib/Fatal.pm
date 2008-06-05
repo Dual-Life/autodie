@@ -15,9 +15,9 @@ use autodie::exception;
 #    (Checked by a bit in $hints->{$NO_PACKAGE}
 # 3) We've been used lexically somewhere else, but we're currently
 #    acting with default Perl semantics
-#    (Checked by the above two being false, and NO entry in %package_Fatal)
+#    (Checked by the above two being false, and NO entry in %Package_Fatal)
 # 4) We're just working with package fatal semantics.
-#    (Checked by (1) and (2) being false, and an entry in %package_Fatal)
+#    (Checked by (1) and (2) being false, and an entry in %Package_Fatal)
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -56,33 +56,33 @@ $TAGS{':all'} = [ keys %TAGS ];
 # This hash contains subroutines for which we should
 # subroutine() // die() rather than subroutine() || die()
 
-my %use_defined_or;
+my %Use_defined_or;
 
-@use_defined_or{qw(
+@Use_defined_or{qw(
     CORE::send CORE::recv
 )} = ();
 
 
 # Every time we're asked to Fatalise a with lexical scope subroutine,
 # we generate it a unique sequential ID number and store it in our
-# %hints_index using the full package name as a key (or
+# %Hints_index using the full package name as a key (or
 # CORE::$function for a core).  These indexes correspond to the
 # bit-strings we store in %^H to remember which subroutines have been
 # fatalised with a lexical scope.
 
-my %hints_index   = (); # Tracks indexes used in our %^H bitstring
+my %Hints_index   = (); # Tracks indexes used in our %^H bitstring
 
 # Tracks which subs have already been fatalised.  Important to
 # avoid doubling up on work.
-my %already_fatalised = ();
+my %Already_fatalised = ();
 
 # Evry time we're called with package scope, we record the subroutine
-# (including package or CORE::) in %package_Fatal.  If we find ourselves
+# (including package or CORE::) in %Package_Fatal.  If we find ourselves
 # in a Fatalised sub without any %^H hints turned on, we can use this
 # to determine if we should be acting with package scope, or we've
 # just fallen out of lexical context.
 
-my %package_Fatal = (); # Tracks Fatal with package scope
+my %Package_Fatal = (); # Tracks Fatal with package scope
 
 my $PACKAGE    = __PACKAGE__;
 my $NO_PACKAGE = "no $PACKAGE";
@@ -206,7 +206,7 @@ sub unimport {
             my $sub = $_;
             $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-            if (exists $package_Fatal{$sub}) {
+            if (exists $Package_Fatal{$sub}) {
                 croak(sprintf(ERROR_AUTODIE_CONFLICT,$_,$_));
             }
 
@@ -232,7 +232,7 @@ sub unimport {
         # don't care, since those bytes will never be looked
         # at.
 
-        my $bytes = int(keys(%hints_index) / 8)+1;
+        my $bytes = int(keys(%Hints_index) / 8)+1;
         $^H{$NO_PACKAGE} = "\x{ff}" x $bytes;
     }
 }
@@ -279,7 +279,7 @@ sub _expand_tag {
 
 sub _get_sub_index {
     my ($sub) = @_;
-    return $hints_index{$sub} // ($hints_index{$sub} = keys %hints_index);
+    return $Hints_index{$sub} // ($Hints_index{$sub} = keys %Hints_index);
 }
 
 sub fill_protos {
@@ -328,7 +328,7 @@ sub write_invocation {
             } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
-            } elsif (].($package_Fatal{$sub}||0).qq[) {
+            } elsif (].($Package_Fatal{$sub}||0).qq[) {
                   # We're using package semantics.
                   ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
             }
@@ -354,7 +354,7 @@ sub write_invocation {
             } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
-            } elsif (].($package_Fatal{$sub}||0).qq[) {
+            } elsif (].($Package_Fatal{$sub}||0).qq[) {
                   # We're using  package semantics.
                   ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
             }
@@ -375,7 +375,7 @@ sub one_invocation {
 
     my $op = '||';
 
-    if (exists $use_defined_or{$call}) {
+    if (exists $Use_defined_or{$call}) {
         $op = '//';
     }
 
@@ -413,21 +413,21 @@ sub _make_fatal {
     # by setting our %^H hints and returning immediately.
 
     my $index             = _get_sub_index($sub);
-    my $already_fatalised = $already_fatalised{$sub};
+    my $Already_fatalised = $Already_fatalised{$sub};
 
     # Figure if we're using lexical or package semantics and
     # twiddle the appropriate bits.
 
     if ($lexical) {
         $index //= _get_sub_index($sub);
-        vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
-        vec($^H{$NO_PACKAGE}, $hints_index{$sub},1) = 0;
+        vec($^H{$PACKAGE},    $Hints_index{$sub},1) = 1;
+        vec($^H{$NO_PACKAGE}, $Hints_index{$sub},1) = 0;
     } else {
-        $package_Fatal{$sub} = 1;
+        $Package_Fatal{$sub} = 1;
     }
 
     # Return immediately if we've already fatalised our code.
-    return if defined $already_fatalised;
+    return if defined $Already_fatalised;
 
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;
@@ -475,7 +475,7 @@ EOS
         *{$sub} = $code;
 
         # Mark the sub as fatalised.
-        $already_fatalised{$sub} = 1;
+        $Already_fatalised{$sub} = 1;
     }
 }
 
