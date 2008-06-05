@@ -1,7 +1,6 @@
 This is not an exhaustive list of TODO items.
 
 * Don't clobber the context of functions called with Fatal/autodie.
-    * Test needed!
 
 * Make Fatal errors ugly again.
 
