@@ -58,6 +58,8 @@ sub format_close {
 }
 
 # Default formatter for CORE::open
+# Currently only works with 3-arg open.
+# TODO: Pretty printing for 2-arg (and 1-arg?) open.
 
 sub format_open {
     my ($this) = @_;
