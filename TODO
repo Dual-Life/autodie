@@ -29,3 +29,6 @@ This is not an exhaustive list of TODO items.
     * Can it actually run in theory? (see autobox for an example)
     * Remove all the 5.10 things from the code (~~ and given/when)
     * Make things like overloading ~~ only happen in 5.10+
+
+* Write tests to make sure that nothing clobbers $@ accidently,
+  especially in autodie::exception.
