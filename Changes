@@ -5,6 +5,7 @@ Revision history for Fatal
 	* Fatal is now fully backwaards compatible again.
 	* system() can be fatalised/autodying if IPC::System::Simple
 	  is installed.
+	* Rationlisation of autodie::exception API.
 
 1.08	Sat Mar 29 10:54:20 AUSEDT 2008
         Dual-lifed module internally from work I was doing on p5p.

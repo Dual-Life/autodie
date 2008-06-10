@@ -1,5 +1,10 @@
 This is not an exhaustive list of TODO items.
 
+* Write a bunch of tests for the exception API
+
+* What's the difference between ->sub and ->call in
+  autodie::exception?  Can we please get rid of one (preferably ->call)?
+
 * Make sure system() returns a real exception object, not just a string.
 
 * Test cases needed for checking for old IPC::System::Simple versions.

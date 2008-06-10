@@ -22,10 +22,10 @@ our $VERSION = '1.00';
 fieldhashes \ my(
     %args_of,
     %file_of,
-    %calling_sub_of,
+    %caller_of,
     %line_of,
     %package_of,
-    %dying_sub_of,
+    %sub_of,
     %errno_of,
     %call_of,
 );
@@ -150,7 +150,7 @@ sub matches {
     my $sub = $this->call;
 
     if ($DEBUG) {
-        my $sub2 = $this->dying_sub;
+        my $sub2 = $this->sub;
         warn "Smart-matching $that against $sub / $sub2\n";
     }
 
@@ -181,13 +181,13 @@ sub stringify {
 
     # XXX - This is a horrible guessing hack to try and figure out
     # our sub name.
-    my $call        =  ($this->call eq '&$sref') ? $this->dying_sub : $this->call;
+    my $call        =  ($this->call eq '&$sref') ? $this->sub : $this->call;
 
     if ($DEBUG) {
         my $dying_pkg   = $this->package;
-        my $dying_sub   = $this->dying_sub;
-        my $calling_sub = $this->calling_sub;
-        warn "Stringifing exception for $dying_pkg :: $dying_sub / $calling_sub / $call\n";
+        my $sub   = $this->sub;
+        my $caller = $this->caller;
+        warn "Stringifing exception for $dying_pkg :: $sub / $caller / $call\n";
     }
 
     # XXX - This isn't using inheritance.  Should it?
@@ -211,7 +211,7 @@ sub format_default {
 
     # XXX - This is a horrible guessing hack to try and figure out
     # our sub name.
-    my $call        =  ($this->call eq '&$sref') ? $this->dying_sub : $this->call;
+    my $call        =  ($this->call eq '&$sref') ? $this->sub : $this->call;
 
     local $! = $errno_of{$this};
 
@@ -264,28 +264,84 @@ sub _init {
     $package_of{    $this} = $package;
     $file_of{       $this} = $file;
     $line_of{       $this} = $line;
-    $calling_sub_of{$this} = $sub;
+    $caller_of{$this} = $sub;
     $package_of{    $this} = $package;
     $errno_of{      $this} = $!;
     $args_of{       $this} = $args{args}     || [];
     $call_of{       $this} = $args{call} or
             croak("$class->new() called without call_of arg");
-    $dying_sub_of{  $this} = $args{function} or
+    $sub_of{  $this} = $args{function} or
               croak("$class->new() called without function arg");
 
     return $this;
 
 }
 
-# TODO: Some of these names don't match the presentation, and
-# some of them could probably be made easier to understand.
+=head2 args
+
+	my $array_ref = $e->args;
+
+Provides a reference to the arguments passed to the subroutine
+that died.
+
+=cut
 
 sub args        { return $args_of{        $_[0] } }
+
+=head2 sub
+
+	my $sub = $e->sub;
+
+The subroutine (including package) that threw the exception.
+
+=cut
+
+sub sub   { return $sub_of{   $_[0] } }
+
+=head2 file
+
+	my $file = $e->file;
+
+The file in which the error occured (eg, C<myscript.pl> or
+C<MyTest.pm>).
+
+=cut
+
 sub file        { return $file_of{        $_[0] } }
-sub dying_sub   { return $dying_sub_of{   $_[0] } }
+
+=head2 package
+
+	my $package = $e->package;
+
+The package from which the exceptional subroutine was called.
+
+=cut
+
 sub package     { return $package_of{     $_[0] } }
-sub calling_sub { return $calling_sub_of{ $_[0] } }
+
+=head2 caller
+
+	my $caller = $e->caller;
+
+The subroutinet that called the exceptional code.
+
+=cut
+
+sub caller      { return $caller_of{ $_[0] } }
+
+=head2 line
+
+	my $line = $e->line;
+
+The line in C<$e->file> where the exceptional code was called.
+
+=cut
+
 sub line        { return $line_of{        $_[0] } }
+
+# call - what was actually called, as oppsed to 'sub', which is what?
+# Sometimes 'call' is some rubbishy rubbish.
+
 sub call        { return $call_of{        $_[0] } }
 sub errno       { return $errno_of{       $_[0] } }
 
