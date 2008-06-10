@@ -4,11 +4,13 @@ This is not an exhaustive list of TODO items.
   autodie.  The :lexical option is no longer officially supported in
   Fatal.
 
+* (More?) tests for user defined subs!
+
 * Define roles properly.
 
 * Trawl through perlfunc to find which things autodie may apply to.
 
-* Make system Fatalise/autodieable.
+* Make system() Fatalise/autodieable.
 
     * Q: Can we use IPC::System::Simple for this?
 
