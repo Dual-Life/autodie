@@ -324,13 +324,13 @@ sub write_invocation {
             no warnings 'uninitialized';
             if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using lexical semantics.
-                  ].one_invocation($core,$call,$name,0,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
             } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
             } elsif (].($Package_Fatal{$sub}||0).qq[) {
                   # We're using package semantics.
-                  ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
             }
             # Default: non-Fatal semantics
             return $call(].join(', ',@argv).qq[);
@@ -350,13 +350,13 @@ sub write_invocation {
             no warnings 'uninitialized';
             if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using lexical semantics.
-                  ].one_invocation($core,$call,$name,0,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
             } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
             } elsif (].($Package_Fatal{$sub}||0).qq[) {
                   # We're using  package semantics.
-                  ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
             }
             # Default: non-Fatal semantics
             return $call(].join(', ',@argv).qq[);
@@ -371,7 +371,40 @@ EOC
 }
 
 sub one_invocation {
-    my ($core, $call, $name, $void, $sub, @argv) = @_;
+    my ($core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
+
+    # We should *never* get here, but if someone is calling us
+    # directly (a child class perhaps?) then they could try to mix
+    # void without enabling backwards compatibility.  We just don't
+    # support this at all, so we gripe about it rather than doing
+    # something unwise.
+
+    if ($void and not $back_compat) {
+        croak("Internal error: :void mode not supported with autodie");
+    }
+
+    # @argv only contains the results of the in-built prototype
+    # function, and is therefore safe to interpolate in the
+    # code generators below.
+
+    # TODO - The following clobbers context, but that's what the
+    #        old Fatal did.  Do we care?
+
+    if ($back_compat) {
+
+        local $" = ', ';
+
+        if ($void) {
+            return qq/(defined wantarray)?$call(@argv):
+                   $call(@argv) || croak "Can't $name(\@_)/ .
+                   ($core ? ': $!' : ', \$! is \"$!\"') . '"'
+        } else {
+            return qq{$call(@argv) || croak "Can't $name(\@_)} .
+                   ($core ? ': $!' : ', \$! is \"$!\"') . '"';
+        }
+    }
+
+    # New autodie implementation.
 
     my $op = '||';
 
@@ -379,20 +412,7 @@ sub one_invocation {
         $op = '//';
     }
 
-    # @argv only contains the results of the in-built prototype
-    # function, and hence does what it's supposed to below.
-
     local $" = ', ';
-
-    if ($void) {
-        return qq{
-            return $call(@argv) if defined wantarray;
-
-            $call(@argv) $op die autodie::exception->new(
-                function => q{$sub}, call => q{$call}, args => [ @argv ]
-            );
-        };
-    }
 
     return qq{
         if (wantarray) {
@@ -475,8 +495,11 @@ sub _make_fatal {
 
     $code = <<EOS;
 sub$real_proto {
-        local(\$", \$!) = (', ', 0);    # XXX - Why do we do this?
-        local \$Carp::CarpLevel = 1;    # Avoids awful __ANON__ mentions
+        local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
+        # local \$Carp::CarpLevel = 1;  # Avoids awful __ANON__ mentions
+                                        # Disabled for backcompat with
+                                        # Fatal.  autodie doesn't care,
+                                        # it has object stringification.
 EOS
     my @protos = fill_protos($proto);
     $code .= write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);

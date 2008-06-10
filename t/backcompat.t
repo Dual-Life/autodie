@@ -8,14 +8,7 @@ eval {
     open(my $fh, '<', NO_SUCH_FILE);
 };
 
-TODO: {
+my $old_msg = qr{Can't open\(GLOB\(0x[0-9a-f]+\), <, xyzzy_this_file_is_not_here\): No such file or directory at \(eval \d+\) line \d+\s+main::__ANON__\('GLOB\(0x[0-9a-f]+\)', '<', 'xyzzy_this_file_is_not_here'\) called at \S+ line \d+\s+eval \Q{...}\E called at \S+ line \d+};
 
-    local $TODO = "Backwards compatibility not implemented";
-
-    my $old_msg = qr{Can't open\(GLOB\(0x[0-9a-f]{8}\), <, xyzzy_this_file_is_not_here\): No such file or directory at \(eval 1\) line \d+
-        main::__ANON__\('GLOB\(0x[0-9a-f]{8}\)', '<', 'xyzzy_this_file_is_not_here'\) called at backcompat.t line 8
-        eval \Q{...}\E called at backcompat.t line \d+};
-
-    like($@,$old_msg,"Backwards compat ugly messages");
-    ok(!ref($@), "Exception is a string, not an object");
-}
+like($@,$old_msg,"Backwards compat ugly messages");
+ok(!ref($@), "Exception is a string, not an object");

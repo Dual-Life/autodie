@@ -1,6 +1,8 @@
 This is not an exhaustive list of TODO items.
 
-* Make Fatal errors ugly again.
+* Consider removing :lexical tests in t/* and convert them to using
+  autodie.  The :lexical option is no longer officially supported in
+  Fatal.
 
 * Define roles properly.
 
