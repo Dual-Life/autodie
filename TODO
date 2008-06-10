@@ -1,5 +1,9 @@
 This is not an exhaustive list of TODO items.
 
+* Make sure system() returns a real exception object, not just a string.
+
+* Test cases needed for checking for old IPC::System::Simple versions.
+
 * Consider removing :lexical tests in t/* and convert them to using
   autodie.  The :lexical option is no longer officially supported in
   Fatal.
@@ -9,10 +13,6 @@ This is not an exhaustive list of TODO items.
 * Define roles properly.
 
 * Trawl through perlfunc to find which things autodie may apply to.
-
-* Make system() Fatalise/autodieable.
-
-    * Q: Can we use IPC::System::Simple for this?
 
 * Generate a good way to allow subroutines to register themselves
   with roles and message handlers, possibly defining their own

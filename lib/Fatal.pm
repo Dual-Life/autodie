@@ -31,9 +31,15 @@ use constant ERROR_NOTSUB    => "%s is not a Perl subroutine";
 use constant ERROR_NOT_BUILT => "%s is neither a builtin, nor a Perl subroutine";
 use constant ERROR_CANT_OVERRIDE => "Cannot make the non-overridable builtin %s fatal";
 
+use constant ERROR_NO_IPC_SYS_SIMPLE => "IPC::System::Simple required for Fatalised/autodying system()";
+
+use constant ERROR_IPC_SYS_SIMPLE_OLD => "IPC::System::Simple version %f required for Fatalised/autodying system().  We only have version %f";
+
 use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while "use Fatal '%s'" is in effect};
 
 use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
+
+use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 our $VERSION = 1.08;
 our $Debug //= 0;
@@ -481,14 +487,38 @@ sub _make_fatal {
         croak(sprintf(ERROR_NOTSUB,$sub));
 
     } elsif ($name eq 'system') {
-        # XXX - Experimental.  Just testing for system is
-        # incomplete (what about CORE::system), and it doesn't have
-        # a prototype.
 
-        $real_proto = '';
-        $proto = '@';
-        $core = 1;
-        $call = 'CORE::system';
+        eval {
+            require IPC::System::Simple; # Only load it if we need it.
+        };
+
+        # TODO: IPC::System::Simple doesn't currently return
+        # exception objects, only strings.  We should check for
+        # a particular version number, and make sure it does the
+        # right thing with regards to exceptions.
+
+        # Alternatively, (and possibly betterly) we should use
+        # IPC::System::Simple for the heavy lifting, and mint our
+        # own error objects.
+
+        if ($@) { croak ERROR_NO_IPC_SYS_SIMPLE; }
+
+	# Make sure we're using a recent version of ISS that actually
+	# support fatalised system.
+	if ($IPC::System::Simple::VERSION < MIN_IPC_SYS_SIMPLE_VER) {
+	    croak sprintf(
+                ERROR_IPC_SYS_SIMPLE_OLD, MIN_IPC_SYS_SIMPLE_VER,
+		$IPC::System::Simple::VERSION
+	    );
+	}
+
+        {
+            no strict 'refs'; # To avoid can't use string() as symbol ref.
+            no warnings;      # Avoids sub redefined warnings.
+            *{$sub} = \&IPC::System::Simple::system;
+        }
+
+        return;
 
     } else {            # CORE subroutine
         $proto = eval { prototype "CORE::$name" };
