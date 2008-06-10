@@ -4,11 +4,12 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use Hash::Util qw(fieldhashes);
+use NEXT;	# for EVERY
 
 our $DEBUG = 0;
 
 use overload
-    '~~'  => "smart_match",
+    '~~'  => "matches",
     q{""} => "stringify"
 ;
 
@@ -105,13 +106,39 @@ sub register {
 
 }
 
-# Implements the smart-match operator.  Currently considered true
-# if:
-#       * The dying subroutine name matches the string passed.
-#       * The string passed starts with a : and the dying sub
-#         is a member of that tag-group.
+=head2 matches
 
-sub smart_match {
+	if ( $e->matches('open') ) { ... }
+
+	if ( $e ~~ 'open' ) { ... }
+
+C<matches> is the recommended interface for determining if a
+given exception matches a particular role.  On Perl 5.10,
+using smart-match (C<~~>) with an C<autodie::exception> object
+will use C<matches> underneath.
+
+An exception is considered to match a string if:
+
+=over 4
+
+=item *
+
+For a string not starting with a colon, the string exactly matches the
+package and subroutine that threw the exception.  For example,
+C<MyModule::log>.  If the string does not contain a package name,
+C<CORE::> is assumed.
+
+=item *
+
+For a string that does start with a colon, if the subroutine
+throwing the exception I<does> that behaviour.  For example, the
+C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
+
+=back
+
+=cut
+
+sub matches {
     my ($this, $that) = @_;
 
     state %cache;
@@ -207,12 +234,32 @@ sub format_default {
 # Create our new object.  This blindly fills in details.
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @args) = @_;
 
     my $this = \ do { my $o };
 
+    bless($this,$class);
+
+    # XXX - Figure out how to cleanly ensure all our inits are
+    # called.  EVERY causes our code to die because it overloads
+    # stringification(!), causing the object to try and stringify
+    # before being initialised.
+
+    $this->_init(@args);
+
+    return $this;
+}
+
+sub _init {
+
+    my ($this, %args) = @_;
+
+    our $init_called = 1;
+
+    my $class = ref $this;
+
     # XXX - Check how many frames we should go back.
-    my ($package, $file, $line, $sub) = caller(1);
+    my ($package, $file, $line, $sub) = caller(2);
 
     $package_of{    $this} = $package;
     $file_of{       $this} = $file;
@@ -226,7 +273,7 @@ sub new {
     $dying_sub_of{  $this} = $args{function} or
               croak("$class->new() called without function arg");
 
-    return bless($this,$class);
+    return $this;
 
 }
 
