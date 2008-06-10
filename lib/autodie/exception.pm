@@ -50,14 +50,16 @@ sub format_close {
 
     # If we've got an old-style filehandle, mention it.
     if ($close_arg and not ref $close_arg) {
-        return "Can't close filehandle '$close_arg' - $!";
+        return "Can't close filehandle '$close_arg': '$!'";
     }
 
-    return "Can't close($close_arg) filehandle - $!";
+    return "Can't close($close_arg) filehandle: '$!'";
 
 }
 
 # Default formatter for CORE::open
+# Currently only works with 3-arg open.
+# TODO: Pretty printing for 2-arg (and 1-arg?) open.
 
 sub format_open {
     my ($this) = @_;
@@ -74,14 +76,14 @@ sub format_open {
     local $! = $this->errno;
 
     given($open_args[1]) {
-        when ('<')  { return "Can't open '$file' for reading: $!"    }
-        when ('>')  { return "Can't open '$file' for writing: $!"    }
-        when ('>>') { return "Can't open '$file' for appending: $!"  }
+        when ('<')  { return "Can't open '$file' for reading: '$!'"    }
+        when ('>')  { return "Can't open '$file' for writing: '$!'"    }
+        when ('>>') { return "Can't open '$file' for appending: '$!'"  }
     }
 
     # Default message (for pipes and odd things)
 
-    return "Can't open '$file' with mode '$open_args[1]': $!";
+    return "Can't open '$file' with mode '$open_args[1]': '$!'";
 }
 
 =head2 register
@@ -193,7 +195,7 @@ sub format_default {
     $call =~ s/.*:://;
 
     return "Can't $call(".
-        join(q{, },@{$this->args()}) . "): $!" .
+        join(q{, }, map { defined($_) ? "'$_'" : "undef" } @{$this->args()}) . "): $!" .
         $this->add_file_and_line;
 
     # TODO - Handle user-defined errors from hash.
@@ -241,3 +243,9 @@ sub call        { return $call_of{        $_[0] } }
 sub errno       { return $errno_of{       $_[0] } }
 
 1;
+
+__END__
+
+=head1 AUTHOR
+
+Paul Fenwick E<lt>pjf@perltraining.com.auE<gt>

@@ -15,9 +15,9 @@ use autodie::exception;
 #    (Checked by a bit in $hints->{$NO_PACKAGE}
 # 3) We've been used lexically somewhere else, but we're currently
 #    acting with default Perl semantics
-#    (Checked by the above two being false, and NO entry in %package_Fatal)
+#    (Checked by the above two being false, and NO entry in %Package_Fatal)
 # 4) We're just working with package fatal semantics.
-#    (Checked by (1) and (2) being false, and an entry in %package_Fatal)
+#    (Checked by (1) and (2) being false, and an entry in %Package_Fatal)
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -53,26 +53,36 @@ my %TAGS = (
 
 $TAGS{':all'} = [ keys %TAGS ];
 
+# This hash contains subroutines for which we should
+# subroutine() // die() rather than subroutine() || die()
+
+my %Use_defined_or;
+
+@Use_defined_or{qw(
+    CORE::send CORE::recv
+)} = ();
+
+
 # Every time we're asked to Fatalise a with lexical scope subroutine,
 # we generate it a unique sequential ID number and store it in our
-# %hints_index using the full package name as a key (or
+# %Hints_index using the full package name as a key (or
 # CORE::$function for a core).  These indexes correspond to the
 # bit-strings we store in %^H to remember which subroutines have been
 # fatalised with a lexical scope.
 
-my %hints_index   = (); # Tracks indexes used in our %^H bitstring
+my %Hints_index   = (); # Tracks indexes used in our %^H bitstring
 
 # Tracks which subs have already been fatalised.  Important to
 # avoid doubling up on work.
-my %already_fatalised = ();
+my %Already_fatalised = ();
 
 # Evry time we're called with package scope, we record the subroutine
-# (including package or CORE::) in %package_Fatal.  If we find ourselves
+# (including package or CORE::) in %Package_Fatal.  If we find ourselves
 # in a Fatalised sub without any %^H hints turned on, we can use this
 # to determine if we should be acting with package scope, or we've
 # just fallen out of lexical context.
 
-my %package_Fatal = (); # Tracks Fatal with package scope
+my %Package_Fatal = (); # Tracks Fatal with package scope
 
 my $PACKAGE    = __PACKAGE__;
 my $NO_PACKAGE = "no $PACKAGE";
@@ -196,7 +206,7 @@ sub unimport {
             my $sub = $_;
             $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-            if (exists $package_Fatal{$sub}) {
+            if (exists $Package_Fatal{$sub}) {
                 croak(sprintf(ERROR_AUTODIE_CONFLICT,$_,$_));
             }
 
@@ -222,7 +232,7 @@ sub unimport {
         # don't care, since those bytes will never be looked
         # at.
 
-        my $bytes = int(keys(%hints_index) / 8)+1;
+        my $bytes = int(keys(%Hints_index) / 8)+1;
         $^H{$NO_PACKAGE} = "\x{ff}" x $bytes;
     }
 }
@@ -269,7 +279,7 @@ sub _expand_tag {
 
 sub _get_sub_index {
     my ($sub) = @_;
-    return $hints_index{$sub} // ($hints_index{$sub} = keys %hints_index);
+    return $Hints_index{$sub} // ($Hints_index{$sub} = keys %Hints_index);
 }
 
 sub fill_protos {
@@ -314,13 +324,13 @@ sub write_invocation {
             no warnings 'uninitialized';
             if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using lexical semantics.
-                  ].one_invocation($core,$call,$name,0,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
             } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
-            } elsif (].($package_Fatal{$sub}||0).qq[) {
+            } elsif (].($Package_Fatal{$sub}||0).qq[) {
                   # We're using package semantics.
-                  ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
             }
             # Default: non-Fatal semantics
             return $call(].join(', ',@argv).qq[);
@@ -340,13 +350,13 @@ sub write_invocation {
             no warnings 'uninitialized';
             if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using lexical semantics.
-                  ].one_invocation($core,$call,$name,0,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
             } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
                   # We're using 'no' lexical semantics.
                   return $call(].join(', ',@argv).qq[);
-            } elsif (].($package_Fatal{$sub}||0).qq[) {
+            } elsif (].($Package_Fatal{$sub}||0).qq[) {
                   # We're using  package semantics.
-                  ].one_invocation($core,$call,$name,$void,$sub,@argv).qq[
+                  ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
             }
             # Default: non-Fatal semantics
             return $call(].join(', ',@argv).qq[);
@@ -360,37 +370,65 @@ EOC
     }
 }
 
-# XXX - This looks ugly.  Fix it.
-
-my %use_defined_or;
-@use_defined_or{qw(
-    CORE::send CORE::recv
-)} = ();
-
 sub one_invocation {
-    my ($core, $call, $name, $void, $sub, @argv) = @_;
+    my ($core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
 
-    my $op = '||';
+    # We should *never* get here, but if someone is calling us
+    # directly (a child class perhaps?) then they could try to mix
+    # void without enabling backwards compatibility.  We just don't
+    # support this at all, so we gripe about it rather than doing
+    # something unwise.
 
-    if (exists $use_defined_or{$call}) {
-        $op = '//';
+    if ($void and not $back_compat) {
+        croak("Internal error: :void mode not supported with autodie");
     }
 
     # @argv only contains the results of the in-built prototype
-    # function, and hence does what it's supposed to below.
+    # function, and is therefore safe to interpolate in the
+    # code generators below.
+
+    # TODO - The following clobbers context, but that's what the
+    #        old Fatal did.  Do we care?
+
+    if ($back_compat) {
+
+        local $" = ', ';
+
+        if ($void) {
+            return qq/(defined wantarray)?$call(@argv):
+                   $call(@argv) || croak "Can't $name(\@_)/ .
+                   ($core ? ': $!' : ', \$! is \"$!\"') . '"'
+        } else {
+            return qq{$call(@argv) || croak "Can't $name(\@_)} .
+                   ($core ? ': $!' : ', \$! is \"$!\"') . '"';
+        }
+    }
+
+    # New autodie implementation.
+
+    my $op = '||';
+
+    if (exists $Use_defined_or{$call}) {
+        $op = '//';
+    }
 
     local $" = ', ';
 
-    if ($void) {
-        return qq{
-            return (defined wantarray)?$call(@argv):
-            $call(@argv) $op die autodie::exception->new(
-                function => q{$sub}, call => q{$call}, args => [ @argv ]
-            );
-        };
-    }
-
     return qq{
+        if (wantarray) {
+            my \@results = $call(@argv);
+            # If we got back nothing, or we got back a single
+            # undef, we die.
+            if (! \@results or (\@results == 1 and ! defined \$results[0])) {
+                die autodie::exception->new(
+                    function => q{$sub}, call => q{$call}, args => [ @argv ]
+                );
+            };
+            return \@results;
+        }
+
+        # Otherwise, we're in scalar context.
+
         return $call(@argv) $op die autodie::exception->new(
             function => q{$sub}, call => q{$call}, args => [ @argv ]
         );
@@ -410,21 +448,21 @@ sub _make_fatal {
     # by setting our %^H hints and returning immediately.
 
     my $index             = _get_sub_index($sub);
-    my $already_fatalised = $already_fatalised{$sub};
+    my $Already_fatalised = $Already_fatalised{$sub};
 
     # Figure if we're using lexical or package semantics and
     # twiddle the appropriate bits.
 
     if ($lexical) {
         $index //= _get_sub_index($sub);
-        vec($^H{$PACKAGE},    $hints_index{$sub},1) = 1;
-        vec($^H{$NO_PACKAGE}, $hints_index{$sub},1) = 0;
+        vec($^H{$PACKAGE},    $Hints_index{$sub},1) = 1;
+        vec($^H{$NO_PACKAGE}, $Hints_index{$sub},1) = 0;
     } else {
-        $package_Fatal{$sub} = 1;
+        $Package_Fatal{$sub} = 1;
     }
 
     # Return immediately if we've already fatalised our code.
-    return if defined $already_fatalised;
+    return if defined $Already_fatalised;
 
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;
@@ -469,8 +507,11 @@ sub _make_fatal {
 
     $code = <<EOS;
 sub$real_proto {
-        local(\$", \$!) = (', ', 0);    # XXX - Why do we do this?
-        local \$Carp::CarpLevel = 1;    # Avoids awful __ANON__ mentions
+        local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
+        # local \$Carp::CarpLevel = 1;  # Avoids awful __ANON__ mentions
+                                        # Disabled for backcompat with
+                                        # Fatal.  autodie doesn't care,
+                                        # it has object stringification.
 EOS
     my @protos = fill_protos($proto);
     $code .= write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
@@ -484,7 +525,7 @@ EOS
         *{$sub} = $code;
 
         # Mark the sub as fatalised.
-        $already_fatalised{$sub} = 1;
+        $Already_fatalised{$sub} = 1;
     }
 }
 
@@ -517,7 +558,9 @@ The use of C<:void> is discouraged.
 
 =head1 DESCRIPTION
 
-    It is better to die() in the attempt than to return() in failure.
+    bIlujDI' yIchegh()Qo'; yIHegh()!
+
+    It is better to die() than to return() in failure.
 
         -- Klingon programming proverb.
 
@@ -548,12 +591,6 @@ values are ignored.  For example
 
     # not checked, so error raises an exception
     close FH;
-
-=head1 EXCEPTIONS
-
-As of Fatal version XXX, all exceptions from C<Fatal> are
-members of the C<autodie::exception> class.  See L<autodie>
-and L<autodie::exception> for more information.
 
 =head1 DIAGNOSTICS
 
@@ -613,11 +650,14 @@ the C<perlbug> command.
 
 =back
 
-=head1 BUGS
+=head1 GOTCHAS
 
-You should not fatalize functions that are called in list context,
-because this module tests whether a function has failed by testing the
-boolean truth of its return value in scalar context.
+As of Fatal XXX, subroutines that normally return a list can
+be Fatalised without clobbering their context.  It should be noted
+that Fatal will consider the subroutine to fail if it returns
+either an empty list, or a list consisting of a single undef.
+
+=head1 BUGS
 
 Fatal makes changes to your current package, including when changing
 built-in functions.  Changing to a new package will result in calls
@@ -642,5 +682,9 @@ same terms as Perl itself.
 L<autodie> for a nicer way to use lexical Fatal.
 
 L<IPC::System::Simple> for a similar idea for calls to C<system()>.
+
+=head1 ACKNOWLEDGEMENTS
+
+Mark Reed and Roland Giersig -- Klingon translators.
 
 =cut

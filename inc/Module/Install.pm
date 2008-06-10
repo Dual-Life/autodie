@@ -30,7 +30,7 @@ BEGIN {
 	# This is not enforced yet, but will be some time in the next few
 	# releases once we can make sure it won't clash with custom
 	# Module::Install extensions.
-	$VERSION = '0.72';
+	$VERSION = '0.75';
 
 	*inc::Module::Install::VERSION = *VERSION;
 	@inc::Module::Install::ISA     = __PACKAGE__;
@@ -85,7 +85,7 @@ END_DIE
 
 # Build.PL was formerly supported, but no longer is due to excessive
 # difficulty in implementing every single feature twice.
-if ( $0 =~ /Build.PL$/i or -f 'Build.PL' ) { die <<"END_DIE" }
+if ( $0 =~ /Build.PL$/i ) { die <<"END_DIE" }
 
 Module::Install no longer supports Build.PL.
 
