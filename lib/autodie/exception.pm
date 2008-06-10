@@ -147,10 +147,10 @@ sub matches {
     # XXX - Handle references
     croak "UNIMPLEMENTED" if ref $that;
 
-    my $sub = $this->call;
+    my $sub = $this->function;
 
     if ($DEBUG) {
-        my $sub2 = $this->sub;
+        my $sub2 = $this->function;
         warn "Smart-matching $that against $sub / $sub2\n";
     }
 
@@ -179,13 +179,11 @@ sub add_file_and_line {
 sub stringify {
     my ($this) = @_;
 
-    # XXX - This is a horrible guessing hack to try and figure out
-    # our sub name.
-    my $call        =  ($this->call eq '&$sref') ? $this->sub : $this->call;
+    my $call        =  $this->function;
 
     if ($DEBUG) {
         my $dying_pkg   = $this->package;
-        my $sub   = $this->sub;
+        my $sub   = $this->function;
         my $caller = $this->caller;
         warn "Stringifing exception for $dying_pkg :: $sub / $caller / $call\n";
     }
@@ -209,9 +207,7 @@ sub stringify {
 sub format_default {
     my ($this) = @_;
 
-    # XXX - This is a horrible guessing hack to try and figure out
-    # our sub name.
-    my $call        =  ($this->call eq '&$sref') ? $this->sub : $this->call;
+    my $call        =  $this->function;
 
     local $! = $errno_of{$this};
 
@@ -258,18 +254,16 @@ sub _init {
 
     my $class = ref $this;
 
-    # XXX - Check how many frames we should go back.
+    # TODO - Check how many frames we should go back.
     my ($package, $file, $line, $sub) = caller(2);
 
     $package_of{    $this} = $package;
     $file_of{       $this} = $file;
     $line_of{       $this} = $line;
-    $caller_of{$this} = $sub;
+    $caller_of{$this}      = $sub;
     $package_of{    $this} = $package;
     $errno_of{      $this} = $!;
     $args_of{       $this} = $args{args}     || [];
-    $call_of{       $this} = $args{call} or
-            croak("$class->new() called without call_of arg");
     $sub_of{  $this} = $args{function} or
               croak("$class->new() called without function arg");
 
@@ -288,15 +282,15 @@ that died.
 
 sub args        { return $args_of{        $_[0] } }
 
-=head2 sub
+=head2 function
 
-	my $sub = $e->sub;
+	my $sub = $e->function;
 
 The subroutine (including package) that threw the exception.
 
 =cut
 
-sub sub   { return $sub_of{   $_[0] } }
+sub function   { return $sub_of{   $_[0] } }
 
 =head2 file
 
@@ -342,7 +336,6 @@ sub line        { return $line_of{        $_[0] } }
 # call - what was actually called, as oppsed to 'sub', which is what?
 # Sometimes 'call' is some rubbishy rubbish.
 
-sub call        { return $call_of{        $_[0] } }
 sub errno       { return $errno_of{       $_[0] } }
 
 1;

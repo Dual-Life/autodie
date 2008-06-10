@@ -6,6 +6,10 @@ Revision history for Fatal
 	* system() can be fatalised/autodying if IPC::System::Simple
 	  is installed.
 	* Rationlisation of autodie::exception API.
+	* autodie::exception->function() now always returns the
+	  full function name as best we can find it, and not
+	  what may be getting replaced (eg, CORE::open instead of
+	  main::open).
 
 1.08	Sat Mar 29 10:54:20 AUSEDT 2008
         Dual-lifed module internally from work I was doing on p5p.

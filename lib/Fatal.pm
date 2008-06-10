@@ -379,11 +379,10 @@ EOC
 sub one_invocation {
     my ($core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
 
-    # We should *never* get here, but if someone is calling us
-    # directly (a child class perhaps?) then they could try to mix
-    # void without enabling backwards compatibility.  We just don't
-    # support this at all, so we gripe about it rather than doing
-    # something unwise.
+    # If someone is calling us directly (a child class perhaps?) then
+    # they could try to mix void without enabling backwards
+    # compatibility.  We just don't support this at all, so we gripe
+    # about it rather than doing something unwise.
 
     if ($void and not $back_compat) {
         croak("Internal error: :void mode not supported with autodie");
@@ -420,6 +419,25 @@ sub one_invocation {
 
     local $" = ', ';
 
+    # The name of our original function is:
+    #   $call if the function is CORE
+    #   $sub if our function is non-CORE
+
+    # The reason for this is that $call is what we're actualling
+    # calling.  For our core functions, this is always
+    # CORE::something.  However for user-defined subs, we're about to
+    # replace whatever it is that we're calling; as such, we actually
+    # calling a subroutine ref.
+
+    # Unfortunately, none of this tells us the *ultimate* name.
+    # For example, if I export 'copy' from File::Copy, I'd like my
+    # ultimate name to be File::Copy::copy.
+    #
+    # TODO - Is there any way to find the ultimate name of a sub, as
+    # described above?
+
+    my $true_sub_name = $core ? $call : $sub;
+
     return qq{
         if (wantarray) {
             my \@results = $call(@argv);
@@ -427,7 +445,7 @@ sub one_invocation {
             # undef, we die.
             if (! \@results or (\@results == 1 and ! defined \$results[0])) {
                 die autodie::exception->new(
-                    function => q{$sub}, call => q{$call}, args => [ @argv ]
+                    function => q{$true_sub_name}, args => [ @argv ]
                 );
             };
             return \@results;
@@ -436,7 +454,7 @@ sub one_invocation {
         # Otherwise, we're in scalar context.
 
         return $call(@argv) $op die autodie::exception->new(
-            function => q{$sub}, call => q{$call}, args => [ @argv ]
+            function => q{$true_sub_name}, args => [ @argv ]
         );
     };
 
