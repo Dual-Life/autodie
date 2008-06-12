@@ -1,3 +1,4 @@
+AUTHORS
 Changes
 DESIGN.pod
 inc/Module/Install.pm
@@ -10,6 +11,7 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/autodie.pm
 lib/autodie/exception.pm
+lib/autodie/exception/system.pm
 lib/Fatal.pm
 Makefile.PL
 MANIFEST			This list of files
