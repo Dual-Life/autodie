@@ -3,7 +3,21 @@ use strict;
 
 use constant NO_SUCH_FILE => 'this_file_had_so_better_not_be_here';
 
-use Test::More tests => 5;
+use Test::More;
+
+BEGIN {
+
+    require Fatal;
+
+    eval { require IPC::System::Simple; };
+    plan skip_all => 'IPC::System::Simple not installed' if ($@);
+
+    if ($IPC::System::Simple::VERSION < Fatal::MIN_IPC::SYS::SIMPLE::VER()) {
+	plan skip_all => 'IPC::System::Simple version is too low';
+    }
+}
+
+plan tests => 5;
 
 eval {
     use autodie qw(system);
