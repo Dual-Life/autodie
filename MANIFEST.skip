@@ -1,0 +1,9 @@
+.git
+.gitignore
+pm_to_lib
+MANIFEST.bak
+MANIFEST.skip
+blib
+.*.pm~$
+Makefile$
+Makefile.old
