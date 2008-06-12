@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Fatal ();
-our @ISA = qw(Fatal);
+our $VERSION = $Fatal::VERSION;
 
 # When passing args to Fatal we want to keep the first arg
 # (our package) in place.  Hence the splice.
@@ -42,7 +42,9 @@ autodie - Replace functions with ones that succeed or die with lexical scope
 
 =head1 DESCRIPTION
 
-        It is better to die() in the attempt than to return() in failure.
+	bIlujDI' yIchegh()Qo'; yIHegh()!
+
+	It is better to die() than to return() in failure.
 
                 -- Klingon programming proverb.
 
@@ -93,6 +95,6 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<Fatal>
+L<Fatal> L<autodie::exception>
 
 =cut

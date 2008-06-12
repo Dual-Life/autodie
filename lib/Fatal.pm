@@ -597,20 +597,14 @@ Fatal - replace functions with equivalents which succeed or die
 
 =head1 BEST PRACTICE
 
-Use L<autodie> for deployment on Perl 5.10 or newer>  C<autodie>
-changes built-ins and subroutines with lexical scope (until the end
-of the current block, file, or eval), making it easier to understand
-and debug.
+B<Fatal has been obsoleted by the new L<autodie> pragma.>
+Please use L<autodie> for deployment on Perl 5.10 or newer.
+It supports lexical scoping, throws real exception objects,
+and provides much nicer error messages.
 
 The use of C<:void> is discouraged.
 
 =head1 DESCRIPTION
-
-    bIlujDI' yIchegh()Qo'; yIHegh()!
-
-    It is better to die() than to return() in failure.
-
-        -- Klingon programming proverb.
 
 C<Fatal> provides a way to conveniently replace
 functions which normally return a false value when they fail with
@@ -639,6 +633,11 @@ values are ignored.  For example
 
     # not checked, so error raises an exception
     close FH;
+
+The use of C<:void> is discouraged, as it can result in exceptions
+not being thrown if you I<accidentally> method a method without
+void context.  Use L<autodie> instead if you want to be able to
+disable autodying/Fatal behaviour for a small block of code.
 
 =head1 DIAGNOSTICS
 
@@ -711,14 +710,18 @@ Fatal makes changes to your current package, including when changing
 built-in functions.  Changing to a new package will result in calls
 that do not get checked for failure (unless Fatal was called there, too).
 
+C<Fatal> clobbers the context in which a function is called, always
+making it a scalar context, except when the C<:void> tag is used.
+This problem does not exist in L<autodie>.
+
 =head1 AUTHOR
 
 Original module by Lionel Cons (CERN).
 
 Prototype updates by Ilya Zakharevich <ilya@math.ohio-state.edu>.
 
-L<autodie> support, exception support, and additional documentation
-by Paul Fenwick <pjf@perltraining.com.au>
+L<autodie> support, bugfixes, extended diagnostics, C<system>
+support, and major overhauling by Paul Fenwick <pjf@perltraining.com.au>
 
 =head1 LICENSE
 
