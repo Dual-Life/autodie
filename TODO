@@ -36,3 +36,8 @@ This is not an exhaustive list of TODO items.
 
 * Write tests to make sure that nothing clobbers $@ accidently,
   especially in autodie::exception.
+
+* Explain :lexical prior to the DIAGNOSTICS section in Fatal.pm  (or
+  remove)
+
+* Fill in Fatal version in GOTCHAS in Fatal.pm
