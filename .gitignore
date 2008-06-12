@@ -5,4 +5,5 @@ blib
 lib/Fatal.pm~
 pm_to_blib
 .*.swp
+autodie-*.tar.gz
 MANIFEST.bak
