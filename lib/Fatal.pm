@@ -538,6 +538,8 @@ sub _make_fatal {
             *{$sub} = \&IPC::System::Simple::system;
         }
 
+        $Already_fatalised{$sub} = 1;
+
         return;
 
     } else {            # CORE subroutine
