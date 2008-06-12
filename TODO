@@ -4,8 +4,6 @@ This is not an exhaustive list of TODO items.
 
 * Make sure system() returns a real exception object, not just a string.
 
-* Test cases needed for checking for old IPC::System::Simple versions.
-
 * Consider removing :lexical tests in t/* and convert them to using
   autodie.  The :lexical option is no longer officially supported in
   Fatal.
@@ -23,7 +21,7 @@ This is not an exhaustive list of TODO items.
 * Provide an autodie mixin which at least provides expected autodie
   behaviours, even if someone wants to use their own exception class.
 
-* Provide a nice way to override message handlers.
+* Provide a nicer way to override message handlers.
 
 * Finalise the exception interface.
 
