@@ -2,6 +2,11 @@
 use strict;
 use feature qw(say);
 
+BEGIN {
+    require Fatal;
+    $Fatal::Debug = 1;
+}
+
 use constant NO_SUCH_FILE => "this_file_or_dir_had_better_not_exist_XYZZY";
 
 use Test::More tests => 23;

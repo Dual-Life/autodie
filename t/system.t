@@ -22,7 +22,7 @@ eval {
 };
 
 ok($@, "Exception thrown");
-isa_ok($@, "autodie::exception");
+isa_ok($@, "autodie::exception") or diag $@;
 
 package Bar;
 

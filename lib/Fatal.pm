@@ -402,7 +402,9 @@ sub one_invocation {
         # TODO - Use Fatal qw(system) is not yet supported.  It should be!
 
         if ($call eq 'CORE::system') {
-            croak("UNIMPLEMENTED: use Fatal qw(system) not supported.");
+            return q{
+                croak("UNIMPLEMENTED: use Fatal qw(system) not supported.");
+            };
         }
 
         local $" = ', ';
@@ -451,23 +453,31 @@ sub one_invocation {
 
         local $" = ", ";
 
-        # TODO - There were some odd behaviours regarding local $@
-        # on p5p that got mentioned.  Check them out, see if we
-        # may get caught.
+        # We need to stash $@ into $E, rather than using
+        # local $@ for the whole sub.  If we don't then
+        # any exceptions from internal errors in autodie/Fatal
+        # will mysteriously disappear before propogating
+        # upwards.
 
         return qq{
-            local \$@;
-
             my \$retval;
+            my \$E;
 
-            eval {
-                \$retval = IPC::System::Simple::system(@argv);
-            };
 
-            if (\$@) {
+            {
+                local \$@;
+
+                eval {
+                    \$retval = IPC::System::Simple::system(@argv);
+                };
+
+                \$E = \$@;
+            }
+
+            if (\$E) {
                 die autodie::exception::system->new(
-                    function => q{true_sub_name}, args => [ @argv ],
-                    message => "\$@"
+                    function => q{CORE::system}, args => [ @argv ],
+                    message => "\$E"
                 );
             }
 
@@ -551,6 +561,7 @@ sub _make_fatal {
 
         eval {
             require IPC::System::Simple; # Only load it if we need it.
+            require autodie::exception::system;
         };
 
         if ($@) { croak ERROR_NO_IPC_SYS_SIMPLE; }
@@ -597,7 +608,7 @@ EOS
     {
         no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
         $code = eval("package $pkg; use Carp; $code");
-        die if $@;
+        Carp::confess($@) if $@;
         no warnings;   # to avoid: Subroutine foo redefined ...
         *{$sub} = $code;
 
