@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use Hash::Util qw(fieldhashes);
-use NEXT;	# for EVERY
 
 our $DEBUG = 0;
 
@@ -13,7 +12,7 @@ use overload
     q{""} => "stringify"
 ;
 
-our $VERSION = '1.00';
+our $VERSION = '1.10';
 
 =head1 NAME
 

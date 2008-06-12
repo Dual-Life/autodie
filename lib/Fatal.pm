@@ -41,7 +41,9 @@ use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no
 
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
-our $VERSION = 1.08;
+# All the Fatal/autodie modules share the same version number.
+our $VERSION = $autodie::exception::VERSION;
+
 our $Debug //= 0;
 
 # We have some tags that can be passed in for use with import.
