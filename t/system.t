@@ -12,12 +12,12 @@ BEGIN {
     eval { require IPC::System::Simple; };
     plan skip_all => 'IPC::System::Simple not installed' if ($@);
 
-    if ($IPC::System::Simple::VERSION < Fatal::MIN_IPC::SYS::SIMPLE::VER()) {
+    if ($IPC::System::Simple::VERSION < Fatal::MIN_IPC_SYS_SIMPLE_VER()) {
 	plan skip_all => 'IPC::System::Simple version is too low';
     }
 }
 
-plan tests => 5;
+plan tests => 7;
 
 eval {
     use autodie qw(system);
@@ -37,6 +37,8 @@ eval {
 
 ok($@, "Exception thrown");
 isa_ok($@, "autodie::exception") or diag $@;
+like($@,qr{failed to start}, "Reason for failure given");
+like($@,qr{@{[NO_SUCH_FILE]}},"Failed command given");
 
 package Bar;
 
