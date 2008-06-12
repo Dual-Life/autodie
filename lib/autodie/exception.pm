@@ -15,6 +15,53 @@ use overload
 
 our $VERSION = '1.00';
 
+=head1 NAME
+
+autodie::exception - Exceptions from autodying functions.
+
+=head1 SYNOPSIS
+
+    eval {
+        use autodie;
+
+        open(my $fh, '<', 'some_file.txt');
+
+        ...
+    };
+
+    if (my $E = $@) {
+        say "Ooops!  ",$E->caller," had problems: $@";
+    }
+
+
+=head1 DESCRIPTION
+
+When an L<autodie> enabled function fails, it generates an
+C<autodie::exception> object.  This can be interrogated to
+determine further information about the error that occured.
+
+This document is broken into two sections; those methods that
+are most useful to the end-developer, and those methods for
+anyone wishing to subclass or get very familiar with
+C<autodie::exception>.
+
+=head2 Common Methods
+
+These methods are intended to be used in the everyday dealing
+of exceptions.
+
+The following assume that the error has been copied into
+a separate scalar:
+
+    if ($E = $@) {
+        ...
+    }
+
+This is not required, but is recommended in case any code
+is called which may reset or alter C<$@>.
+
+=cut
+
 # autodie::exception objects are inside-out constructions,
 # using new 5.10 fieldhashes features.  They're based roughly
 # on Exception::Class. I'd use E::C, but it's non-core.
@@ -30,6 +77,97 @@ fieldhashes \ my(
     %call_of,
 );
 
+
+=head3 args
+
+	my $array_ref = $E->args;
+
+Provides a reference to the arguments passed to the subroutine
+that died.
+
+=cut
+
+sub args        { return $args_of{        $_[0] } }
+
+=head3 function
+
+	my $sub = $E->function;
+
+The subroutine (including package) that threw the exception.
+
+=cut
+
+sub function   { return $sub_of{   $_[0] } }
+
+=head3 file
+
+	my $file = $E->file;
+
+The file in which the error occured (eg, C<myscript.pl> or
+C<MyTest.pm>).
+
+=cut
+
+sub file        { return $file_of{        $_[0] } }
+
+=head3 package
+
+	my $package = $E->package;
+
+The package from which the exceptional subroutine was called.
+
+=cut
+
+sub package     { return $package_of{     $_[0] } }
+
+=head3 caller
+
+	my $caller = $E->caller;
+
+The subroutine that I<called> the exceptional code.
+
+=cut
+
+sub caller      { return $caller_of{ $_[0] } }
+
+=head2 line
+
+	my $line = $E->line;
+
+The line in C<$E->file> where the exceptional code was called.
+
+=cut
+
+sub line        { return $line_of{        $_[0] } }
+
+=head3 errno
+
+        my $errno = $E->errno;
+
+The value of C<$!> at the time when the exception occured.
+
+B<NOTE>: This method will leave the main C<autodie::exception> class
+and become part of a role in the future.  You should only call
+C<errno> for exceptions where C<$!> would reasonably have been
+set on failure.
+
+=cut
+
+# TODO: Make errno part of a role.  It doesn't make sense for
+# everything.
+
+sub errno       { return $errno_of{       $_[0] } }
+
+
+=head2 Advanced methods
+
+The following methods, while usable from anywhere, are primarily
+intended for developers wishing to subclass C<autodie::exception>,
+write code that registers custom error messages, or otherwise
+work closely with the C<autodie::exception> model.
+
+=cut
+
 # The table below records customer formatters.
 # TODO - Should this be a package var instead?
 # TODO - Should these be in a completely different file, or
@@ -37,13 +175,13 @@ fieldhashes \ my(
 #        get used in most programs.
 
 my %formatter_of = (
-    'CORE::close' => \&format_close,
-    'CORE::open'  => \&format_open,
+    'CORE::close' => \&_format_close,
+    'CORE::open'  => \&_format_open,
 );
 
 # Default formatter for CORE::close
 
-sub format_close {
+sub _format_close {
     my ($this) = @_;
     my $close_arg = $this->args->[0];
 
@@ -62,7 +200,7 @@ sub format_close {
 # Currently only works with 3-arg open.
 # TODO: Pretty printing for 2-arg (and 1-arg?) open.
 
-sub format_open {
+sub _format_open {
     my ($this) = @_;
 
     my @open_args = @{$this->args};
@@ -87,13 +225,16 @@ sub format_open {
     return "Can't open '$file' with mode '$open_args[1]': '$!'";
 }
 
-=head2 register
+=head3 register
 
     autodie::exception->register( 'CORE::open' => \&mysub );
 
 The C<register> method allows for the registration of a message
 handler for a given subroutine.  The full subroutine name including
 the package should be used.
+
+Registered message handlers will receive the C<autodie::exception>
+object as the first parameter.
 
 =cut
 
@@ -106,7 +247,9 @@ sub register {
 
 }
 
-=head2 matches
+# TODO: Move matches documentation into the everyday section.
+
+=head3 matches
 
 	if ( $e->matches('open') ) { ... }
 
@@ -164,17 +307,38 @@ sub matches {
     return $cache{$sub}{$that} //= (Fatal::_expand_tag($that) ~~ $sub);
 }
 
+=head3 add_file_and_line
+
+	say "Problem occured",$@->add_file_and_line;
+
+Returns the string C< at %s line %d>, where C<%s> is replaced with
+the filename, and C<%d> is replaced with the line number.
+
+Primarily intended for use by format handlers.
+
+=cut
+
 # Simply produces the file and line number; intended to be added
 # to the end of error messages.
 
 sub add_file_and_line {
     my ($this) = @_;
 
-    return " at $file_of{$this} line $line_of{$this}";
+    return sprintf " at %s line %d", $this->file, $this->line;
 }
 
-# stringify() is called whenever we try to use our exception
-# as a string.
+=head3 stringify
+
+	say "The error was: ",$@->stringify;
+
+Formats the error as a human readable string.  Usually there's no
+reason to call this directly, as it is used automatically if an
+C<autodie::exception> object is ever used as a string.
+
+Child classes can override this method to change how they're
+stringified.
+
+=cut
 
 sub stringify {
     my ($this) = @_;
@@ -188,7 +352,7 @@ sub stringify {
         warn "Stringifing exception for $dying_pkg :: $sub / $caller / $call\n";
     }
 
-    # XXX - This isn't using inheritance.  Should it?
+    # TODO - This isn't using inheritance.  Should it?
     if ( my $sub = $formatter_of{$call} ) {
         return $sub->($this) . $this->add_file_and_line;
     }
@@ -197,9 +361,20 @@ sub stringify {
 
 }
 
-# format_default() is our default method when we can't find any
-# other formatter for our error message.
-#
+=head3 format_default
+
+	my $error_string = $E->format_default;
+
+This produces the default error string for the given exception,
+I<without using any registered message handlers>.  It is primarily
+intended to be called from a message handler when they have
+been passed an exception they don't want to format.
+
+Child classes can override this method to change how default
+messages are formatted.
+
+=cut
+
 # TODO: This produces ugly errors.  Is there any way we can
 # dig around to find the actual variable names?  I know perl 5.10
 # does some dark and terrible magicks to find them for undef warnings.
@@ -227,7 +402,23 @@ sub format_default {
 
 }
 
-# Create our new object.  This blindly fills in details.
+=head3 new
+
+    my $error = autodie::exception->new(
+        args => \@_,
+        function => "CORE::open",
+    );
+
+
+Creates a new C<autodie::exception> object.  Normally called
+directly from an autodying function.  The C<function> argument
+is required, its the function we were trying to call that
+generated the exception.  The C<args> parameter is optional.
+
+Atrributes such as package, file, and caller are determined
+automatically, and cannot be specified.
+
+=cut
 
 sub new {
     my ($class, @args) = @_;
@@ -237,9 +428,9 @@ sub new {
     bless($this,$class);
 
     # XXX - Figure out how to cleanly ensure all our inits are
-    # called.  EVERY causes our code to die because it overloads
-    # stringification(!), causing the object to try and stringify
-    # before being initialised.
+    # called.  EVERY causes our code to die because it wants to
+    # stringify our objects before they're initialised, causing
+    # everything to explode.
 
     $this->_init(@args);
 
@@ -254,15 +445,20 @@ sub _init {
 
     my $class = ref $this;
 
-    # TODO - Check how many frames we should go back.
-    my ($package, $file, $line, $sub) = caller(2);
+    # TODO - This always assumes we should be using caller(2).
+    # should this be made smarter (or perhaps take an optional
+    # caller-number argument) to play nicely with child classes
+    # and exception factories?
+
+    my ($package, $file, $line, $sub) = CORE::caller(2);
 
     $package_of{    $this} = $package;
     $file_of{       $this} = $file;
     $line_of{       $this} = $line;
-    $caller_of{$this}      = $sub;
+    $caller_of{     $this} = $sub;
     $package_of{    $this} = $package;
     $errno_of{      $this} = $!;
+
     $args_of{       $this} = $args{args}     || [];
     $sub_of{  $this} = $args{function} or
               croak("$class->new() called without function arg");
@@ -271,76 +467,17 @@ sub _init {
 
 }
 
-=head2 args
-
-	my $array_ref = $e->args;
-
-Provides a reference to the arguments passed to the subroutine
-that died.
-
-=cut
-
-sub args        { return $args_of{        $_[0] } }
-
-=head2 function
-
-	my $sub = $e->function;
-
-The subroutine (including package) that threw the exception.
-
-=cut
-
-sub function   { return $sub_of{   $_[0] } }
-
-=head2 file
-
-	my $file = $e->file;
-
-The file in which the error occured (eg, C<myscript.pl> or
-C<MyTest.pm>).
-
-=cut
-
-sub file        { return $file_of{        $_[0] } }
-
-=head2 package
-
-	my $package = $e->package;
-
-The package from which the exceptional subroutine was called.
-
-=cut
-
-sub package     { return $package_of{     $_[0] } }
-
-=head2 caller
-
-	my $caller = $e->caller;
-
-The subroutinet that called the exceptional code.
-
-=cut
-
-sub caller      { return $caller_of{ $_[0] } }
-
-=head2 line
-
-	my $line = $e->line;
-
-The line in C<$e->file> where the exceptional code was called.
-
-=cut
-
-sub line        { return $line_of{        $_[0] } }
-
-# call - what was actually called, as oppsed to 'sub', which is what?
-# Sometimes 'call' is some rubbishy rubbish.
-
-sub errno       { return $errno_of{       $_[0] } }
-
 1;
 
 __END__
+
+=head1 LICENSE
+
+Copyright (C)2008 Paul Fenwick
+
+This is free software.  You may modify and/or redistribute this
+code under the same terms as Perl 5.10 itself, or, at your option,
+any later version of Perl 5.
 
 =head1 AUTHOR
 

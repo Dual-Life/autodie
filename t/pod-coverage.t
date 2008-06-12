@@ -15,10 +15,7 @@ eval "use Pod::Coverage $min_pc";
 plan skip_all => "Pod::Coverage $min_pc required for testing POD coverage"
     if $@;
 
-plan skip_all => "In development"
-	if 1;	# XXX - Remove!
-
 all_pod_coverage_ok({
-	also_private => [ qr{^(unimport|fill_protos|one_invocation|write_invocation)$} ],
+	also_private => [ qr{^(ERROR_\w+|unimport|fill_protos|one_invocation|write_invocation)$} ],
 });
 
