@@ -1,6 +1,9 @@
 Revision history for Fatal
 
-1.09
+1.10	Thu Jun 12 17:19:13 AUSEST 2008
+	* First beta release of module.
+
+1.09	UNRELEASED
 	* Many changes not documented here.
 	* Fatal is now fully backwaards compatible again.
 	* system() can be fatalised/autodying if IPC::System::Simple
