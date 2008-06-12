@@ -37,11 +37,9 @@ autodie - Replace functions with ones that succeed or die with lexical scope
     open(my $fh, "<", $filename); # No need to check! 
 
     {
-        no autodie qw(open);      # open failures won't die
-    
+        no autodie qw(open);          # open failures won't die
         open(my $fh, "<", $filename); # Could fail silently!
-
-        no autodie;             # disable all autodies
+        no autodie;                   # disable all autodies
     }
 
 =head1 DESCRIPTION
