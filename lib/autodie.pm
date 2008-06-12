@@ -10,17 +10,14 @@ our $VERSION = $Fatal::VERSION;
 # When passing args to Fatal we want to keep the first arg
 # (our package) in place.  Hence the splice.
 
-# TODO: Consider making a bare 'use autodie' the same as
-# 'use autodie qw(:all)'.
-
 sub import {
-	splice(@_,1,0,Fatal::LEXICAL_TAG);
-	goto &Fatal::import;
+        splice(@_,1,0,Fatal::LEXICAL_TAG);
+        goto &Fatal::import;
 }
 
 sub unimport {
-	splice(@_,1,0,Fatal::LEXICAL_TAG);
-	goto &Fatal::unimport;
+        splice(@_,1,0,Fatal::LEXICAL_TAG);
+        goto &Fatal::unimport;
 }
 
 1;
@@ -33,21 +30,25 @@ autodie - Replace functions with ones that succeed or die with lexical scope
 
 =head1 SYNOPSIS
 
-    use autodie;		# Recommended, implies 'use autodie qw(:all)'
+    use autodie;    # Recommended, implies 'use autodie qw(:all)'
 
-    use autodie qw(open close);	# open/close succeed or die
+    use autodie qw(open close);   # open/close succeed or die
+
+    open(my $fh, "<", $filename); # No need to check! 
 
     {
-        no autodie qw(open);	# open fails normally
+        no autodie qw(open);      # open failures won't die
+    
+        open(my $fh, "<", $filename); # Could fail silently!
 
-        no autodie;		# disable all autodies
+        no autodie;             # disable all autodies
     }
 
 =head1 DESCRIPTION
 
-	bIlujDI' yIchegh()Qo'; yIHegh()!
+        bIlujDI' yIchegh()Qo'; yIHegh()!
 
-	It is better to die() than to return() in failure.
+        It is better to die() than to return() in failure.
 
                 -- Klingon programming proverb.
 
@@ -72,33 +73,33 @@ Exceptions produced by the C<autodie> pragma are members of the
 L<autodie::exception> class.  The preferred way to work with
 these exceptions is as follows:
 
-	use feature qw(switch);
+    use feature qw(switch);
 
-	eval {
-		use autodie ':io';
+    eval {
+        use autodie ':io';
 
-		open(my $fh, '<', $some_file);
+        open(my $fh, '<', $some_file);
 
-		my @records = <$fh>;
+        my @records = <$fh>;
 
-		close($fh);
+        close($fh);
 
-	};
+    };
 
-	given ($@) {
-		when (undef)   { say "No error";                    }
-		when ('open')  { say "Error from open";             }
-		when (':io')   { say "Non-open, IO error.";         }
-		when (':all')  { say "All other autodie errors."    }
-		default        { say "Not an autodie error at all." }
-	}
+    given ($@) {
+        when (undef)   { say "No error";                    }
+        when ('open')  { say "Error from open";             }
+        when (':io')   { say "Non-open, IO error.";         }
+        when (':all')  { say "All other autodie errors."    }
+        default        { say "Not an autodie error at all." }
+    }
 
 See L<autodie::exception> for further information on interrogating
 exceptions.
 
 =head1 GOTCHAS
 
-Functions called in list context are seemed to be false if they
+Functions called in list context are assumed to have failed if they
 return an empty list, or a list consisting only of a single undef
 element.
 
@@ -125,5 +126,9 @@ same terms as Perl itself.
 =head1 SEE ALSO
 
 L<Fatal>, L<autodie::exception>, L<IPC::System::Simple>
+
+=head1 ACKNOWLEDGEMENTS
+
+Mark Reed and Roland Giersig -- Klingon translators.
 
 =cut
