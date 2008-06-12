@@ -1,0 +1,20 @@
+Fatal and autodie would not be possible if it were not for the contributions
+of the wonderful people below.
+
+Lionel Cons
+        - Original module
+
+Ilya Zakharevich
+        - Prototype updates
+
+Paul Fenwick
+        - autodie, autodie::exception, Fatal overhaul
+
+Aristotle Pagaltzis
+        - Suggestions and sanity checking on design and interface
+
+Jacinta Richardson
+        - Documentation improvements
+
+Mark Reed and Rolan Giersig
+        - Klingon Translators
