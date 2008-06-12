@@ -82,7 +82,7 @@ fieldhashes \ my(
 
 =head3 args
 
-	my $array_ref = $E->args;
+    my $array_ref = $E->args;
 
 Provides a reference to the arguments passed to the subroutine
 that died.
@@ -93,7 +93,7 @@ sub args        { return $args_of{        $_[0] } }
 
 =head3 function
 
-	my $sub = $E->function;
+    my $sub = $E->function;
 
 The subroutine (including package) that threw the exception.
 
@@ -103,7 +103,7 @@ sub function   { return $sub_of{   $_[0] } }
 
 =head3 file
 
-	my $file = $E->file;
+    my $file = $E->file;
 
 The file in which the error occured (eg, C<myscript.pl> or
 C<MyTest.pm>).
@@ -114,7 +114,7 @@ sub file        { return $file_of{        $_[0] } }
 
 =head3 package
 
-	my $package = $E->package;
+    my $package = $E->package;
 
 The package from which the exceptional subroutine was called.
 
@@ -124,7 +124,7 @@ sub package     { return $package_of{     $_[0] } }
 
 =head3 caller
 
-	my $caller = $E->caller;
+    my $caller = $E->caller;
 
 The subroutine that I<called> the exceptional code.
 
@@ -134,9 +134,9 @@ sub caller      { return $caller_of{ $_[0] } }
 
 =head2 line
 
-	my $line = $E->line;
+    my $line = $E->line;
 
-The line in C<$E->file> where the exceptional code was called.
+The line in C<< $E->file >> where the exceptional code was called.
 
 =cut
 
@@ -144,7 +144,7 @@ sub line        { return $line_of{        $_[0] } }
 
 =head3 errno
 
-        my $errno = $E->errno;
+    my $errno = $E->errno;
 
 The value of C<$!> at the time when the exception occured.
 
@@ -160,6 +160,63 @@ set on failure.
 
 sub errno       { return $errno_of{       $_[0] } }
 
+=head3 matches
+
+    if ( $e->matches('open') ) { ... }
+
+    if ( $e ~~ 'open' ) { ... }
+
+C<matches> is used to determine whether a
+given exception matches a particular role.  On Perl 5.10,
+using smart-match (C<~~>) with an C<autodie::exception> object
+will use C<matches> underneath.
+
+An exception is considered to match a string if:
+
+=over 4
+
+=item *
+
+For a string not starting with a colon, the string exactly matches the
+package and subroutine that threw the exception.  For example,
+C<MyModule::log>.  If the string does not contain a package name,
+C<CORE::> is assumed.
+
+=item *
+
+For a string that does start with a colon, if the subroutine
+throwing the exception I<does> that behaviour.  For example, the
+C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
+
+=back
+
+=cut
+
+sub matches {
+    my ($this, $that) = @_;
+
+    state %cache;
+    state $tags;
+
+    # XXX - Handle references
+    croak "UNIMPLEMENTED" if ref $that;
+
+    my $sub = $this->function;
+
+    if ($DEBUG) {
+        my $sub2 = $this->function;
+        warn "Smart-matching $that against $sub / $sub2\n";
+    }
+
+    # Direct subname match.
+    return 1 if $that eq $sub;
+    return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
+    return 0 if $that !~ /^:/;
+
+    # Cached match / check tags.
+    require Fatal;
+    return $cache{$sub}{$that} //= (Fatal::_expand_tag($that) ~~ $sub);
+}
 
 =head2 Advanced methods
 
@@ -249,69 +306,10 @@ sub register {
 
 }
 
-# TODO: Move matches documentation into the everyday section.
-
-=head3 matches
-
-	if ( $e->matches('open') ) { ... }
-
-	if ( $e ~~ 'open' ) { ... }
-
-C<matches> is the recommended interface for determining if a
-given exception matches a particular role.  On Perl 5.10,
-using smart-match (C<~~>) with an C<autodie::exception> object
-will use C<matches> underneath.
-
-An exception is considered to match a string if:
-
-=over 4
-
-=item *
-
-For a string not starting with a colon, the string exactly matches the
-package and subroutine that threw the exception.  For example,
-C<MyModule::log>.  If the string does not contain a package name,
-C<CORE::> is assumed.
-
-=item *
-
-For a string that does start with a colon, if the subroutine
-throwing the exception I<does> that behaviour.  For example, the
-C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
-
-=back
-
-=cut
-
-sub matches {
-    my ($this, $that) = @_;
-
-    state %cache;
-    state $tags;
-
-    # XXX - Handle references
-    croak "UNIMPLEMENTED" if ref $that;
-
-    my $sub = $this->function;
-
-    if ($DEBUG) {
-        my $sub2 = $this->function;
-        warn "Smart-matching $that against $sub / $sub2\n";
-    }
-
-    # Direct subname match.
-    return 1 if $that eq $sub;
-    return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
-    return 0 if $that !~ /^:/;
-
-    # Cached match / check tags.
-    require Fatal;
-    return $cache{$sub}{$that} //= (Fatal::_expand_tag($that) ~~ $sub);
-}
 
 =head3 add_file_and_line
 
-	say "Problem occured",$@->add_file_and_line;
+    say "Problem occured",$@->add_file_and_line;
 
 Returns the string C< at %s line %d>, where C<%s> is replaced with
 the filename, and C<%d> is replaced with the line number.
@@ -331,7 +329,7 @@ sub add_file_and_line {
 
 =head3 stringify
 
-	say "The error was: ",$@->stringify;
+    say "The error was: ",$@->stringify;
 
 Formats the error as a human readable string.  Usually there's no
 reason to call this directly, as it is used automatically if an
@@ -365,7 +363,7 @@ sub stringify {
 
 =head3 format_default
 
-	my $error_string = $E->format_default;
+    my $error_string = $E->format_default;
 
 This produces the default error string for the given exception,
 I<without using any registered message handlers>.  It is primarily

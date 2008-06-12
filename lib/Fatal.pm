@@ -593,20 +593,24 @@ Fatal - replace functions with equivalents which succeed or die
 
     use Fatal qw(open close);
 
+    open(my $fh, "<", $filename);  # No need to check errors!
+
     use File::Copy qw(move);
     use Fatal qw(move);
+
+    move($file1, $file2); # No need to check errors!
 
     sub juggle { . . . }
     Fatal->import('juggle');
 
 =head1 BEST PRACTICE
 
-B<Fatal has been obsoleted by the new L<autodie> pragma.>
-Please use L<autodie> for deployment on Perl 5.10 or newer.
-It supports lexical scoping, throws real exception objects,
-and provides much nicer error messages.
+B<Fatal has been obsoleted by the new L<autodie> pragma.> Please use
+L<autodie> for deployment on systems with Perl 5.10 or newer.  It supports
+lexical scoping, throws real exception objects, and provides much nicer
+error messages.
 
-The use of C<:void> is discouraged.
+The use of C<:void> with Fatal is discouraged.
 
 =head1 DESCRIPTION
 
@@ -631,7 +635,7 @@ values are ignored.  For example
     use Fatal qw/:void open close/;
 
     # properly checked, so no exception raised on error
-    if(open(FH, "< /bogotic") {
+    unless(open(FH, "< /bogotic") {
         warn "bogo file, dude: $!";
     }
 
@@ -639,36 +643,13 @@ values are ignored.  For example
     close FH;
 
 The use of C<:void> is discouraged, as it can result in exceptions
-not being thrown if you I<accidentally> method a method without
+not being thrown if you I<accidentally> call a method without
 void context.  Use L<autodie> instead if you want to be able to
 disable autodying/Fatal behaviour for a small block of code.
 
 =head1 DIAGNOSTICS
 
 =over 4
-
-=item Cannot use lexical Fatal with no arguments
-
-You've tried to use C<use Fatal qw(:lexical)> but without supplying
-a list of which subroutines should adopt the do-or-die behaviour.
-
-=item :void cannot be used with lexical scope
-
-The C<:void> and C<:lexical> options are mutually exclusive.  You
-can't use them both in the same call to C<use Fatal>.
-
-=item :lexical must be used as first argument
-
-If you're going to use the C<:lexical> switch, it must be the first
-option passed to C<Fatal>.  If you want to modify some subroutines
-on a lexical basis, and others on a package-wide basis, simply
-make two calls to C<use Fatal>.
-
-=item no Fatal can only start with :lexical
-
-C<no Fatal> only makes sense when disabling C<Fatal> behaviour
-with lexical scope.  If you're going to use it, the first argument
-must always be C<:lexical>.  Eg: C<no Fatal qw(:lexical open)>
 
 =item Bad subroutine name for Fatal: %s
 
@@ -699,6 +680,29 @@ See the L</"SEE ALSO"> section of this documentation.
 You've found a bug in C<Fatal>.  Please report it using
 the C<perlbug> command.
 
+=item Cannot use lexical Fatal with no arguments
+
+You've tried to use C<use Fatal qw(:lexical)> but without supplying
+a list of which subroutines should adopt the do-or-die behaviour.
+
+=item :void cannot be used with lexical scope
+
+The C<:void> and C<:lexical> options are mutually exclusive.  You
+can't use them both in the same call to C<use Fatal>.
+
+=item :lexical must be used as first argument
+
+If you're going to use the C<:lexical> switch, it must be the first
+option passed to C<Fatal>.  If you want to modify some subroutines
+on a lexical basis, and others on a package-wide basis, simply
+make two calls to C<use Fatal>.
+
+=item no Fatal can only start with :lexical
+
+C<no Fatal> only makes sense when disabling C<Fatal> behaviour
+with lexical scope.  If you're going to use it, the first argument
+must always be C<:lexical>.  Eg: C<no Fatal qw(:lexical open)>
+
 =back
 
 =head1 GOTCHAS
@@ -710,9 +714,10 @@ either an empty list, or a list consisting of a single undef.
 
 =head1 BUGS
 
-Fatal makes changes to your current package, including when changing
-built-in functions.  Changing to a new package will result in calls
-that do not get checked for failure (unless Fatal was called there, too).
+Fatal only makes changes the package(s) in which it is used, even when
+changing built-in function.  Changing to a new package will cause Fatal not
+to check calls to any functions for failure (unless Fatal was called there,
+too).
 
 C<Fatal> clobbers the context in which a function is called, always
 making it a scalar context, except when the C<:void> tag is used.
@@ -737,9 +742,5 @@ same terms as Perl itself.
 L<autodie> for a nicer way to use lexical Fatal.
 
 L<IPC::System::Simple> for a similar idea for calls to C<system()>.
-
-=head1 ACKNOWLEDGEMENTS
-
-Mark Reed and Roland Giersig -- Klingon translators.
 
 =cut
