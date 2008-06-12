@@ -245,7 +245,7 @@ sub unimport {
     }
 }
 
-# XXX - This is rather terribly inefficient right now.
+# TODO - This is rather terribly inefficient right now.
 sub _expand_tag {
     my ($tag) = @_;
 
@@ -303,7 +303,7 @@ sub fill_protos {
         die "Internal error: Unknown prototype letters: \"$proto\"";
     }
     push(@out1,[$n+1,@out]);
-    @out1;
+    return @out1;
 }
 
 # Note that we don't actually call _get_sub_index in the compiled
@@ -399,6 +399,12 @@ sub one_invocation {
 
     if ($back_compat) {
 
+        # TODO - Use Fatal qw(system) is not yet supported.  It should be!
+
+        if ($call eq 'CORE::system') {
+            croak("UNIMPLEMENTED: use Fatal qw(system) not supported.");
+        }
+
         local $" = ', ';
 
         if ($void) {
@@ -419,8 +425,6 @@ sub one_invocation {
         $op = '//';
     }
 
-    local $" = ', ';
-
     # The name of our original function is:
     #   $call if the function is CORE
     #   $sub if our function is non-CORE
@@ -439,6 +443,40 @@ sub one_invocation {
     # described above?
 
     my $true_sub_name = $core ? $call : $sub;
+
+    if ($call eq 'CORE::system') {
+
+        # Leverage IPC::System::Simple if we're making an autodying
+        # system.
+
+        local $" = ", ";
+
+        # TODO - There were some odd behaviours regarding local $@
+        # on p5p that got mentioned.  Check them out, see if we
+        # may get caught.
+
+        return qq{
+            local \$@;
+
+            my \$retval;
+
+            eval {
+                \$retval = IPC::System::Simple::system(@argv);
+            };
+
+            if (\$@) {
+                die autodie::exception::system->new(
+                    function => q{true_sub_name}, args => [ @argv ],
+                    message => "\$@"
+                );
+            }
+
+            return \$retval;
+        };
+
+    }
+
+    local $" = ', ';
 
     return qq{
         if (wantarray) {
@@ -508,39 +546,26 @@ sub _make_fatal {
 
     } elsif ($name eq 'system') {
 
+        # If we're fatalising system, then we need to load
+        # helper code.
+
         eval {
             require IPC::System::Simple; # Only load it if we need it.
         };
 
-        # TODO: IPC::System::Simple doesn't currently return
-        # exception objects, only strings.  We should check for
-        # a particular version number, and make sure it does the
-        # right thing with regards to exceptions.
-
-        # Alternatively, (and possibly betterly) we should use
-        # IPC::System::Simple for the heavy lifting, and mint our
-        # own error objects.
-
         if ($@) { croak ERROR_NO_IPC_SYS_SIMPLE; }
 
-	# Make sure we're using a recent version of ISS that actually
-	# support fatalised system.
-	if ($IPC::System::Simple::VERSION < MIN_IPC_SYS_SIMPLE_VER) {
-	    croak sprintf(
+	    # Make sure we're using a recent version of ISS that actually
+	    # support fatalised system.
+	    if ($IPC::System::Simple::VERSION < MIN_IPC_SYS_SIMPLE_VER) {
+	        croak sprintf(
                 ERROR_IPC_SYS_SIMPLE_OLD, MIN_IPC_SYS_SIMPLE_VER,
-		$IPC::System::Simple::VERSION
-	    );
-	}
+                $IPC::System::Simple::VERSION
+	        );
+	    }
 
-        {
-            no strict 'refs'; # To avoid can't use string() as symbol ref.
-            no warnings;      # Avoids sub redefined warnings.
-            *{$sub} = \&IPC::System::Simple::system;
-        }
-
-        $Already_fatalised{$sub} = 1;
-
-        return;
+        $call = 'CORE::system';
+	$name = 'system';
 
     } else {            # CORE subroutine
         $proto = eval { prototype "CORE::$name" };
