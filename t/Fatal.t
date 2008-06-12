@@ -4,11 +4,9 @@ use feature qw(say);
 
 use constant NO_SUCH_FILE => "this_file_or_dir_had_better_not_exist_XYZZY";
 
-use Test::More tests => 23;
+use Test::More tests => 22;
 
 use Fatal qw(open close :void opendir);
-
-is($Fatal::VERSION, '1.10', q{Version});
 
 eval { open FOO, "<".NO_SUCH_FILE };	# Two arg open
 like($@, qr/^Can't open/, q{Package Fatal::open});
