@@ -38,7 +38,7 @@ eval { open(my $fh, '<', NO_SUCH_FILE); };
 is($@,"","autodie open outside of lexical scope");
 
 eval { autodie->import(); };
-like($@, qr{Cannot use lexical autodie with no arguments}, "No bare autodie");
+ok(! $@, "Bare autodie allowed");	# TODO: Test it turns on ':all'
 
 {
     use autodie qw(:io);

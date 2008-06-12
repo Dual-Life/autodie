@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Fatal ();
+our @ISA = qw(Fatal);
 our $VERSION = $Fatal::VERSION;
 
 # When passing args to Fatal we want to keep the first arg

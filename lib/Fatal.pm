@@ -120,11 +120,11 @@ sub import {
         $lexical = 1;
         shift @_;
 
-        # Don't allow :lexical with no other arguments.  It makes
-        # no sense.
+	# If we see no arguments and :lexical, we assume they
+	# wanted ':all'.
 
         if (@_ == 0) {
-            croak(sprintf(ERROR_NOARGS, $class));
+            push(@_, ':all');
         }
 
         # Don't allow :lexical with :void, it's needlessly confusing.
