@@ -2,8 +2,6 @@ This is not an exhaustive list of TODO items.
 
 * Write a bunch of tests for the exception API
 
-* Make sure system() returns a real exception object, not just a string.
-
 * Consider removing :lexical tests in t/* and convert them to using
   autodie.  The :lexical option is no longer officially supported in
   Fatal.
