@@ -1,9 +1,13 @@
 #!/usr/bin/perl -w
 use strict;
-use 5.010;
-use Test::More 'no_plan';
+use Test::More;
 
+BEGIN { plan skip_all => "Perl 5.10 only tests" if $] < 5.010; }
+
+use 5.010;
 use constant NO_SUCH_FILE => 'this_file_had_better_not_exist_xyzzy';
+
+plan 'no_plan';
 
 eval {
 	use autodie ':io';

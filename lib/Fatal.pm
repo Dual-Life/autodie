@@ -110,8 +110,8 @@ sub import {
     # We have to use empty-string rather than 0, because
     # ord(0) = 32+16.
 
-    $^H{$PACKAGE}    //= "";
-    $^H{$NO_PACKAGE} //= "";
+    $^H{$PACKAGE}    = ( defined($^H{$PACKAGE}    ) ? $^H{$PACKAGE}    : "" );
+    $^H{$NO_PACKAGE} = ( defined($^H{$NO_PACKAGE} ) ? $^H{$NO_PACKAGE} : "" );
 
     # If we see the :lexical flag, then _all_ arguments are
     # changed lexically
@@ -128,7 +128,7 @@ sub import {
         }
 
         # Don't allow :lexical with :void, it's needlessly confusing.
-        if (@_ ~~ VOID_TAG) {
+        if ( grep { $_ eq VOID_TAG } @_ ) {
             croak(ERROR_VOID_LEX);
         }
 
@@ -259,7 +259,7 @@ sub unimport {
             return $cached;
         }
 
-        if (not $tag ~~ %TAGS) {
+        if (not exists $TAGS{$tag}) {
             croak "Invalid exception class $tag";
         }
 
@@ -285,15 +285,12 @@ sub unimport {
 
 # Get, or generate and get, the bit-index of the given subroutine.
 
-# XXX - This also gets used by parts of the code to determine if we've
-# already replaced that function with a fatalised version.  This is
-# dangerous; we may wish to generate an index without dropping in a
-# replacement.  Perhaps we need a different index to keep track of
-# replaced subs?
-
 sub _get_sub_index {
     my ($sub) = @_;
-    return $Hints_index{$sub} // ($Hints_index{$sub} = keys %Hints_index);
+
+    return $Hints_index{$sub} if defined $Hints_index{$sub};
+
+    return $Hints_index{$sub} = keys %Hints_index;
 }
 
 sub fill_protos {
@@ -534,9 +531,8 @@ sub _make_fatal {
     # twiddle the appropriate bits.
 
     if ($lexical) {
-        $index //= _get_sub_index($sub);
-        vec($^H{$PACKAGE},    $Hints_index{$sub},1) = 1;
-        vec($^H{$NO_PACKAGE}, $Hints_index{$sub},1) = 0;
+        vec($^H{$PACKAGE},    $index ,1) = 1;
+        vec($^H{$NO_PACKAGE}, $index ,1) = 0;
     } else {
         $Package_Fatal{$sub} = 1;
     }

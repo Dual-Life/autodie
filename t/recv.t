@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 use strict;
-use 5.010;
 use Test::More tests => 5;
 use Socket;
 use autodie qw(socketpair);
