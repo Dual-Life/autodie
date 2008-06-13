@@ -8,9 +8,10 @@ use Hash::Util qw(fieldhashes);
 our $DEBUG = 0;
 
 use overload
-    '~~'  => "matches",
     q{""} => "stringify"
 ;
+
+use if ($] >= 5.010), overload => '~~'  => "matches";
 
 our $VERSION = '1.10_04';
 
@@ -192,30 +193,31 @@ C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
 
 =cut
 
-sub matches {
-    my ($this, $that) = @_;
+{
+    my (%cache, $tags);
 
-    state %cache;
-    state $tags;
+    sub matches {
+	my ($this, $that) = @_;
 
-    # XXX - Handle references
-    croak "UNIMPLEMENTED" if ref $that;
+	# XXX - Handle references
+	croak "UNIMPLEMENTED" if ref $that;
 
-    my $sub = $this->function;
+	my $sub = $this->function;
 
-    if ($DEBUG) {
-        my $sub2 = $this->function;
-        warn "Smart-matching $that against $sub / $sub2\n";
+	if ($DEBUG) {
+	    my $sub2 = $this->function;
+	    warn "Smart-matching $that against $sub / $sub2\n";
+	}
+
+	# Direct subname match.
+	return 1 if $that eq $sub;
+	return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
+	return 0 if $that !~ /^:/;
+
+	# Cached match / check tags.
+	require Fatal;
+	return $cache{$sub}{$that} //= (Fatal::_expand_tag($that) ~~ $sub);
     }
-
-    # Direct subname match.
-    return 1 if $that eq $sub;
-    return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
-    return 0 if $that !~ /^:/;
-
-    # Cached match / check tags.
-    require Fatal;
-    return $cache{$sub}{$that} //= (Fatal::_expand_tag($that) ~~ $sub);
 }
 
 =head2 Advanced methods
@@ -273,11 +275,11 @@ sub _format_open {
 
     local $! = $this->errno;
 
-    given($open_args[1]) {
-        when ('<')  { return "Can't open '$file' for reading: '$!'"    }
-        when ('>')  { return "Can't open '$file' for writing: '$!'"    }
-        when ('>>') { return "Can't open '$file' for appending: '$!'"  }
-    }
+    my $mode = $open_args[1];
+
+    if    ($mode eq '<')  { return "Can't open '$file' for reading: '$!'"    }
+    elsif ($mode eq '>')  { return "Can't open '$file' for writing: '$!'"    }
+    elsif ($mode eq '>>') { return "Can't open '$file' for appending: '$!'"  }
 
     # Default message (for pipes and odd things)
 

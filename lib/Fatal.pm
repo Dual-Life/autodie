@@ -44,7 +44,7 @@ use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 # All the Fatal/autodie modules share the same version number.
 our $VERSION = "1.10_04";
 
-our $Debug //= 0;
+our $Debug ||= 0;
 
 # We have some tags that can be passed in for use with import.
 # These are all assumed to be CORE::
@@ -120,8 +120,8 @@ sub import {
         $lexical = 1;
         shift @_;
 
-	# If we see no arguments and :lexical, we assume they
-	# wanted ':all'.
+        # If we see no arguments and :lexical, we assume they
+        # wanted ':all'.
 
         if (@_ == 0) {
             push(@_, ':all');
@@ -134,8 +134,8 @@ sub import {
 
     }
 
-    # If we see the lexical tag as the non-first argument, complain.
-    if (@_ ~~ LEXICAL_TAG) {
+    if ( grep { $_ eq LEXICAL_TAG } @_ ) {
+        # If we see the lexical tag as the non-first argument, complain.
         croak(ERROR_LEX_FIRST);
     }
 
@@ -145,44 +145,46 @@ sub import {
     # we'll be modifying the array as we walk through it.
 
     while (my $func = shift @fatalise_these) {
-        given ($func) {
+
+        if ($func eq VOID_TAG) {
 
             # When we see :void, set the void flag.
-            when (':void') { $void = 1; }
+            $void = 1;
+
+        } elsif (exists $TAGS{$func}) {
 
             # When it's a tag, expand it.
-            when (%TAGS) {
-                push(@fatalise_these, @{ $TAGS{$_} });
-            }
+            push(@fatalise_these, @{ $TAGS{$func} });
+
+        } else {
 
             # Otherwise, fatalise it.
-            default {
 
-                # We're going to make a subroutine fatalistic.
-                # However if we're being invoked with 'use Fatal qw(x)'
-                # and we've already been called with 'no autodie qw(x)'
-                # in the same scope, we consider this to be an error.
-                # Mixing Fatal and autodie effects was considered to be
-                # needlessly confusing in p5p.
+            # We're going to make a subroutine fatalistic.
+            # However if we're being invoked with 'use Fatal qw(x)'
+            # and we've already been called with 'no autodie qw(x)'
+            # in the same scope, we consider this to be an error.
+            # Mixing Fatal and autodie effects was considered to be
+            # needlessly confusing in p5p.
 
-                my $sub = $_;
-                $sub = "${pkg}::$sub" unless $sub =~ /::/;
+            my $sub = $func;
+            $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-                my $index = _get_sub_index($sub);
+            my $index = _get_sub_index($sub);
 
-                # If we're being called as Fatal, and we've previously
-                # had a 'no X' in scope for the subroutine.
+            # If we're being called as Fatal, and we've previously
+            # had a 'no X' in scope for the subroutine.
 
-                no warnings 'uninitialized';
-                if (! $lexical and vec($^H{$NO_PACKAGE}, $index, 1)) {
-                    croak(sprintf(ERROR_FATAL_CONFLICT, $_, $_));
-                }
-
-                # We're not being used in a confusing way, so make
-                # the sub fatal.
-
-                $class->_make_fatal($_, $pkg, $void, $lexical);
+            no warnings 'uninitialized';
+            if (! $lexical and vec($^H{$NO_PACKAGE}, $index, 1)) {
+                croak(sprintf(ERROR_FATAL_CONFLICT, $_, $_));
             }
+
+            # We're not being used in a confusing way, so make
+            # the sub fatal.
+
+            $class->_make_fatal($func, $pkg, $void, $lexical);
+
         }
     }
 
@@ -246,34 +248,38 @@ sub unimport {
 }
 
 # TODO - This is rather terribly inefficient right now.
-sub _expand_tag {
-    my ($tag) = @_;
 
-    state %tag_cache;
+{
+    my %tag_cache;
 
-    if (my $cached = $tag_cache{$tag}) {
-        return $cached;
-    }
+    sub _expand_tag {
+        my ($tag) = @_;
 
-    if (not $tag ~~ %TAGS) {
-        croak "Invalid exception class $tag";
-    }
-
-    my @to_process = @{$TAGS{$tag}};
-
-    my @taglist = ();
-
-    while (my $item = shift @to_process) {
-        if ($item =~ /^:/) {
-            push(@to_process, @{$TAGS{$item}} );
-        } else {
-            push(@taglist, "CORE::$item");
+        if (my $cached = $tag_cache{$tag}) {
+            return $cached;
         }
+
+        if (not $tag ~~ %TAGS) {
+            croak "Invalid exception class $tag";
+        }
+
+        my @to_process = @{$TAGS{$tag}};
+
+        my @taglist = ();
+
+        while (my $item = shift @to_process) {
+            if ($item =~ /^:/) {
+                push(@to_process, @{$TAGS{$item}} );
+            } else {
+                push(@taglist, "CORE::$item");
+            }
+        }
+
+        $tag_cache{$tag} = \@taglist;
+
+        return \@taglist;
+
     }
-
-    $tag_cache{$tag} = \@taglist;
-
-    return \@taglist;
 
 }
 
@@ -566,17 +572,17 @@ sub _make_fatal {
 
         if ($@) { croak ERROR_NO_IPC_SYS_SIMPLE; }
 
-	    # Make sure we're using a recent version of ISS that actually
-	    # support fatalised system.
-	    if ($IPC::System::Simple::VERSION < MIN_IPC_SYS_SIMPLE_VER) {
-	        croak sprintf(
+            # Make sure we're using a recent version of ISS that actually
+            # support fatalised system.
+            if ($IPC::System::Simple::VERSION < MIN_IPC_SYS_SIMPLE_VER) {
+                croak sprintf(
                 ERROR_IPC_SYS_SIMPLE_OLD, MIN_IPC_SYS_SIMPLE_VER,
                 $IPC::System::Simple::VERSION
-	        );
-	    }
+                );
+            }
 
         $call = 'CORE::system';
-	$name = 'system';
+        $name = 'system';
 
     } else {            # CORE subroutine
         $proto = eval { prototype "CORE::$name" };
