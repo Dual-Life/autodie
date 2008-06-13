@@ -489,6 +489,10 @@ sub one_invocation {
 
     }
 
+    # XXX Total kludge, force operator to always be || under 5.8
+
+    $op = '||' if $] < 5.010;
+
     local $" = ', ';
 
     return qq{

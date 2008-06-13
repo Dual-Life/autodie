@@ -29,8 +29,8 @@ This is not an exhaustive list of TODO items.
 
 * Figure out how to get it all running on Perl 5.8
     * Can it actually run in theory? (see autobox for an example)
-    * Remove all the 5.10 things from the code (~~ and given/when)
-    * Make things like overloading ~~ only happen in 5.10+
+    * Remove/fix kludge that forces || as the only test
+      operator under 5.8
 
 * Write tests to make sure that nothing clobbers $@ accidently,
   especially in autodie::exception.

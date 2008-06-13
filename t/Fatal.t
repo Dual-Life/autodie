@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 use strict;
-use feature qw(say);
 
 use constant NO_SUCH_FILE => "this_file_or_dir_had_better_not_exist_XYZZY";
 
