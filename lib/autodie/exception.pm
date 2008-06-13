@@ -1,5 +1,5 @@
 package autodie::exception;
-use 5.010;
+use 5.008;
 use strict;
 use warnings;
 use Carp qw(croak);

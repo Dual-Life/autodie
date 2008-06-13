@@ -6,6 +6,8 @@ Revision history for Fatal
 	* Added a test to make sure all version numbers are incremented
 	  in lock-step.
 
+	* Started 5.8 support
+
 1.10_03 Fri Jun 13 11:04:17 AUSEST 2008
 	* Updated backwards compatibility tests to work on
 	  non-Enligh systems.
