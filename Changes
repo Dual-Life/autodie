@@ -1,5 +1,11 @@
 Revision history for Fatal
 
+1.10_04
+	* Made all $VERSION numbers more friendly to static code
+	  analysis tools (including CPAN).
+	* Added a test to make sure all version numbers are incremented
+	  in lock-step.
+
 1.10_03 Fri Jun 13 11:04:17 AUSEST 2008
 	* Updated backwards compatibility tests to work on
 	  non-Enligh systems.

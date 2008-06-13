@@ -7,7 +7,7 @@ use Carp qw(croak);
 use Hash::Util qw(fieldhashes);
 use Scalar::Util qw(refaddr);
 
-our $VERSION = $autodie::exception::VERSION;
+our $VERSION = '1.10_04';
 
 =head1 NAME
 
