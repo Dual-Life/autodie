@@ -34,10 +34,12 @@ eval {
 
 ok($@,'recv dies on returning undef');
 
+$buffer = "Not an empty string";
+
 eval {
 	use autodie qw(send);
 	# STDIN isn't a socket, so this should fail.
-	send(STDOUT,$buffer,1,0);
+	send(STDOUT,$buffer,0);
 };
 
 ok($@,'send dies on returning undef');
