@@ -194,29 +194,37 @@ C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
 =cut
 
 {
-    my (%cache, $tags);
+    my (%cache);
 
     sub matches {
-	my ($this, $that) = @_;
+        my ($this, $that) = @_;
 
-	# XXX - Handle references
-	croak "UNIMPLEMENTED" if ref $that;
+        # XXX - Handle references
+        croak "UNIMPLEMENTED" if ref $that;
 
-	my $sub = $this->function;
+        my $sub = $this->function;
 
-	if ($DEBUG) {
-	    my $sub2 = $this->function;
-	    warn "Smart-matching $that against $sub / $sub2\n";
-	}
+        if ($DEBUG) {
+            my $sub2 = $this->function;
+            warn "Smart-matching $that against $sub / $sub2\n";
+        }
 
-	# Direct subname match.
-	return 1 if $that eq $sub;
-	return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
-	return 0 if $that !~ /^:/;
+        # Direct subname match.
+        return 1 if $that eq $sub;
+        return 1 if $that !~ /:/ and "CORE::$that" eq $sub;
+        return 0 if $that !~ /^:/;
 
-	# Cached match / check tags.
-	require Fatal;
-	return $cache{$sub}{$that} //= (Fatal::_expand_tag($that) ~~ $sub);
+        # Cached match / check tags.
+        require Fatal;
+
+        if (exists $cache{$sub}{$that}) {
+            return $cache{$sub}{$that};
+        }
+
+        # This rather awful looking line checks to see if our sub is in the
+        # list of expanded tags, caches it, and returns the result.
+
+        return $cache{$sub}{$that} = grep { $_ eq $sub } @{ Fatal::_expand_tag($that) };
     }
 }
 
