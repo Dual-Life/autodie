@@ -12,7 +12,7 @@ use overload
     q{""} => "stringify"
 ;
 
-our $VERSION = '1.10_01';
+our $VERSION = '1.10_02';
 
 =head1 NAME
 

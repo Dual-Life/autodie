@@ -1,6 +1,9 @@
 Revision history for Fatal
 
-1.10	Thu Jun 12 17:19:13 AUSEST 2008
+1.10_02
+	* Tweaked boilerplate test to remove windows-only paths.
+
+1.10_01	Thu Jun 12 17:19:13 AUSEST 2008
 	* First beta release of module.
 
 1.09	UNRELEASED
