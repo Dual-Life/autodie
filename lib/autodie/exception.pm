@@ -3,7 +3,7 @@ use 5.008;
 use strict;
 use warnings;
 use Carp qw(croak);
-use Hash::Util qw(fieldhashes);
+use Scalar::Util qw(refaddr);
 
 our $DEBUG = 0;
 
@@ -65,11 +65,11 @@ is called which may reset or alter C<$@>.
 
 =cut
 
-# autodie::exception objects are inside-out constructions,
-# using new 5.10 fieldhashes features.  They're based roughly
-# on Exception::Class. I'd use E::C, but it's non-core.
+# autodie::exception objects are inside-out objects.  They were
+# going to be based on fieldhashes, but that breaks things for 5.8.
+# Instead we do the work ourselves.
 
-fieldhashes \ my(
+my(
     %args_of,
     %file_of,
     %caller_of,
@@ -90,7 +90,7 @@ that died.
 
 =cut
 
-sub args        { return $args_of{        $_[0] } }
+sub args        { return $args_of{ refaddr $_[0] } }
 
 =head3 function
 
@@ -100,7 +100,7 @@ The subroutine (including package) that threw the exception.
 
 =cut
 
-sub function   { return $sub_of{   $_[0] } }
+sub function   { return $sub_of{ refaddr $_[0] } }
 
 =head3 file
 
@@ -111,7 +111,7 @@ C<MyTest.pm>).
 
 =cut
 
-sub file        { return $file_of{        $_[0] } }
+sub file        { return $file_of{ refaddr $_[0] } }
 
 =head3 package
 
@@ -121,7 +121,7 @@ The package from which the exceptional subroutine was called.
 
 =cut
 
-sub package     { return $package_of{     $_[0] } }
+sub package     { return $package_of{ refaddr $_[0] } }
 
 =head3 caller
 
@@ -131,7 +131,7 @@ The subroutine that I<called> the exceptional code.
 
 =cut
 
-sub caller      { return $caller_of{ $_[0] } }
+sub caller      { return $caller_of{ refaddr $_[0] } }
 
 =head2 line
 
@@ -141,7 +141,7 @@ The line in C<< $E->file >> where the exceptional code was called.
 
 =cut
 
-sub line        { return $line_of{        $_[0] } }
+sub line        { return $line_of{ refaddr $_[0] } }
 
 =head3 errno
 
@@ -159,7 +159,7 @@ set on failure.
 # TODO: Make errno part of a role.  It doesn't make sense for
 # everything.
 
-sub errno       { return $errno_of{       $_[0] } }
+sub errno       { return $errno_of{ refaddr $_[0] } }
 
 =head3 matches
 
@@ -386,7 +386,7 @@ sub format_default {
 
     my $call        =  $this->function;
 
-    local $! = $errno_of{$this};
+    local $! = $this->errno;
 
     # TODO: This is probably a good idea for CORE, is it
     # a good idea for other subs?
@@ -454,20 +454,39 @@ sub _init {
 
     my ($package, $file, $line, $sub) = CORE::caller(2);
 
-    $package_of{    $this} = $package;
-    $file_of{       $this} = $file;
-    $line_of{       $this} = $line;
-    $caller_of{     $this} = $sub;
-    $package_of{    $this} = $package;
-    $errno_of{      $this} = $!;
+    my $id = refaddr $this;
 
-    $args_of{       $this} = $args{args}     || [];
-    $sub_of{  $this} = $args{function} or
+    $package_of{ $id} = $package;
+    $file_of{    $id} = $file;
+    $line_of{    $id} = $line;
+    $caller_of{  $id} = $sub;
+    $package_of{ $id} = $package;
+    $errno_of{   $id} = $!;
+
+    $args_of{    $id} = $args{args}     || [];
+    $sub_of{     $id} = $args{function} or
               croak("$class->new() called without function arg");
 
     return $this;
 
 }
+
+sub DESTROY {
+    my ($this) = @_;
+    my $id  = refaddr $this;
+
+    delete $package_of{ $id};
+    delete $file_of{    $id};
+    delete $line_of{    $id};
+    delete $caller_of{  $id};
+    delete $package_of{ $id};
+    delete $errno_of{   $id};
+    delete $args_of{    $id};
+    delete $sub_of{     $id};
+
+}
+
+# TODO : Write a CLONE method to support our inside-out design.
 
 1;
 
