@@ -1,8 +1,10 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 5;
+use Test::More tests => 7;
 use Socket;
 use autodie qw(socketpair);
+
+$SIG{PIPE} = 'IGNORE';
 
 my ($sock1, $sock2);
 socketpair($sock1, $sock2, AF_UNIX, SOCK_STREAM, PF_UNSPEC);
@@ -33,14 +35,18 @@ eval {
 };
 
 ok($@,'recv dies on returning undef');
+isa_ok($@,'autodie::exception');
 
 $buffer = "# Not an empty string\n";
 
+# Terminate writing for $sock1
+shutdown($sock1, 1);
+
 eval {
 	use autodie qw(send);
-	no warnings;	# To prevent whinge about STDIN
-	# STDIN isn't a socket, so this should fail.
-	send(STDIN,$buffer,0);
+	# Writing to a socket terminated for writing should fail.
+	send($sock1,$buffer,0);
 };
 
 ok($@,'send dies on returning undef');
+isa_ok($@,'autodie::exception');
