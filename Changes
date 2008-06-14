@@ -14,6 +14,7 @@ Revision history for Fatal
 		* 5.8 won't try to use // in fatalised subs (kludge)
 
 	* Make sure our send/recv test always tries to send something.
+	* Corrected sent/recv test to try and illegally send on STDIN.
 
 1.10_03 Fri Jun 13 11:04:17 AUSEST 2008
 	* Updated backwards compatibility tests to work on
