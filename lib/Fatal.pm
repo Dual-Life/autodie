@@ -224,6 +224,15 @@ sub import {
                 delete ${ "${pkg}::" }{ $sub };
 
                 # Copy innocent bystanders back.
+
+		# XXX - We're not copying back subs that used to
+		# be there (if we redefined them).  This is a
+		# major bug, as it means autodie can only work
+		# with core subs.
+		#
+		# Luckily, this should be easy to fix.  Just
+		# cache what the old subs were, and replace them.
+
                 foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
                     next unless defined *__tmp{ $slot };
                     *{ "${pkg}::$sub" } = *__tmp{ $slot };
