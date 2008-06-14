@@ -5,6 +5,8 @@ use Carp;
 use strict;
 use warnings;
 use autodie::exception;
+use constant PERL58 => ($] < 5.010);
+use if PERL58, 'Scope::Guard';
 
 # When one of our wrapped subroutines is called, there are
 # possibilities:
@@ -92,8 +94,9 @@ my %Already_fatalised = ();
 
 my %Package_Fatal = (); # Tracks Fatal with package scope
 
-my $PACKAGE    = __PACKAGE__;
-my $NO_PACKAGE = "no $PACKAGE";
+my $PACKAGE       = __PACKAGE__;
+my $NO_PACKAGE    = "no $PACKAGE";
+my $PACKAGE_GUARD = "guard $PACKAGE";
 
 # Here's where all the magic happens when someone write 'use Fatal'
 # or 'use autodie'.
@@ -131,7 +134,6 @@ sub import {
         if ( grep { $_ eq VOID_TAG } @_ ) {
             croak(ERROR_VOID_LEX);
         }
-
     }
 
     if ( grep { $_ eq LEXICAL_TAG } @_ ) {
@@ -143,6 +145,8 @@ sub import {
 
     # NB: we're using while/shift rather than foreach, since
     # we'll be modifying the array as we walk through it.
+
+    my @made_fatal;
 
     while (my $func = shift @fatalise_these) {
 
@@ -185,7 +189,47 @@ sub import {
 
             $class->_make_fatal($func, $pkg, $void, $lexical);
 
+            # If we're making lexical changes, we need to arrange
+            # for them to be cleaned at the end of our scope, so
+            # record them here.
+
+            push(@made_fatal,$func) if PERL58 and $lexical;
         }
+    }
+
+    if (PERL58 and $lexical) {
+
+        # Dark magic to have autodie work under 5.8
+        # Copied from namespace::clean, that copied it from
+        # autodie, that found it on an ancient scroll written
+        # in blood.  Honestly, I have no idea how it works.
+
+        $^H |= 0x120000;
+
+        # Our package guard gets invoked when we leave our lexical
+        # scope.  The code here is lifted from namespace::clean,
+        # by Robert "phaylon" Sedlacek.
+
+        $^H{$PACKAGE_GUARD} = Scope::Guard->new(sub {
+            no strict;
+            warn "In scope clean-up\n";
+            foreach my $sub (@made_fatal) {
+
+                warn "Cleaing $sub\n";
+
+                # Copy symbols across to temp area.
+                local *__tmp = *{ ${ "${pkg}::" }{ $sub } };
+
+                # Nuke the old glob.
+                delete ${ "${pkg}::" }{ $sub };
+
+                # Copy innocent bystanders back.
+                foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
+                    next unless defined *__tmp{ $slot };
+                    *{ "${pkg}::$sub" } = *__tmp{ $slot };
+                }
+            };
+        });
     }
 
     return;
@@ -330,7 +374,12 @@ sub write_invocation {
     if (@argvs == 1) {        # No optional arguments
         my @argv = @{$argvs[0]};
         shift @argv;
-        my $out = qq[
+        my $out = qq(
+            if (\$] < 5.010) {
+                  # XXX - Kludge - For lexical semantics under 5.8
+                  warn "XXX - Using kludged $call / $name - \@_\n";
+                  ).one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
+            }
             my \$hints = (caller(0))[10];    # Lexical hints hashref
             no warnings 'uninitialized';
             if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
@@ -356,21 +405,28 @@ sub write_invocation {
             $n = shift @argv;
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
+
+            push @out, qq(
+                if (\$] < 5.010) {
+                    # XXX - Kludge - For lexical semantics under 5.8
+                    warn "XXX - Using kludged $call / $name - \@_\n";
+                ).one_invocation($core,$call,$name,0,$sub,0,@argv).qq[ }; ];
+
             push @out, qq[
-            my \$hints = (caller(0))[10];    # Lexical hints hashref
-            no warnings 'uninitialized';
-            if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                  # We're using lexical semantics.
-                  ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
-            } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                  # We're using 'no' lexical semantics.
-                  return $call(].join(', ',@argv).qq[);
-            } elsif (].($Package_Fatal{$sub}||0).qq[) {
-                  # We're using  package semantics.
-                  ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
-            }
-            # Default: non-Fatal semantics
-            return $call(].join(', ',@argv).qq[);
+                my \$hints = (caller(0))[10];    # Lexical hints hashref
+                no warnings 'uninitialized';
+                if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+                      # We're using lexical semantics.
+                      ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
+                } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+                      # We're using 'no' lexical semantics.
+                      return $call(].join(', ',@argv).qq[);
+                } elsif (].($Package_Fatal{$sub}||0).qq[) {
+                      # We're using  package semantics.
+                      ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
+                }
+                # Default: non-Fatal semantics
+                return $call(].join(', ',@argv).qq[);
             ];
         }
         push @out, <<EOC;
