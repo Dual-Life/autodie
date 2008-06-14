@@ -216,42 +216,50 @@ sub import {
         $^H |= 0x120000;
 
         # Our package guard gets invoked when we leave our lexical
-        # scope.  The code here is lifted from namespace::clean,
-        # by Robert "phaylon" Sedlacek.
+        # scope.
 
         $^H{$PACKAGE_GUARD} = Scope::Guard->new(sub {
-            no strict;
-            warn "In scope clean-up\n";
-            foreach my $sub (@made_fatal) {
-
-                warn "Cleaing $sub\n";
-
-                # Copy symbols across to temp area.
-                local *__tmp = *{ ${ "${pkg}::" }{ $sub } };
-
-                # Nuke the old glob.
-                delete ${ "${pkg}::" }{ $sub };
-
-                # Copy innocent bystanders back.
-
-		# XXX - We're not copying back subs that used to
-		# be there (if we redefined them).  This is a
-		# major bug, as it means autodie can only work
-		# with core subs.
-		#
-		# Luckily, this should be easy to fix.  Just
-		# cache what the old subs were, and replace them.
-
-                foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
-                    next unless defined *__tmp{ $slot };
-                    *{ "${pkg}::$sub" } = *__tmp{ $slot };
-                }
-            };
+            $class->_remove_lexical_subs($pkg, @made_fatal);
         });
     }
 
     return;
 
+}
+
+# The code here is lifted from namespace::clean,
+# by Robert "phaylon" Sedlacek.
+
+sub _remove_lexical_subs {
+    my ($class, $pkg, @subs) = @_;
+
+    foreach my $sub (@subs) {
+
+        no strict;
+
+        # Copy symbols across to temp area.
+        local *__tmp = *{ ${ "${pkg}::" }{ $sub } };
+
+        # Nuke the old glob.
+        delete ${ "${pkg}::" }{ $sub };
+
+        # Copy innocent bystanders back.
+
+        # XXX - We're not copying back subs that used to
+        # be there (if we redefined them).  This is a
+        # major bug, as it means autodie can only work
+        # with core subs.
+        #
+        # Luckily, this should be easy to fix.  Just
+        # cache what the old subs were, and replace them.
+
+        foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
+            next unless defined *__tmp{ $slot };
+            *{ "${pkg}::$sub" } = *__tmp{ $slot };
+        }
+    };
+
+    return;
 }
 
 sub unimport {
@@ -282,6 +290,17 @@ sub unimport {
                 croak(sprintf(ERROR_AUTODIE_CONFLICT,$_,$_));
             }
 
+            # Under 5.8, we'll just nuke the sub out of
+            # our namespace.
+
+            # XXX - This isn't a great solution, since it
+            # leaves it nuked.  We really want an un-nuke
+            # function at the end.
+
+            if (PERL58) {
+                $class->_remove_lexical_subs($pkg,$_);
+            }
+
             # Fiddle the appropriate bits to say that this
             # should not die for this lexical scope.  We do
             # this even if the sub hasn't been Fatalised yet,
@@ -292,6 +311,8 @@ sub unimport {
             vec($^H{$NO_PACKAGE}, $index,1) = 1;
         }
     } else {
+        # XXX - Not supported under 5.8
+
         # We hit this for 'no autodie', etc.  Disable all
         # lexical Fatal functionality.  NB, empty string rather
         # than zero because when passed into vec, 0 gets treated
@@ -394,9 +415,8 @@ sub write_invocation {
         shift @argv;
         my $out = qq(
             if (\$] < 5.010) {
-                  # XXX - Kludge - For lexical semantics under 5.8
-                  warn "XXX - Using kludged $call / $name - \@_\n";
-                  ).one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
+                  # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
+                  ).one_invocation($core,$call,$name,$void,$sub,0,@argv).qq[
             }
             my \$hints = (caller(0))[10];    # Lexical hints hashref
             no warnings 'uninitialized';
@@ -426,9 +446,8 @@ sub write_invocation {
 
             push @out, qq(
                 if (\$] < 5.010) {
-                    # XXX - Kludge - For lexical semantics under 5.8
-                    warn "XXX - Using kludged $call / $name - \@_\n";
-                ).one_invocation($core,$call,$name,0,$sub,0,@argv).qq[ }; ];
+                    # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
+                ).one_invocation($core,$call,$name,$void,$sub,0,@argv).qq[ }; ];
 
             push @out, qq[
                 my \$hints = (caller(0))[10];    # Lexical hints hashref
@@ -462,6 +481,11 @@ sub one_invocation {
     # they could try to mix void without enabling backwards
     # compatibility.  We just don't support this at all, so we gripe
     # about it rather than doing something unwise.
+
+    # XXX - Kludge back-compat on for :void in 5.8
+    if (PERL58 and $void) {
+        $back_compat = 1;
+    }
 
     if ($void and not $back_compat) {
         croak("Internal error: :void mode not supported with autodie");
@@ -690,7 +714,7 @@ sub _make_fatal {
         $code .= "}\n";
         warn $code if $Debug;
 
-	$Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
+        $Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
     }
 
     # TODO: This changes into our required package, executes our
