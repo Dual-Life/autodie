@@ -13,7 +13,7 @@ use overload
 
 use if ($] >= 5.010), overload => '~~'  => "matches";
 
-our $VERSION = '1.10_04';
+our $VERSION = '1.10_05';
 
 =head1 NAME
 
