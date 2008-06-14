@@ -4,6 +4,10 @@ Revision history for Fatal
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.
 
+	* Rudimentary caching of generated code, to avoid having
+	  to regenerate the same code every single time Fatal/autodie
+	  is used on the same function.
+
 1.10_04 Sat Jun 14 15:02:17 AUSEST 2008
 	* Made all $VERSION numbers more friendly to static code
 	  analysis tools (including CPAN).

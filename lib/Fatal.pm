@@ -83,8 +83,17 @@ my %Use_defined_or;
 my %Hints_index   = (); # Tracks indexes used in our %^H bitstring
 
 # Tracks which subs have already been fatalised.  Important to
-# avoid doubling up on work.
+# avoid doubling up on work.  Keys are always the calling package
+# name, and the fatalised sub.  Eg, 'main::open'.
+
 my %Already_fatalised = ();
+
+# Cached_fatalised_sub caches the various versions of our
+# fatalised subs as they're produced.  This means we don't
+# have to build our own replacement of CORE::open and friends
+# for every single package that wants to use them.
+
+my %Cached_fatalised_sub = ();
 
 # Evry time we're called with package scope, we record the subroutine
 # (including package or CORE::) in %Package_Fatal.  If we find ourselves
@@ -664,18 +673,33 @@ sub _make_fatal {
         $proto = '@';
     }
 
-    $code = <<EOS;
-sub$real_proto {
-        local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
-        # local \$Carp::CarpLevel = 1;  # Avoids awful __ANON__ mentions
-                                        # Disabled for backcompat with
-                                        # Fatal.  autodie doesn't care,
-                                        # it has object stringification.
-EOS
-    my @protos = fill_protos($proto);
-    $code .= write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
-    $code .= "}\n";
-    print $code if $Debug;
+    my $true_name = $core ? $call : $sub;
+
+    # TODO: This caching works, but I don't like using $void and
+    # $lexical as keys.  In particular, I suspect our code may end up
+    # wrapping already wrapped code when autodie and Fatal are used
+    # together.
+
+    unless ($code = $Cached_fatalised_sub{$true_name}{$void}{$lexical}) {
+        $code = qq[
+            sub$real_proto {
+                local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
+        ];
+        my @protos = fill_protos($proto);
+        $code .= write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
+        $code .= "}\n";
+        warn $code if $Debug;
+
+	$Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
+    }
+
+    # TODO: This changes into our required package, executes our
+    # code, and takes a reference to the resulting sub.  It then
+    # slots that sub into the GLOB table.  However this is a monumental
+    # waste of time for CORE subs, since they're always going to be
+    # the same (assuming same lexical/void switches) regardless of
+    # the package.  It would be nice to cache these.
+
     {
         no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
         $code = eval("package $pkg; use Carp; $code");
