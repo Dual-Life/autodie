@@ -1,7 +1,15 @@
 #!/usr/bin/perl -w
 use strict;
 
-use Test::More 'no_plan';
+use Test::More;
+
+BEGIN {
+    if ($] < 5.010) {
+	plan skip_all => "autodying user subs not yet supported under 5.8";
+    }
+}
+
+plan 'no_plan';
 
 sub list_return {
     return if @_;

@@ -41,6 +41,8 @@ eval {
     warn "\nPlease ignore the following warning, it is expected"
        if $^O eq "MSWin32";
 
+    no warnings;
+
     system(NO_SUCH_FILE,1);
 };
 

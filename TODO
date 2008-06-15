@@ -50,3 +50,6 @@ This is not an exhaustive list of TODO items.
 
 * Support backcompat mode.
 
+* lex58 still produces a warning from system, even under Cygwin.
+  Does this happen under Linux?  Can we get rid of it, or
+  document it better?
