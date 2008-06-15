@@ -18,3 +18,12 @@ Jacinta Richardson
 
 Mark Reed and Rolan Giersig
         - Klingon Translators
+
+Matt Trout
+	- Suggesting I look at namespace::clean as a pragma that
+	  works under 5.8.
+
+Robert 'phaylon' Sedlacek
+	- Writing namespace::clean, which I twisted to my dark
+	will to provide a faster, 5.8 clean autodie with less
+	side-effects.

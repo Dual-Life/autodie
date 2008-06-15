@@ -27,11 +27,6 @@ This is not an exhaustive list of TODO items.
 
 * Write a huge amount of tests.
 
-* Figure out how to get it all running on Perl 5.8
-    * Can it actually run in theory? (see autobox for an example)
-    * Remove/fix kludge that forces || as the only test
-      operator under 5.8
-
 * Write tests to make sure that nothing clobbers $@ accidently,
   especially in autodie::exception.
 
@@ -39,3 +34,19 @@ This is not an exhaustive list of TODO items.
   remove)
 
 * Fill in Fatal version in GOTCHAS in Fatal.pm
+
+== 5.8 ==
+
+* Remove/fix kludge that forces || as the only test
+  operator under 5.8
+
+* Reduce the number of lexical guards we need in our array.
+  We should be able to combine these, or have a single guard
+  that does the right thing.
+
+* Support 're-instating' original subs when we've used autodie
+  on user subs, or when we've used 'no autodie ...' to turn
+  off a sub until the end of a scope.
+
+* Support backcompat mode.
+

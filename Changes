@@ -1,9 +1,20 @@
 Revision history for Fatal
 
 1.10_05
+	* Kludgy support for Perl 5.8 using Scope::Guard and dark
+	  and terrible magicks taken from namespace::clean.
+
 	* Rudimentary caching of generated code, to avoid having
 	  to regenerate the same code every single time Fatal/autodie
 	  is used on the same function.
+
+	* Nuking subroutines at end of lexical scope moved into
+	  own subroutine.
+
+	* Perl 5.8 support working!  Backcompat mode not yet
+	  supported, nor is autodie with user defined subs.
+	  The 5.8 support that is there is rather kludgy, and
+	  still needs a lot of work.
 
 1.10_04 Sat Jun 14 15:02:17 AUSEST 2008
 	* Made all $VERSION numbers more friendly to static code

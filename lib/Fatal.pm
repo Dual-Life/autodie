@@ -5,7 +5,8 @@ use Carp;
 use strict;
 use warnings;
 use autodie::exception;
-use Scope::Guard;
+use constant PERL58 => ($] < 5.010);
+use if PERL58, 'Scope::Guard';
 
 # When one of our wrapped subroutines is called, there are
 # possibilities:
@@ -102,8 +103,9 @@ my %Cached_fatalised_sub = ();
 
 my %Package_Fatal = (); # Tracks Fatal with package scope
 
-my $PACKAGE    = __PACKAGE__;
-my $NO_PACKAGE = "no $PACKAGE";
+my $PACKAGE       = __PACKAGE__;
+my $NO_PACKAGE    = "no $PACKAGE";
+my $PACKAGE_GUARD = "guard $PACKAGE";
 
 # Here's where all the magic happens when someone write 'use Fatal'
 # or 'use autodie'.
@@ -141,7 +143,6 @@ sub import {
         if ( grep { $_ eq VOID_TAG } @_ ) {
             croak(ERROR_VOID_LEX);
         }
-
     }
 
     if ( grep { $_ eq LEXICAL_TAG } @_ ) {
@@ -153,6 +154,8 @@ sub import {
 
     # NB: we're using while/shift rather than foreach, since
     # we'll be modifying the array as we walk through it.
+
+    my @made_fatal;
 
     while (my $func = shift @fatalise_these) {
 
@@ -195,11 +198,69 @@ sub import {
 
             $class->_make_fatal($func, $pkg, $void, $lexical);
 
+            # If we're making lexical changes, we need to arrange
+            # for them to be cleaned at the end of our scope, so
+            # record them here.
+
+            push(@made_fatal,$func) if PERL58 and $lexical;
         }
+    }
+
+    if (PERL58 and $lexical) {
+
+        # Dark magic to have autodie work under 5.8
+        # Copied from namespace::clean, that copied it from
+        # autodie, that found it on an ancient scroll written
+        # in blood.  Honestly, I have no idea how it works.
+
+        $^H |= 0x120000;
+
+        # Our package guard gets invoked when we leave our lexical
+        # scope.
+
+        push(@ { $^H{$PACKAGE_GUARD} }, Scope::Guard->new(sub {
+            $class->_remove_lexical_subs($pkg, @made_fatal);
+        }));
     }
 
     return;
 
+}
+
+# The code here is lifted from namespace::clean,
+# by Robert "phaylon" Sedlacek.
+
+sub _remove_lexical_subs {
+    my ($class, $pkg, @subs) = @_;
+
+    foreach my $sub (@subs) {
+
+        no strict;
+        no warnings;
+
+        # Copy symbols across to temp area.
+        local *__tmp = *{ ${ "${pkg}::" }{ $sub } };
+
+        # Nuke the old glob.
+        delete ${ "${pkg}::" }{ $sub };
+
+        # Copy innocent bystanders back.
+
+        # XXX - We're not copying back subs that used to
+        # be there (if we redefined them).  This is a
+        # major bug, as it means autodie can only work
+        # with core subs.
+        #
+        # Luckily, this should be easy to fix.  Just
+        # cache what the old subs were, and replace them.
+
+        foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
+            next unless defined *__tmp{ $slot };
+            *{ "${pkg}::$sub" } = *__tmp{ $slot };
+        }
+    };
+
+    return;
 }
 
 sub unimport {
@@ -218,16 +279,39 @@ sub unimport {
     # has explicitly stated 'no autodie qw(blah)',
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
-    # If 'blah' was already enabled with Fatal (which has package scope)
-    # then, this is considered an error.
+    @_ = (':all') if PERL58 and not @_;
 
-    if (@_) {
-        foreach (@_) {
-            my $sub = $_;
+    if (my @unimport_these = @_) {
+
+        while (my $symbol = shift @unimport_these) {
+
+            if ($symbol =~ /^:/) {
+
+                # Looks like a tag!  Expand it!
+                push(@unimport_these, @{ $TAGS{$symbol} });
+
+                next;
+            }
+
+            my $sub = $symbol;
             $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
+            # If 'blah' was already enabled with Fatal (which has package
+            # scope) then, this is considered an error.
+
             if (exists $Package_Fatal{$sub}) {
-                croak(sprintf(ERROR_AUTODIE_CONFLICT,$_,$_));
+                croak(sprintf(ERROR_AUTODIE_CONFLICT,$symbol,$symbol));
+            }
+
+            # Under 5.8, we'll just nuke the sub out of
+            # our namespace.
+
+            # XXX - This isn't a great solution, since it
+            # leaves it nuked.  We really want an un-nuke
+            # function at the end.
+
+            if (PERL58) {
+                $class->_remove_lexical_subs($pkg,$symbol);
             }
 
             # Fiddle the appropriate bits to say that this
@@ -240,6 +324,7 @@ sub unimport {
             vec($^H{$NO_PACKAGE}, $index,1) = 1;
         }
     } else {
+
         # We hit this for 'no autodie', etc.  Disable all
         # lexical Fatal functionality.  NB, empty string rather
         # than zero because when passed into vec, 0 gets treated
@@ -340,7 +425,11 @@ sub write_invocation {
     if (@argvs == 1) {        # No optional arguments
         my @argv = @{$argvs[0]};
         shift @argv;
-        my $out = qq[
+        my $out = qq(
+            if (\$] < 5.010) {
+                  # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
+                  ).one_invocation($core,$call,$name,$void,$sub,0,@argv).qq[
+            }
             my \$hints = (caller(0))[10];    # Lexical hints hashref
             no warnings 'uninitialized';
             if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
@@ -366,21 +455,27 @@ sub write_invocation {
             $n = shift @argv;
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
+
+            push @out, qq(
+                if (\$] < 5.010) {
+                    # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
+                ).one_invocation($core,$call,$name,$void,$sub,0,@argv).qq[ }; ];
+
             push @out, qq[
-            my \$hints = (caller(0))[10];    # Lexical hints hashref
-            no warnings 'uninitialized';
-            if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                  # We're using lexical semantics.
-                  ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
-            } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                  # We're using 'no' lexical semantics.
-                  return $call(].join(', ',@argv).qq[);
-            } elsif (].($Package_Fatal{$sub}||0).qq[) {
-                  # We're using  package semantics.
-                  ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
-            }
-            # Default: non-Fatal semantics
-            return $call(].join(', ',@argv).qq[);
+                my \$hints = (caller(0))[10];    # Lexical hints hashref
+                no warnings 'uninitialized';
+                if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+                      # We're using lexical semantics.
+                      ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
+                } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
+                      # We're using 'no' lexical semantics.
+                      return $call(].join(', ',@argv).qq[);
+                } elsif (].($Package_Fatal{$sub}||0).qq[) {
+                      # We're using  package semantics.
+                      ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
+                }
+                # Default: non-Fatal semantics
+                return $call(].join(', ',@argv).qq[);
             ];
         }
         push @out, <<EOC;
@@ -398,6 +493,11 @@ sub one_invocation {
     # they could try to mix void without enabling backwards
     # compatibility.  We just don't support this at all, so we gripe
     # about it rather than doing something unwise.
+
+    # XXX - Kludge back-compat on for :void in 5.8
+    if (PERL58 and $void) {
+        $back_compat = 1;
+    }
 
     if ($void and not $back_compat) {
         croak("Internal error: :void mode not supported with autodie");
@@ -552,7 +652,9 @@ sub _make_fatal {
     }
 
     # Return immediately if we've already fatalised our code.
-    return if defined $Already_fatalised;
+    # XXX - Disabled under 5.8, since we need to instate our
+    # replacement subs every time.
+    return if not PERL58 and defined $Already_fatalised;
 
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;
@@ -626,7 +728,7 @@ sub _make_fatal {
         $code .= "}\n";
         warn $code if $Debug;
 
-	$Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
+        $Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
     }
 
     # TODO: This changes into our required package, executes our
