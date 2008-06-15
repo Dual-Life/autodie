@@ -90,32 +90,32 @@ eval {
     my @list = list_mirror();
 };
 
-ok($@,"Autodie fality for empty list return");
+ok($@,"Autodie fatality for empty list return");
 
 eval {
     use autodie qw(list_mirror);
     my @list = list_mirror(undef);
 };
 
-ok($@,"Autodie fality for undef list return");
+ok($@,"Autodie fatality for undef list return");
 
 eval {
     use autodie qw(list_mirror);
     my @list = list_mirror("tada");
 };
 
-ok(! $@,"No Autodie fality for defined list return");
+ok(! $@,"No Autodie fatality for defined list return");
 
 eval {
     use autodie qw(list_mirror);
     my $single = list_mirror("tada");
 };
 
-ok(! $@,"No Autodie fality for defined scalar return");
+ok(! $@,"No Autodie fatality for defined scalar return");
 
 eval {
     use autodie qw(list_mirror);
     my $single = list_mirror(undef);
 };
 
-ok($@,"Autodie fality for undefined scalar return");
+ok($@,"Autodie fatality for undefined scalar return");
