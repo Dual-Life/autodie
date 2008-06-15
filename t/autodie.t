@@ -3,7 +3,7 @@ use strict;
 
 use constant NO_SUCH_FILE => 'this_file_had_so_better_not_be_here';
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 {
 
@@ -46,6 +46,10 @@ ok(! $@, "Bare autodie allowed");	# TODO: Test it turns on ':all'
     eval { open(my $fh, '<', NO_SUCH_FILE); };
     like($@,qr{Can't open},"autodie q(:io) makes autodying open");
 
+    no autodie qw(:io);
+
+    eval { open(my $fh, '<', NO_SUCH_FILE); };
+    is($@,"", "no autodie qw(:io) disabled autodying open");
 }
 
 {
