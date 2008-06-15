@@ -210,7 +210,7 @@ sub import {
 
         # Dark magic to have autodie work under 5.8
         # Copied from namespace::clean, that copied it from
-        # autodie, that found it on an ancient scroll written
+        # autobox, that found it on an ancient scroll written
         # in blood.
 
 	# This magic bit causes %^H to be lexically scoped.
