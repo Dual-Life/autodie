@@ -5,6 +5,9 @@ Revision history for Fatal
 
 	* Fixed minor pod errors and omissions.
 
+	* Fixed bug in recv.t which resulted in an incorrect number
+	  of skipped tests on systems using socketpair emulation.
+
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.

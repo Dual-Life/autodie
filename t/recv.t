@@ -22,7 +22,7 @@ use autodie qw(recv);
 
 SKIP: {
 
-    skip('recv() never returns empty string with socketpair emulation',3)
+    skip('recv() never returns empty string with socketpair emulation',4)
         if ($ret);
 
     is($buffer,'xy',"recv() operational without autodie");
