@@ -218,9 +218,9 @@ sub import {
         # Our package guard gets invoked when we leave our lexical
         # scope.
 
-        $^H{$PACKAGE_GUARD} = Scope::Guard->new(sub {
+        push(@ { $^H{$PACKAGE_GUARD} }, Scope::Guard->new(sub {
             $class->_remove_lexical_subs($pkg, @made_fatal);
-        });
+        }));
     }
 
     return;
@@ -236,6 +236,7 @@ sub _remove_lexical_subs {
     foreach my $sub (@subs) {
 
         no strict;
+        no warnings;
 
         # Copy symbols across to temp area.
         local *__tmp = *{ ${ "${pkg}::" }{ $sub } };
@@ -278,16 +279,28 @@ sub unimport {
     # has explicitly stated 'no autodie qw(blah)',
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
-    # If 'blah' was already enabled with Fatal (which has package scope)
-    # then, this is considered an error.
+    @_ = (':all') if PERL58 and not @_;
 
-    if (@_) {
-        foreach (@_) {
-            my $sub = $_;
+    if (my @unimport_these = @_) {
+
+        while (my $symbol = shift @unimport_these) {
+
+            if ($symbol =~ /^:/) {
+
+                # Looks like a tag!  Expand it!
+                push(@unimport_these, @{ $TAGS{$symbol} });
+
+                next;
+            }
+
+            my $sub = $symbol;
             $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
+            # If 'blah' was already enabled with Fatal (which has package
+            # scope) then, this is considered an error.
+
             if (exists $Package_Fatal{$sub}) {
-                croak(sprintf(ERROR_AUTODIE_CONFLICT,$_,$_));
+                croak(sprintf(ERROR_AUTODIE_CONFLICT,$symbol,$symbol));
             }
 
             # Under 5.8, we'll just nuke the sub out of
@@ -298,7 +311,7 @@ sub unimport {
             # function at the end.
 
             if (PERL58) {
-                $class->_remove_lexical_subs($pkg,$_);
+                $class->_remove_lexical_subs($pkg,$symbol);
             }
 
             # Fiddle the appropriate bits to say that this
@@ -311,7 +324,6 @@ sub unimport {
             vec($^H{$NO_PACKAGE}, $index,1) = 1;
         }
     } else {
-        # XXX - Not supported under 5.8
 
         # We hit this for 'no autodie', etc.  Disable all
         # lexical Fatal functionality.  NB, empty string rather
@@ -640,7 +652,9 @@ sub _make_fatal {
     }
 
     # Return immediately if we've already fatalised our code.
-    return if defined $Already_fatalised;
+    # XXX - Disabled under 5.8, since we need to instate our
+    # replacement subs every time.
+    return if not PERL58 and defined $Already_fatalised;
 
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;
