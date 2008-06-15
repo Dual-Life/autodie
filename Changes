@@ -19,6 +19,19 @@ Revision history for Fatal
 	* Perl 5.8 code no longer gets executed under 5.10 when
 	  executing write_invocation().
 
+	* lex58.t tells the user that we'll get warnings under
+	  Win32, and these are to be ignored.  This is due to
+	  a Perl behaviour where it always calls the shell under
+	  Win32, even when multi-arg system is used.
+
+	* lex58.t no longer fails to compile on Perl 5.10 which
+	  is still clobbering exotic open.  Perl 5.8 does not
+	  clobber the exotic form.
+
+	* Backcompat tests are all marked as TODO under perl 5.8
+
+	* Makefile.PL moved back to saying autodie works under 5.8
+
 1.10_04 Sat Jun 14 15:02:17 AUSEST 2008
 	* Made all $VERSION numbers more friendly to static code
 	  analysis tools (including CPAN).
