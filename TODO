@@ -56,3 +56,6 @@ This is not an exhaustive list of TODO items.
 * lex58 still produces a warning from system, even under Cygwin.
   Does this happen under Linux?  Can we get rid of it, or
   document it better?
+
+* Apprently %^H can leak across file boundries.  Check to see if
+  this is occuring, and find a way to resolve it.
