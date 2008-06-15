@@ -211,9 +211,14 @@ sub import {
         # Dark magic to have autodie work under 5.8
         # Copied from namespace::clean, that copied it from
         # autodie, that found it on an ancient scroll written
-        # in blood.  Honestly, I have no idea how it works.
+        # in blood.
 
-        $^H |= 0x120000;
+	# This magic bit causes %^H to be lexically scoped.
+	# TODO - Apparently this *can* leak across file boundries,
+	# and needs to be investigated.  Chocolateboy's 'autobox'
+	# uses a workaround to detect this.
+
+        $^H |= 0x020000;
 
         # Our package guard gets invoked when we leave our lexical
         # scope.

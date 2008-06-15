@@ -8,6 +8,9 @@ Revision history for Fatal
 	* Fixed bug in recv.t which resulted in an incorrect number
 	  of skipped tests on systems using socketpair emulation.
 
+	* Fixed a bug that would cause unwanted interactions between
+	  autodie and autobox.  (5.8)
+
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.
