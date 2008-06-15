@@ -7,6 +7,7 @@ all_from(	'lib/autodie.pm');
 version_from(   'lib/autodie/exception.pm');
 test_requires(	'Test::More');
 requires(	'perl' => '5.8.0');
+requires(	'Scope::Guard' => 0) if $] < 5.010; # For 5.8 support.
 recommends(	'IPC::System::Simple' => '0.12'); # For autodying system()
 
 WriteAll();

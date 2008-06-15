@@ -1,8 +1,17 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More 'no_plan';
+use Test::More;
 use constant NO_SUCH_FILE => "this_file_had_better_not_exist";
+
+BEGIN {
+    eval "use IPC::System::Simple";
+    plan skip_all => "IPC::System::Simple required" if $@;
+    plan skip_all => "IPC::System::Simple 0.12 required"
+    	if $IPC::System::Simple::VERSION < 0.12;
+}
+
+plan 'no_plan';
 
 # These tests are designed to test very basic support for
 # autodie under perl 5.8.  They now work, but are left in
@@ -52,6 +61,8 @@ TODO: {
 
     local $TODO = "Non-clobbering exotic system not supported in 5.10"
        if $] >= 5.010;
+
+    no warnings;
 
     eval "
 	    system { NO_SUCH_FILE } 1;

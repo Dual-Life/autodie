@@ -35,6 +35,10 @@ Revision history for Fatal
 	* Context/user-sub tests skipped under 5.8, which does
 	  not yet support autodying of user subs.
 
+	* lex58 tests now skipped if IPC::System::Simple not installed.
+
+	* Squished a spurious warning from lex58.t
+
 1.10_04 Sat Jun 14 15:02:17 AUSEST 2008
 	* Made all $VERSION numbers more friendly to static code
 	  analysis tools (including CPAN).
