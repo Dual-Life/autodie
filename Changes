@@ -3,6 +3,8 @@ Revision history for Fatal
 1.10_06
 	* Fixed speeling errors in context.t, thanks to Stennie.
 
+	* Fixed minor pod errors and omissions.
+
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.

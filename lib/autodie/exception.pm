@@ -133,7 +133,7 @@ The subroutine that I<called> the exceptional code.
 
 sub caller      { return $caller_of{ refaddr $_[0] } }
 
-=head2 line
+=head3 line
 
     my $line = $E->line;
 
@@ -499,6 +499,10 @@ sub DESTROY {
 1;
 
 __END__
+
+=head1 SEE ALSO
+
+L<autodie>, L<autodie::exception::system>
 
 =head1 LICENSE
 

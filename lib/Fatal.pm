@@ -760,7 +760,7 @@ __END__
 
 =head1 NAME
 
-Fatal - replace functions with equivalents which succeed or die
+Fatal - Replace functions with equivalents which succeed or die
 
 =head1 SYNOPSIS
 
