@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Socket;
 use autodie qw(socketpair);
 
@@ -36,10 +36,11 @@ SKIP: {
         eval { $ret = recv($sock2, $buffer, 1, 0); };
 
         is($@, "", "recv should not die on returning an emtpy string.");
-        is($buffer,"z","recv() operational with autodie");
-        is($ret,"","recv returns undying empty string for local sockets");
+    }
 
-    };
+    is($buffer,"z","recv() operational with autodie");
+    is($ret,"","recv returns undying empty string for local sockets");
+
 }
 
 eval {
