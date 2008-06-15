@@ -423,13 +423,16 @@ sub write_invocation {
     #       empty (being in a lexical scope that's never seen our package).
 
     if (@argvs == 1) {        # No optional arguments
+
         my @argv = @{$argvs[0]};
         shift @argv;
-        my $out = qq(
-            if (\$] < 5.010) {
-                  # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
-                  ).one_invocation($core,$call,$name,$void,$sub,0,@argv).qq[
-            }
+
+        if (PERL58) {
+            # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
+            return one_invocation($core,$call,$name,$void,$sub,0,@argv);
+        }
+
+        my $out = qq[
             my \$hints = (caller(0))[10];    # Lexical hints hashref
             no warnings 'uninitialized';
             if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
@@ -456,10 +459,11 @@ sub write_invocation {
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
-            push @out, qq(
-                if (\$] < 5.010) {
-                    # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
-                ).one_invocation($core,$call,$name,$void,$sub,0,@argv).qq[ }; ];
+            if (PERL58) {
+                # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
+                push @out, one_invocation($core,$call,$name,$void,$sub,0,@argv);
+                next;
+            }
 
             push @out, qq[
                 my \$hints = (caller(0))[10];    # Lexical hints hashref
@@ -489,18 +493,18 @@ EOC
 sub one_invocation {
     my ($core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
 
-    # If someone is calling us directly (a child class perhaps?) then
-    # they could try to mix void without enabling backwards
-    # compatibility.  We just don't support this at all, so we gripe
-    # about it rather than doing something unwise.
-
     # XXX - Kludge back-compat on for :void in 5.8
     if (PERL58 and $void) {
         $back_compat = 1;
     }
 
+    # If someone is calling us directly (a child class perhaps?) then
+    # they could try to mix void without enabling backwards
+    # compatibility.  We just don't support this at all, so we gripe
+    # about it rather than doing something unwise.
+
     if ($void and not $back_compat) {
-        croak("Internal error: :void mode not supported with autodie");
+        Carp::confess("Internal error: :void mode not supported with autodie");
     }
 
     # @argv only contains the results of the in-built prototype

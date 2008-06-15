@@ -16,6 +16,9 @@ Revision history for Fatal
 	  The 5.8 support that is there is rather kludgy, and
 	  still needs a lot of work.
 
+	* Perl 5.8 code no longer gets executed under 5.10 when
+	  executing write_invocation().
+
 1.10_04 Sat Jun 14 15:02:17 AUSEST 2008
 	* Made all $VERSION numbers more friendly to static code
 	  analysis tools (including CPAN).
