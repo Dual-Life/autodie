@@ -15,6 +15,9 @@ Revision history for Fatal
 	  autodie pragma could leak across files.  Many thanks to
 	  chocolateboy for bringing this to my attention.
 
+	* t/system.t checks to see if exotic system has been injured
+	  in the same package as 'use qutodie qw(system)'
+
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.

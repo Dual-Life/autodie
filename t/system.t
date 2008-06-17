@@ -17,7 +17,7 @@ BEGIN {
     }
 }
 
-plan tests => 7;
+plan tests => 8;
 
 eval {
     use autodie qw(system);
@@ -40,7 +40,16 @@ isa_ok($@, "autodie::exception") or diag $@;
 like($@,qr{failed to start}, "Reason for failure given");
 like($@,qr{@{[NO_SUCH_FILE]}},"Failed command given");
 
+TODO: {
+    local $TODO = "Preserving exotic system not supported under 5.10"
+        if $] >= 5.010;
+
+    eval "system { \$^X} 'perl', '-e1'";
+    is($@,"","Exotic system in same package not harmed");
+
+}
+
 package Bar;
 
 system { $^X } 'perl','-e1';
-::ok(1,"Exotic system not harmed");
+::ok(1,"Exotic system in other package not harmed");
