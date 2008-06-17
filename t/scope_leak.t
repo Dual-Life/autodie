@@ -29,10 +29,11 @@ TODO: {
     local $TODO = "Leak-plugging bit not yet implemented";
 
     eval {
-	autodie_test_module::main_open(NO_SUCH_FILE);
+	leak_test(NO_SUCH_FILE);
     };
 
-    is($@,"","main::open should not leak to other files");
+    like($@,qr{^$|Undefined subroutine},
+        "main::open should not leak to other files");
 }
 
 eval {
