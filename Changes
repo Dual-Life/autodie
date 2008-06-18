@@ -9,7 +9,7 @@ Revision history for Fatal
 	  of skipped tests on systems using socketpair emulation.
 
 	* Fixed a bug that would cause unwanted interactions between
-	  autodie and autobox.  (5.8)
+	  autodie and autobox.  Thanks to chocolateboy. (5.8)
 
 	* Wrote a (failing) test case demonstrating that the
 	  autodie pragma could leak across files.  Many thanks to
@@ -17,6 +17,9 @@ Revision history for Fatal
 
 	* t/system.t checks to see if exotic system has been injured
 	  in the same package as 'use qutodie qw(system)'
+
+	* Calling filename reliably reported in 5.8 error messages
+	  and error objects.
 
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark

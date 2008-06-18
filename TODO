@@ -37,9 +37,6 @@ This is not an exhaustive list of TODO items.
 
 == 5.8 ==
 
-* 5.8 is not reporting the caller as "eval" rather than the
-  real calling line.  Find and fix.
-
 * Remove/fix kludge that forces || as the only test
   operator under 5.8
 
