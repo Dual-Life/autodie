@@ -7,3 +7,5 @@ blib
 .*.pm~$
 Makefile$
 Makefile.old
+examples/
+autodie-.*.tar.gz
