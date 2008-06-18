@@ -52,5 +52,7 @@ This is not an exhaustive list of TODO items.
   Does this happen under Linux?  Can we get rid of it, or
   document it better?
 
-* Apprently %^H can leak across file boundries.  Check to see if
-  this is occuring, and find a way to resolve it.
+* Fix leaking of autodie into other files when they are used from
+  within an autodying scope.
+
+* Fix user subs leaking over the entire package!

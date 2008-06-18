@@ -5,7 +5,7 @@ use Test::More;
 
 BEGIN {
     if ($] < 5.010) {
-	plan skip_all => "autodying user subs not yet supported under 5.8";
+#	plan skip_all => "autodying user subs not yet supported under 5.8";
     }
 }
 
@@ -65,11 +65,16 @@ ok($@,"void List return fatalised");
 
 ### autodie clobbering tests ###
 
-eval {
-    list_mirror();
-};
+TODO: {
 
-ok(! $@, "No autodie, no fatality");
+    local $TODO = "5.8 autodie leaks user subs into whole pkg" if $] < 5.010;
+
+    eval {
+	list_mirror();
+    };
+
+    is($@, "", "No autodie, no fatality");
+}
 
 eval {
     use autodie qw(list_mirror);
@@ -77,6 +82,17 @@ eval {
 };
 
 ok($@, "Autodie fatality for empty return in void context");
+
+TODO: {
+
+    local $TODO = "5.8 autodie leaks user subs into whole pkg" if $] < 5.010;
+
+    eval {
+	list_mirror();
+    };
+
+    is($@, "", "No autodie, no fatality (after autodie used)");
+}
 
 eval {
     use autodie qw(list_mirror);

@@ -21,6 +21,9 @@ Revision history for Fatal
 	* Calling filename reliably reported in 5.8 error messages
 	  and error objects.
 
+	* User subs can be made autodying under 5.8, but they leak
+	  over the entire package (which is very bad!)
+
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.

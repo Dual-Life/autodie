@@ -103,11 +103,8 @@ element.
 
 =head1 BUGS
 
-C<autodie> only works on Perl 5.10.  We'd like it to be able to
-work on Perl 5.8.
-
-Currently, autodying C<system> returns only a string, not a real
-exception object.  This will change before the full release.
+Plenty!  See L<http://github.com/pfenwick/autodie/tree/master/TODO>
+for a selection of what's remaining to be fixed.
 
 A bare autodie will change from meaning C<:all> to C<:default>
 before the final release.
