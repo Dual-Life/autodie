@@ -155,7 +155,7 @@ sub import {
     # NB: we're using while/shift rather than foreach, since
     # we'll be modifying the array as we walk through it.
 
-    my @made_fatal;
+    my %made_fatal;
 
     while (my $func = shift @fatalise_these) {
 
@@ -196,13 +196,14 @@ sub import {
             # We're not being used in a confusing way, so make
             # the sub fatal.
 
-            $class->_make_fatal($func, $pkg, $void, $lexical);
+            my $sub_ref = $class->_make_fatal($func, $pkg, $void, $lexical);
 
             # If we're making lexical changes, we need to arrange
             # for them to be cleaned at the end of our scope, so
             # record them here.
 
-            push(@made_fatal,$func) if PERL58 and $lexical;
+            $made_fatal{$func} = $sub_ref if PERL58 and $lexical;
+
         }
     }
 
@@ -213,10 +214,10 @@ sub import {
         # autobox, that found it on an ancient scroll written
         # in blood.
 
-	# This magic bit causes %^H to be lexically scoped.
-	# TODO - Apparently this *can* leak across file boundries,
-	# and needs to be investigated.  Chocolateboy's 'autobox'
-	# uses a workaround to detect this.
+        # This magic bit causes %^H to be lexically scoped.
+        # TODO - Apparently this *can* leak across file boundries,
+        # and needs to be investigated.  Chocolateboy's 'autobox'
+        # uses a workaround to detect this.
 
         $^H |= 0x020000;
 
@@ -224,7 +225,7 @@ sub import {
         # scope.
 
         push(@ { $^H{$PACKAGE_GUARD} }, Scope::Guard->new(sub {
-            $class->_remove_lexical_subs($pkg, @made_fatal);
+            $class->_remove_lexical_subs($pkg, \%made_fatal);
         }));
     }
 
@@ -232,22 +233,22 @@ sub import {
 
 }
 
-# The code here is lifted from namespace::clean,
+# The code here is originally lifted from namespace::clean,
 # by Robert "phaylon" Sedlacek.
 
 sub _remove_lexical_subs {
-    my ($class, $pkg, @subs) = @_;
+    my ($class, $pkg, $subs_to_reinstate) = @_;
 
-    foreach my $sub (@subs) {
+    while(my ($sub_name, $sub_ref) = each %$subs_to_reinstate) {
 
         no strict;
         no warnings;
 
         # Copy symbols across to temp area.
-        local *__tmp = *{ ${ "${pkg}::" }{ $sub } };
+        local *__tmp = *{ ${ "${pkg}::" }{ $sub_name } };
 
         # Nuke the old glob.
-        delete ${ "${pkg}::" }{ $sub };
+        delete ${ "${pkg}::" }{ $sub_name };
 
         # Copy innocent bystanders back.
 
@@ -261,8 +262,14 @@ sub _remove_lexical_subs {
 
         foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
             next unless defined *__tmp{ $slot };
-            *{ "${pkg}::$sub" } = *__tmp{ $slot };
+            *{ "${pkg}::$sub_name" } = *__tmp{ $slot };
         }
+
+        # Put back the old sub (if there was one).
+        if ($sub_ref) {
+            *{ "${pkg}::$sub_name" } = $sub_ref;
+        }
+
     };
 
     return;
@@ -316,7 +323,7 @@ sub unimport {
             # function at the end.
 
             if (PERL58) {
-                $class->_remove_lexical_subs($pkg,$symbol);
+                $class->_remove_lexical_subs($pkg,{ $symbol => undef });
             }
 
             # Fiddle the appropriate bits to say that this
@@ -636,6 +643,11 @@ sub one_invocation {
 
 }
 
+# Under 5.8 this returns the old copy of the sub, so we can
+# put it back at end of scope.
+
+# TODO : Make sure prototypes are restored correctly.
+
 sub _make_fatal {
     my($class, $sub, $pkg, $void, $lexical) = @_;
     my($name, $code, $sref, $real_proto, $proto, $core, $call);
@@ -757,6 +769,9 @@ sub _make_fatal {
         # Mark the sub as fatalised.
         $Already_fatalised{$sub} = 1;
     }
+
+    return $sref;
+
 }
 
 1;
