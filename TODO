@@ -56,3 +56,6 @@ This is not an exhaustive list of TODO items.
   within an autodying scope.
 
 * Fix user subs leaking over the entire package!
+	* I think we're restoring fatalised subs(!).  Perhaps
+	  keep a cache of original subs and fatalised subs, to
+	  make sure we're restoring the right ones.
