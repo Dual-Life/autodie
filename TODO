@@ -33,8 +33,6 @@ This is not an exhaustive list of TODO items.
 * Explain :lexical prior to the DIAGNOSTICS section in Fatal.pm  (or
   remove)
 
-* Fill in Fatal version in GOTCHAS in Fatal.pm
-
 == 5.8 ==
 
 * Remove/fix kludge that forces || as the only test

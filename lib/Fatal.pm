@@ -885,10 +885,10 @@ must always be C<:lexical>.  Eg: C<no Fatal qw(:lexical open)>
 
 =head1 GOTCHAS
 
-As of Fatal XXX, subroutines that normally return a list can
-be Fatalised without clobbering their context.  It should be noted
-that Fatal will consider the subroutine to fail if it returns
-either an empty list, or a list consisting of a single undef.
+Subroutines that normally return a list can be Fatalised without
+clobbering their context.  It should be noted that Fatal will consider
+the subroutine to fail if it returns either an empty list, or a list
+consisting of a single undef.
 
 =head1 BUGS
 
