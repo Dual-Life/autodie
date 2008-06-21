@@ -56,6 +56,20 @@ This is not an exhaustive list of TODO items.
   within an autodying scope.
 
 * Fix user subs leaking over the entire package!
-	* I think we're restoring fatalised subs(!).  Perhaps
-	  keep a cache of original subs and fatalised subs, to
-	  make sure we're restoring the right ones.
+
+	* As far as I can tell, this is impossible.  Perl seems to
+	  allow us to fiddle the symbol table when there's a
+	  built-in involved, presumably because it wants to determine
+	  what's going on at compile-time.  Unfortunately, with
+	  user-subs it decides to go for either ALL original, or
+	  ALL autodying, since it seems to resolve these at
+	  run-time.  Since our pragma only has compile-time effects,
+	  we can't do anything here. ;(
+
+	  If we could create a run-time variable in the caller's
+	  scope, we could use that to trigger run-time replacement
+	  of subroutines. Unfortunately, I don't know of any way
+	  to do this.
+
+	  I'll probably have to disallow autodying of user-defined
+	  subs in 5.8 entirely.
