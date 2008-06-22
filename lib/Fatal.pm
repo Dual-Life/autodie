@@ -242,55 +242,51 @@ sub import {
 # The code here is originally lifted from namespace::clean,
 # by Robert "phaylon" Sedlacek.
 #
-# NOTE: The reinstatement code here only works with subroutines that
-# have the same name as built-ins.  Perl seems to want to resolve
-# built-in looking names as soon as possible (allowing us to tweak
-# them at compile time), but leaves off resolving user subs until
-# run-time.
+# It's been redesigned after feedback from ikegami on perlmonks.
+# See http://perlmonks.org/?node_id=693338
+#
+# This code would now be better called _install_lexical_subs
+# since it's now primarily used for installing, even though it
+# can delete as well.
 
 sub _remove_lexical_subs {
     my ($class, $pkg, $subs_to_reinstate) = @_;
 
+    # Many thanks to ikegami for this rather wonderful
+    # symbol resolving code.
+
+    my $pkg_sym = "${pkg}::";
+    # foreach my $path (split /::/, $pkg) {
+    #    $pkg_sym = $pkg_sym->{"${path}::"};
+    # }
+
     while(my ($sub_name, $sub_ref) = each %$subs_to_reinstate) {
 
-        no strict;
-        no warnings;
+        my $full_path = $pkg_sym.$sub_name;
 
         # Copy symbols across to temp area.
-        local *__tmp = *{ ${ "${pkg}::" }{ $sub_name } };
+
+        no strict 'refs';
+
+        local *__tmp = *{ $full_path };
 
         # Nuke the old glob.
-        delete ${ "${pkg}::" }{ $sub_name };
+        { no strict; delete $pkg_sym->{$sub_name}; }
 
         # Copy innocent bystanders back.
 
-        # XXX - We're not copying back subs that used to
-        # be there (if we redefined them).  This is a
-        # major bug, as it means autodie can only work
-        # with core subs.
-        #
-        # Luckily, this should be easy to fix.  Just
-        # cache what the old subs were, and replace them.
-
         foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
             next unless defined *__tmp{ $slot };
-            *{ "${pkg}::$sub_name" } = *__tmp{ $slot };
+            *{ $full_path } = *__tmp{ $slot };
         }
 
         # Put back the old sub (if there was one).
 
-        # XXX - This does't work reliably unless we've done
-        # the magic delete trick first in a different BEGIN
-        # block.  This appears to be an intractible problem. ;(
-        #
-        # See http://perlmonks.org/?node_id=693338 for a longer
-        # description as to why.
-
         if ($sub_ref) {
-            *{ "${pkg}::$sub_name" } = $sub_ref;
+            no strict;
+            *{ $pkg_sym . $sub_name } = $sub_ref;
         }
-
-    };
+    }
 
     return;
 }
@@ -352,8 +348,26 @@ sub unimport {
             # since that may happen in a later invocation.
 
             my $index = _get_sub_index($sub);
-            vec($^H{$PACKAGE},    $index,1) = 0;
-            vec($^H{$NO_PACKAGE}, $index,1) = 1;
+
+            {
+                # XXX - This shouldn't need warnings removed in
+                # 5.8.  In fact, I think we shouldn't need this code
+                # *at all*, but removing it causes the tests that
+                # say that using Fatal and no autodie together is
+                # naughty.
+
+		# XXX - These may be happening from import() being
+		# called at *RUN-TIME* under 5.8.  The whole
+		# calling import at run-time needs to be addressed.
+
+                # In 5.10, this works fine without the 'no warnings'.
+
+                no warnings 'uninitialized';
+
+                vec($^H{$PACKAGE},    $index,1) = 0;
+                vec($^H{$NO_PACKAGE}, $index,1) = 1;
+
+            }
         }
     } else {
 
@@ -460,8 +474,7 @@ sub write_invocation {
         shift @argv;
 
         if (PERL58) {
-            # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
-            return one_invocation($core,$call,$name,$void,$sub,0,@argv);
+            return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
         }
 
         my $out = qq[
@@ -480,6 +493,7 @@ sub write_invocation {
             # Default: non-Fatal semantics
             return $call(].join(', ',@argv).qq[);
         ];
+
         return $out;
 
     } else {
@@ -488,12 +502,12 @@ sub write_invocation {
         while (@argvs) {
             @argv = @{shift @argvs};
             $n = shift @argv;
+
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
             if (PERL58) {
-                # XXX - Kludge - For lexical (plus maybe void) semantics under 5.8
-                push @out, one_invocation($core,$call,$name,$void,$sub,0,@argv);
+                push @out, one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
                 next;
             }
 
@@ -515,20 +529,16 @@ sub write_invocation {
             ];
         }
         push @out, <<EOC;
-        }
-        die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
+            }
+            die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
 EOC
+
         return join '', @out;
     }
 }
 
 sub one_invocation {
     my ($core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
-
-    # XXX - Kludge back-compat on for :void in 5.8
-    if (PERL58 and $void) {
-        $back_compat = 1;
-    }
 
     # If someone is calling us directly (a child class perhaps?) then
     # they could try to mix void without enabling backwards
@@ -559,11 +569,11 @@ sub one_invocation {
         local $" = ', ';
 
         if ($void) {
-            return qq/(defined wantarray)?$call(@argv):
+            return qq/return (defined wantarray)?$call(@argv):
                    $call(@argv) || croak "Can't $name(\@_)/ .
                    ($core ? ': $!' : ', \$! is \"$!\"') . '"'
         } else {
-            return qq{$call(@argv) || croak "Can't $name(\@_)} .
+            return qq{return $call(@argv) || croak "Can't $name(\@_)} .
                    ($core ? ': $!' : ', \$! is \"$!\"') . '"';
         }
     }
@@ -747,13 +757,6 @@ sub _make_fatal {
                 # back when we're finished.
                 $sref = \&$sub;
 
-                # Now we nuke the sucker that used to be there,
-                # forcing Perl to re-think how it resolves subs.
-
-		# XXX - This fails.  See Perlmonks 693338 for details.
-
-                $class->_remove_lexical_subs($pkg,{ $name => undef });
-
             } else {
 
                 # Something else which is replacing a core sub?
@@ -830,18 +833,20 @@ sub _make_fatal {
     # wrapping already wrapped code when autodie and Fatal are used
     # together.
 
-    unless ($code = $Cached_fatalised_sub{$true_name}{$void}{$lexical}) {
-        $code = qq[
-            sub$real_proto {
-                local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
-        ];
-        my @protos = fill_protos($proto);
-        $code .= write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
-        $code .= "}\n";
-        warn $code if $Debug;
-
-        $Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
+    if (my $subref = $Cached_fatalised_sub{$true_name}{$void}{$lexical}) {
+        $class->_remove_lexical_subs($pkg, { $name => $subref });
+        return $sref;
     }
+
+    $code = qq[
+        sub$real_proto {
+            local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
+    ];
+    my @protos = fill_protos($proto);
+    $code .= write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
+    $code .= "}\n";
+    warn $code if $Debug;
+
 
     # TODO: This changes into our required package, executes our
     # code, and takes a reference to the resulting sub.  It then
@@ -855,7 +860,11 @@ sub _make_fatal {
         $code = eval("package $pkg; use Carp; $code");
         Carp::confess($@) if $@;
         no warnings;   # to avoid: Subroutine foo redefined ...
-        *{$sub} = $code;
+        # *{$sub} = $code;
+
+        $class->_remove_lexical_subs($pkg, { $name => $code });
+
+        $Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
 
         # Mark the sub as fatalised.
         $Already_fatalised{$sub} = 1;
