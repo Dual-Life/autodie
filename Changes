@@ -66,6 +66,8 @@ Revision history for Fatal
 	* Support for lexical user-subs enabled, tested, and working
 	  in 5.8!
 
+	* Added resources to Makefile.PL / META.yml
+
 
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
