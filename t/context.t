@@ -3,12 +3,6 @@ use strict;
 
 use Test::More;
 
-BEGIN {
-    if ($] < 5.010) {
-#	plan skip_all => "autodying user subs not yet supported under 5.8";
-    }
-}
-
 plan 'no_plan';
 
 sub list_return {
@@ -62,76 +56,3 @@ eval {
 };
 
 ok($@,"void List return fatalised");
-
-### autodie clobbering tests ###
-
-TODO: {
-
-    local $TODO = "5.8 autodie leaks user subs into whole pkg" if $] < 5.010;
-
-    eval {
-	list_mirror();
-    };
-
-    is($@, "", "No autodie, no fatality");
-}
-
-eval {
-    use autodie qw(list_mirror);
-    list_mirror();
-};
-
-ok($@, "Autodie fatality for empty return in void context");
-
-TODO: {
-
-    local $TODO = "5.8 autodie leaks user subs into whole pkg" if $] < 5.010;
-
-    eval {
-	list_mirror();
-    };
-
-    is($@, "", "No autodie, no fatality (after autodie used)");
-}
-
-eval {
-    use autodie qw(list_mirror);
-    list_mirror(undef);
-};
-
-ok($@, "Autodie fatality for undef return in void context");
-
-eval {
-    use autodie qw(list_mirror);
-    my @list = list_mirror();
-};
-
-ok($@,"Autodie fatality for empty list return");
-
-eval {
-    use autodie qw(list_mirror);
-    my @list = list_mirror(undef);
-};
-
-ok($@,"Autodie fatality for undef list return");
-
-eval {
-    use autodie qw(list_mirror);
-    my @list = list_mirror("tada");
-};
-
-ok(! $@,"No Autodie fatality for defined list return");
-
-eval {
-    use autodie qw(list_mirror);
-    my $single = list_mirror("tada");
-};
-
-ok(! $@,"No Autodie fatality for defined scalar return");
-
-eval {
-    use autodie qw(list_mirror);
-    my $single = list_mirror(undef);
-};
-
-ok($@,"Autodie fatality for undefined scalar return");

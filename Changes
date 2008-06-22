@@ -24,6 +24,14 @@ Revision history for Fatal
 	* User subs can be made autodying under 5.8, but they leak
 	  over the entire package (which is very bad!)
 
+	* Context-checking tests split into package-scope tests and
+	  lexical scope tests.
+
+	* Lexical user-subs are disabled under Perl 5.8.  They were
+	  leaking everywhere and not being lexical at all.  Attempting
+	  to use a lexical user-sub under 5.8 now causes an error.
+
+
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.
