@@ -48,7 +48,7 @@ use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 use constant ALLOW_LEXICAL_USER_SUBS => PERL58 ? 0 : 1;
 
 # All the Fatal/autodie modules share the same version number.
-our $VERSION = "1.10_06";
+our $VERSION = "1.10_07";
 
 our $Debug ||= 0;
 

@@ -5,7 +5,7 @@ use warnings;
 
 use Fatal ();
 our @ISA = qw(Fatal);
-our $VERSION = "1.10_06";
+our $VERSION = "1.10_07";
 
 # When passing args to Fatal we want to keep the first arg
 # (our package) in place.  Hence the splice.
