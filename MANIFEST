@@ -24,8 +24,10 @@ t/backcompat.t
 t/basic_exceptions.t
 t/boilerplate.t
 t/context.t
+t/context_lexical.t
 t/exceptions.t
 t/Fatal.t
+t/kwalitee.t
 t/lex58.t
 t/pod-coverage.t
 t/pod.t
