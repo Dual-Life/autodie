@@ -5,10 +5,6 @@ use Test::More;
 
 use constant PERL58 => $] < 5.010 ? 1 : 0;
 
-BEGIN {
-	plan skip_all => "Lexical user-subs not supported in 5.8" if PERL58;
-}
-
 plan 'no_plan';
 
 # Returns a list presented to it, but also returns a single

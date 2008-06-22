@@ -41,8 +41,6 @@ use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while 
 
 use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
 
-use constant ERROR_CANT_LEXICAL_USER_SUB => q{Can't "use autodie qw(%s)": lexical scoping of user subroutines not supported in Perl 5.8};
-
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 # Don't allow lexical user subs under 5.8.  They don't get properly
@@ -356,9 +354,9 @@ sub unimport {
                 # say that using Fatal and no autodie together is
                 # naughty.
 
-		# XXX - These may be happening from import() being
-		# called at *RUN-TIME* under 5.8.  The whole
-		# calling import at run-time needs to be addressed.
+                # XXX - These may be happening from import() being
+                # called at *RUN-TIME* under 5.8.  The whole
+                # calling import at run-time needs to be addressed.
 
                 # In 5.10, this works fine without the 'no warnings'.
 
@@ -715,67 +713,31 @@ sub _make_fatal {
 
     if (defined(&$sub)) {   # user subroutine
 
-        if (! ALLOW_LEXICAL_USER_SUBS and $lexical) {
-            # Sorry guys, we can't lexicalise your user sub,
-            # unless it looks like a built-in.
+        # This could be something that we've fatalised that
+        # was in core.
 
-            my $prototype = eval { prototype("CORE::$name"); };
+        local $@; # Don't clobber anyone else's $@
 
-            if (not $prototype)  {
-                croak(sprintf ERROR_CANT_LEXICAL_USER_SUB, $name);
-            }
+        if ( $Package_Fatal{$sub} and eval { prototype "CORE::$name" } ) {
 
-	    # DANGER DANGER!  Everything else here that tries to
-	    # re-instate a Fatalised sub doesn't work. See
-	    # http://perlmonks.org/?node_id=693338 for why.
+            # Something we previously made Fatal that was core.
+            # This is safe to replace with an autodying to core
+            # version.
 
-            # XXX: If we're here, then we're going to replacing
-            # a built-in that's already been replaced.  We need to
-            # make sure that the rest of our code for this is sane.
-            #
-            # You may be wondering why we care at all.  If we're
-            # trying to use autodie for something that's already been
-            # Fatalised, shouldn't it remain the same?  Nope, beacuse
-            # Fatal remains backwards compatible (ugly errors, etc),
-            # whereas autodie is shiny.
-            #
-            # We *do* need to make sure that we're either:
-            #   a) Wrapping a real user-sub with an autodie.
-            #   b) *replacing* a Fatal version with an autodie version.
+            $core  = 1;
+            $call  = "CORE::$name";
+            $proto = prototype $call;
 
+            # We return our $sref from this subroutine later
+            # on, indicating this subroutine should be placed
+            # back when we're finished.
 
-            if ( $Package_Fatal{$sub} )  {
-
-                # Something we previously made Fatal.  This is
-                # safe to replace with an autodying to core version.
-
-                $core = 1;
-                $call = "CORE::$name";
-
-                # We return our $sref from this subroutine later
-                # on, indicating this subroutine should be placed
-                # back when we're finished.
-                $sref = \&$sub;
-
-            } else {
-
-                # Something else which is replacing a core sub?
-                # We'll wrap it, although this may not be wise.
-
-                # XXX - Do we want to issue a warning for this?
-
-                $sref = \&$sub;
-                $proto = prototype $sref;
-                $call = '&$sref';
-
-            }
+            $sref = \&$sub;
 
         } else {
 
-            # A regular user sub.
-
-            # TODO : This duplicates the code immediately above.
-            # Combine them.
+            # A regular user sub, or a user sub wrapping a
+            # core sub.
 
             $sref = \&$sub;
             $proto = prototype $sref;

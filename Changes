@@ -63,6 +63,9 @@ Revision history for Fatal
 	* Added more tests to ensure Fatal throws backcompat
 	  strings, whereas autodie throws exception objects.
 
+	* Support for lexical user-subs enabled, tested, and working
+	  in 5.8!
+
 
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
