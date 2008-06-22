@@ -84,4 +84,3 @@ eval {
 };
 
 ok($@,"Autodie fatality for undefined scalar return");
-}

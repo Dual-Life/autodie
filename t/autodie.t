@@ -2,7 +2,7 @@
 use strict;
 
 use constant NO_SUCH_FILE => 'this_file_had_so_better_not_be_here';
-use constant PERL58 => $[ < 5.010;
+use constant PERL58 => ($] < 5.010);
 
 use Test::More tests => 18;
 
