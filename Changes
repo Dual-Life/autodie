@@ -31,6 +31,19 @@ Revision history for Fatal
 	  leaking everywhere and not being lexical at all.  Attempting
 	  to use a lexical user-sub under 5.8 now causes an error.
 
+	* Bugs found in interaction between autodie and Fatal in
+	  5.8.  When used together, we can't reliably replace a
+	  Fatalised sub with an autodying one, and then switch it
+	  back again at the end of block.
+
+	* Added (failing, TODO) tests to autodie.t detecting the
+	  above.
+
+	* Added a (not working) framework that can detect illegal
+	  interactions and throw errors.  Currently this isn't throwing
+	  errors always, since it's my hope that Fatal and autodie
+	  *will* be able to interact correctly soon.
+
 
 1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark

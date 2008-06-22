@@ -41,7 +41,13 @@ use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while 
 
 use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
 
+use constant ERROR_CANT_LEXICAL_USER_SUB => q{Can't "use autodie qw(%s)": lexical scoping of user subroutines not supported in Perl 5.8};
+
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
+
+# Don't allow lexical user subs under 5.8.  They don't get properly
+# lexicalised.
+use constant ALLOW_LEXICAL_USER_SUBS => PERL58 ? 0 : 1;
 
 # All the Fatal/autodie modules share the same version number.
 our $VERSION = "1.10_06";
@@ -235,6 +241,12 @@ sub import {
 
 # The code here is originally lifted from namespace::clean,
 # by Robert "phaylon" Sedlacek.
+#
+# NOTE: The reinstatement code here only works with subroutines that
+# have the same name as built-ins.  Perl seems to want to resolve
+# built-in looking names as soon as possible (allowing us to tweak
+# them at compile time), but leaves off resolving user subs until
+# run-time.
 
 sub _remove_lexical_subs {
     my ($class, $pkg, $subs_to_reinstate) = @_;
@@ -266,6 +278,14 @@ sub _remove_lexical_subs {
         }
 
         # Put back the old sub (if there was one).
+
+        # XXX - This does't work reliably unless we've done
+        # the magic delete trick first in a different BEGIN
+        # block.  This appears to be an intractible problem. ;(
+        #
+        # See http://perlmonks.org/?node_id=693338 for a longer
+        # description as to why.
+
         if ($sub_ref) {
             *{ "${pkg}::$sub_name" } = $sub_ref;
         }
@@ -684,13 +704,84 @@ sub _make_fatal {
     croak(sprintf(ERROR_BADNAME, $class, $name)) unless $name =~ /^\w+$/;
 
     if (defined(&$sub)) {   # user subroutine
-        $sref = \&$sub;
-        $proto = prototype $sref;
-        $call = '&$sref';
+
+        if (! ALLOW_LEXICAL_USER_SUBS and $lexical) {
+            # Sorry guys, we can't lexicalise your user sub,
+            # unless it looks like a built-in.
+
+            my $prototype = eval { prototype("CORE::$name"); };
+
+            if (not $prototype)  {
+                croak(sprintf ERROR_CANT_LEXICAL_USER_SUB, $name);
+            }
+
+	    # DANGER DANGER!  Everything else here that tries to
+	    # re-instate a Fatalised sub doesn't work. See
+	    # http://perlmonks.org/?node_id=693338 for why.
+
+            # XXX: If we're here, then we're going to replacing
+            # a built-in that's already been replaced.  We need to
+            # make sure that the rest of our code for this is sane.
+            #
+            # You may be wondering why we care at all.  If we're
+            # trying to use autodie for something that's already been
+            # Fatalised, shouldn't it remain the same?  Nope, beacuse
+            # Fatal remains backwards compatible (ugly errors, etc),
+            # whereas autodie is shiny.
+            #
+            # We *do* need to make sure that we're either:
+            #   a) Wrapping a real user-sub with an autodie.
+            #   b) *replacing* a Fatal version with an autodie version.
+
+
+            if ( $Package_Fatal{$sub} )  {
+
+                # Something we previously made Fatal.  This is
+                # safe to replace with an autodying to core version.
+
+                $core = 1;
+                $call = "CORE::$name";
+
+                # We return our $sref from this subroutine later
+                # on, indicating this subroutine should be placed
+                # back when we're finished.
+                $sref = \&$sub;
+
+                # Now we nuke the sucker that used to be there,
+                # forcing Perl to re-think how it resolves subs.
+
+		# XXX - This fails.  See Perlmonks 693338 for details.
+
+                $class->_remove_lexical_subs($pkg,{ $name => undef });
+
+            } else {
+
+                # Something else which is replacing a core sub?
+                # We'll wrap it, although this may not be wise.
+
+                # XXX - Do we want to issue a warning for this?
+
+                $sref = \&$sub;
+                $proto = prototype $sref;
+                $call = '&$sref';
+
+            }
+
+        } else {
+
+            # A regular user sub.
+
+            # TODO : This duplicates the code immediately above.
+            # Combine them.
+
+            $sref = \&$sub;
+            $proto = prototype $sref;
+            $call = '&$sref';
+
+        }
 
     } elsif ($sub eq $ini && $sub !~ /^CORE::GLOBAL::/) {
         # Stray user subroutine
-        # XXX - Should this be using $sub or $name (orig was $sub)
         croak(sprintf(ERROR_NOTSUB,$sub));
 
     } elsif ($name eq 'system') {
