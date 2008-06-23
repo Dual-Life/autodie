@@ -101,6 +101,14 @@ Functions called in list context are assumed to have failed if they
 return an empty list, or a list consisting only of a single undef
 element.
 
+=head1 DIAGNOSTICS
+
+=item :void cannot be used with lexical scope
+
+The C<:void> option is supported in L<Fatal>, but not
+C<autodie>.  If you want a block of code with C<autodie>
+turned off, use C<no autodie> instead.
+
 =head1 BUGS
 
 Plenty!  See L<http://github.com/pfenwick/autodie/tree/master/TODO>

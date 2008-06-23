@@ -2,9 +2,9 @@ This is not an exhaustive list of TODO items.
 
 * Write a bunch of tests for the exception API
 
-* Consider removing :lexical tests in t/* and convert them to using
+* Remove :lexical tests in t/* and convert them to using
   autodie.  The :lexical option is no longer officially supported in
-  Fatal.
+  Fatal.  These tests may be allowable in an t/internal.t file.
 
 * (More?) tests for user defined subs!
 
@@ -26,9 +26,6 @@ This is not an exhaustive list of TODO items.
 * Write a huge amount of documentation.
 
 * Write a huge amount of tests.
-
-* Write tests to make sure that nothing clobbers $@ accidently,
-  especially in autodie::exception.
 
 * Explain :lexical prior to the DIAGNOSTICS section in Fatal.pm  (or
   remove)
