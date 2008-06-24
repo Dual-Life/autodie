@@ -27,8 +27,7 @@ This is not an exhaustive list of TODO items.
 
 * Write a huge amount of tests.
 
-* Explain :lexical prior to the DIAGNOSTICS section in Fatal.pm  (or
-  remove)
+* Figure out how we deal with core modules being called before site_perl.
 
 == 5.8 ==
 
