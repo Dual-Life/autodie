@@ -42,6 +42,8 @@ This is not an exhaustive list of TODO items.
   on user subs, or when we've used 'no autodie ...' to turn
   off a sub until the end of a scope.
 
+	* We do this now!  Or we should.  More tests are needed.
+
 * lex58 still produces a warning from system, even under Cygwin.
   Does this happen under Linux?  Can we get rid of it, or
   document it better?
