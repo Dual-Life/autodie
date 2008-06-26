@@ -33,6 +33,8 @@ This is not an exhaustive list of TODO items.
 
 * Add fork() to the list of things that are defined-or-die
 
+* Test fcntl.
+
 == 5.8 ==
 
 * Remove/fix kludge that forces || as the only test
