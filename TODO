@@ -29,6 +29,8 @@ This is not an exhaustive list of TODO items.
 
 * Figure out how we deal with core modules being called before site_perl.
 
+* Test the many varied forms of sysopen.
+
 == 5.8 ==
 
 * Remove/fix kludge that forces || as the only test

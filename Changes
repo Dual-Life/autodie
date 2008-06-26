@@ -7,6 +7,8 @@ Revision history for Fatal
 
 	* Moved can't mix lexical and void diagnostics to autodie.pm
 
+	* Added some basic tests for sysopen()
+
 1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
 
 	* RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful
