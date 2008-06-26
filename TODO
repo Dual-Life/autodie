@@ -31,6 +31,8 @@ This is not an exhaustive list of TODO items.
 
 * Test the many varied forms of sysopen.
 
+* Add fork() to the list of things that are defined-or-die
+
 == 5.8 ==
 
 * Remove/fix kludge that forces || as the only test
