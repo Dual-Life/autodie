@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 use constant NO_SUCH_FILE => "this_file_had_better_not_exist";
 
@@ -18,4 +18,5 @@ is($@->package, __PACKAGE__, "Correct package");
 is($@->caller,__PACKAGE__."::__ANON__", "Correct caller");
 is($@->args->[1], '<', 'Correct mode arg');
 is($@->args->[2], NO_SUCH_FILE, 'Correct filename arg');
-
+ok($@->matches('open'), 'Looks like an error from open');
+ok($@->matches(':io'),  'Looks like an error from :io');

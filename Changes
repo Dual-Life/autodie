@@ -9,6 +9,9 @@ Revision history for Fatal
 
 	* Added some basic tests for sysopen()
 
+	* autodie::exception::match is better exercises in the 5.8
+	  test suite.
+
 1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
 
 	* RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful
