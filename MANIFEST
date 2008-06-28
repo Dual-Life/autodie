@@ -33,6 +33,7 @@ t/pod-coverage.t
 t/pod.t
 t/recv.t
 t/scope_leak.t
+t/sysopen.t
 t/system.t
 t/todo.t
 t/version.t
