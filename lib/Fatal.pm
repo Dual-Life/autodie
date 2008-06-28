@@ -5,8 +5,7 @@ use Carp;
 use strict;
 use warnings;
 use autodie::exception;	# TODO - Dynamically load when/if needed
-use constant PERL58 => ($] < 5.010);
-use if PERL58, 'Scope::Guard';
+use Scope::Guard;
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -192,12 +191,12 @@ sub import {
             # for them to be cleaned at the end of our scope, so
             # record them here.
 
-            $made_fatal{$func} = $sub_ref if PERL58 and $lexical;
+            $made_fatal{$func} = $sub_ref if $lexical;
 
         }
     }
 
-    if (PERL58 and $lexical) {
+    if ($lexical) {
 
         # Dark magic to have autodie work under 5.8
         # Copied from namespace::clean, that copied it from
@@ -291,7 +290,7 @@ sub unimport {
     # has explicitly stated 'no autodie qw(blah)',
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
-    @_ = (':all') if PERL58 and not @_;
+    @_ = (':all') if not @_;
 
     if (my @unimport_these = @_) {
 
@@ -322,9 +321,7 @@ sub unimport {
             # leaves it nuked.  We really want an un-nuke
             # function at the end.
 
-            if (PERL58) {
-                $class->_remove_lexical_subs($pkg,{ $symbol => undef });
-            }
+	    $class->_remove_lexical_subs($pkg,{ $symbol => undef });
 
             # Fiddle the appropriate bits to say that this
             # should not die for this lexical scope.  We do
@@ -434,51 +431,17 @@ sub fill_protos {
     return @out1;
 }
 
-# Note that we don't actually call _get_sub_index in the compiled
-# sub.  Instead we're looking up the appropriate value and passing
-# that into vec().
-
-# TODO: We want the code that we compile to be as fast as possible,
-#       so it may be worth looking at the cost of using vec() compared
-#       to doing appropriate bitwise operations on our hints.
+# This generates the code that will become our fatalised subroutine.
 
 sub write_invocation {
     my ($core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
-
-    # TODO: We have a huge hunk of duplicated code/string here.
-    #       Do something so it's only mentioned once.
-    #
-    # TODO: We'd like to get rid of 'no warnings uninitialized'.
-    #       This is here because sometimes our hints are completely
-    #       empty (being in a lexical scope that's never seen our package).
 
     if (@argvs == 1) {        # No optional arguments
 
         my @argv = @{$argvs[0]};
         shift @argv;
 
-        if (PERL58) {
-            return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
-        }
-
-        my $out = qq[
-            my \$hints = (caller(0))[10];    # Lexical hints hashref
-            no warnings 'uninitialized';
-            if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                  # We're using lexical semantics.
-                  ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
-            } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                  # We're using 'no' lexical semantics.
-                  return $call(].join(', ',@argv).qq[);
-            } elsif (].($Package_Fatal{$sub}||0).qq[) {
-                  # We're using package semantics.
-                  ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
-            }
-            # Default: non-Fatal semantics
-            return $call(].join(', ',@argv).qq[);
-        ];
-
-        return $out;
+	return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
 
     } else {
         my $else = "\t";
@@ -490,32 +453,12 @@ sub write_invocation {
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
-            if (PERL58) {
-                push @out, one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
-                next;
-            }
-
-            push @out, qq[
-                my \$hints = (caller(0))[10];    # Lexical hints hashref
-                no warnings 'uninitialized';
-                if (vec(\$hints->{'$PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                      # We're using lexical semantics.
-                      ].one_invocation($core,$call,$name,0,$sub,0,@argv).qq[
-                } elsif (vec(\$hints->{'$NO_PACKAGE'},]._get_sub_index($sub).qq[,1)) {
-                      # We're using 'no' lexical semantics.
-                      return $call(].join(', ',@argv).qq[);
-                } elsif (].($Package_Fatal{$sub}||0).qq[) {
-                      # We're using  package semantics.
-                      ].one_invocation($core,$call,$name,$void,$sub,1,@argv).qq[
-                }
-                # Default: non-Fatal semantics
-                return $call(].join(', ',@argv).qq[);
-            ];
+	    push @out, one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
         }
-        push @out, <<EOC;
+        push @out, q[
             }
             die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
-EOC
+	];
 
         return join '', @out;
     }
@@ -669,27 +612,19 @@ sub _make_fatal {
 
     $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-    # If we've already got hints for this sub, then we've
-    # already Fatalised it.  So safe ourselves some effort
-    # by setting our %^H hints and returning immediately.
-
-    my $index             = _get_sub_index($sub);
     my $Already_fatalised = $Already_fatalised{$sub};
 
     # Figure if we're using lexical or package semantics and
     # twiddle the appropriate bits.
 
-    if ($lexical) {
-        vec($^H{$PACKAGE},    $index ,1) = 1;
-        vec($^H{$NO_PACKAGE}, $index ,1) = 0;
-    } else {
+    if (not $lexical) {
         $Package_Fatal{$sub} = 1;
     }
 
     # Return immediately if we've already fatalised our code.
-    # XXX - Disabled under 5.8, since we need to instate our
+    # XXX - Disabled under 5.8+, since we need to instate our
     # replacement subs every time.
-    return if not PERL58 and defined $Already_fatalised;
+    # return if not defined $Already_fatalised;
 
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;

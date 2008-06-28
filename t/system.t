@@ -40,14 +40,8 @@ isa_ok($@, "autodie::exception") or diag $@;
 like($@,qr{failed to start}, "Reason for failure given");
 like($@,qr{@{[NO_SUCH_FILE]}},"Failed command given");
 
-TODO: {
-    local $TODO = "Preserving exotic system not supported under 5.10"
-        if $] >= 5.010;
-
-    eval "system { \$^X} 'perl', '-e1'";
-    is($@,"","Exotic system in same package not harmed");
-
-}
+eval "system { \$^X} 'perl', '-e1'";
+is($@,"","Exotic system in same package not harmed");
 
 package Bar;
 

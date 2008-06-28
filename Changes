@@ -9,6 +9,10 @@ Revision history for Fatal
 
 	* Added some basic tests for sysopen()
 
+	* Removed the 5.10 only way of tracking lexical hints with
+	  %^H.  Our code now exclusively uses the more portable
+	  5.8 code that employs Scope::Guard (and has less side-effects).
+
 1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
 
 	* RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful

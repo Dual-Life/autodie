@@ -2,7 +2,12 @@
 use strict;
 use warnings;
 use Test::More;
-use constant NO_SUCH_FILE => "this_file_had_better_not_exist";
+
+# We name our non-existant file in such a way that Win32 users know
+# it's okay that we get a warning due to Perl's "call the shell
+# anyway" bug.
+
+use constant NO_SUCH_FILE => "this_warning_can_be_safely_ignored";
 
 BEGIN {
     eval "use IPC::System::Simple";
@@ -47,7 +52,7 @@ eval {
     # IPC::System::Simple and autodie's system() never call the
     # shell when called with multiple arguments.
 
-    warn "\nPlease ignore the following warning, it is expected"
+    warn "\nPlease ignore the following warning, it is expected\n"
        if $^O eq "MSWin32";
 
     no warnings;
@@ -57,16 +62,8 @@ eval {
 
 ok(! $@);
 
-TODO: {
+# Test exotic system.
 
-    local $TODO = "Non-clobbering exotic system not supported in 5.10"
-       if $] >= 5.010;
+eval " system { NO_SUCH_FILE } 1; ";
 
-    no warnings;
-
-    eval "
-	    system { NO_SUCH_FILE } 1;
-    ";
-
-    ok(! $@);
-}
+ok(! $@);
