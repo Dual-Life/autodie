@@ -3,8 +3,6 @@ use strict;
 
 use Test::More;
 
-use constant PERL58 => $] < 5.010 ? 1 : 0;
-
 plan 'no_plan';
 
 # Returns a list presented to it, but also returns a single
