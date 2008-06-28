@@ -9,3 +9,4 @@ Makefile$
 Makefile.old
 examples/
 autodie-.*.tar.gz
+cover_db
