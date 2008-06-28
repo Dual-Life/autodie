@@ -3,7 +3,7 @@ use strict;
 
 use constant NO_SUCH_FILE => 'this_file_had_so_better_not_be_here';
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 {
 
@@ -37,10 +37,19 @@ use Test::More tests => 18;
 eval { open(my $fh, '<', NO_SUCH_FILE); };
 is($@,"","autodie open outside of lexical scope");
 
-# eval { autodie->import(); };
-# ok(! $@, "Bare autodie allowed");   # TODO: Test it turns on ':all'
+eval {
+    use autodie;	# Should turn on everything
+    open(my $fh, '<', NO_SUCH_FILE);
+};
 
-ok(1, "Import test disabled");
+like($@, qr{Can't open}, "vanilla use autodie turns on everything.");
+
+TODO: {
+    local $TODO = "use autodie doesn't seem to clean properly.";
+
+    eval { open(my $fh, '<', NO_SUCH_FILE); };
+    is($@,"","vanilla autodie cleans up");
+}
 
 {
     use autodie qw(:io);

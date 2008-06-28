@@ -73,11 +73,13 @@ my %Cached_fatalised_sub = ();
 # in a Fatalised sub without any %^H hints turned on, we can use this
 # to determine if we should be acting with package scope, or we've
 # just fallen out of lexical context.
+#
+# TODO - This doing a lot less than it used to now.  Check
+# what still uses it and how.
 
 my %Package_Fatal = (); # Tracks Fatal with package scope
 
 my $PACKAGE       = __PACKAGE__;
-my $NO_PACKAGE    = "no $PACKAGE";
 my $PACKAGE_GUARD = "guard $PACKAGE";
 
 # Here's where all the magic happens when someone write 'use Fatal'
@@ -90,13 +92,6 @@ sub import {
     my $lexical = 0;
 
     @_ or return;   # 'use Fatal' is a no-op.
-
-    # Make sure our hints start with a reasonable default.
-    # We have to use empty-string rather than 0, because
-    # ord(0) = 32+16.
-
-    $^H{$PACKAGE}    = ( defined($^H{$PACKAGE}    ) ? $^H{$PACKAGE}    : "" );
-    $^H{$NO_PACKAGE} = ( defined($^H{$NO_PACKAGE} ) ? $^H{$NO_PACKAGE} : "" );
 
     # If we see the :lexical flag, then _all_ arguments are
     # changed lexically
@@ -244,9 +239,14 @@ sub _remove_lexical_subs {
             *{ $full_path } = *__tmp{ $slot };
         }
 
+        warn "Altering $sub_name\n" if $Debug;
+
         # Put back the old sub (if there was one).
 
         if ($sub_ref) {
+
+            warn "Pointing $sub_name to $sub_ref\n" if $Debug;
+
             no strict;
             *{ $pkg_sym . $sub_name } = $sub_ref;
         }
@@ -271,45 +271,37 @@ sub unimport {
     # has explicitly stated 'no autodie qw(blah)',
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
-    @_ = (':all') if not @_;
+    my @unimport_these = @_ ? @_ : ':all';
 
-    if (my @unimport_these = @_) {
+    while (my $symbol = shift @unimport_these) {
 
-        while (my $symbol = shift @unimport_these) {
+        if ($symbol =~ /^:/) {
 
-            if ($symbol =~ /^:/) {
+            # Looks like a tag!  Expand it!
+            push(@unimport_these, @{ $TAGS{$symbol} });
 
-                # Looks like a tag!  Expand it!
-                push(@unimport_these, @{ $TAGS{$symbol} });
-
-                next;
-            }
-
-            my $sub = $symbol;
-            $sub = "${pkg}::$sub" unless $sub =~ /::/;
-
-            # If 'blah' was already enabled with Fatal (which has package
-            # scope) then, this is considered an error.
-
-            if (exists $Package_Fatal{$sub}) {
-                croak(sprintf(ERROR_AUTODIE_CONFLICT,$symbol,$symbol));
-            }
-
-            # Under 5.8, we'll just nuke the sub out of
-            # our namespace.
-
-            # XXX - This isn't a great solution, since it
-            # leaves it nuked.  We really want an un-nuke
-            # function at the end.
-
-            $class->_remove_lexical_subs($pkg,{ $symbol => undef });
-
+            next;
         }
-    } else {
 
-        # XXX - This is awful!  Fix it.
+        my $sub = $symbol;
+        $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-        croak "'no autodie' not supported (yet)";
+        # If 'blah' was already enabled with Fatal (which has package
+        # scope) then, this is considered an error.
+
+        if (exists $Package_Fatal{$sub}) {
+            croak(sprintf(ERROR_AUTODIE_CONFLICT,$symbol,$symbol));
+        }
+
+        # Under 5.8, we'll just nuke the sub out of
+        # our namespace.
+
+        # XXX - This isn't a great solution, since it
+        # leaves it nuked.  We really want an un-nuke
+        # function at the end.  Plus, it compeltely nukes
+        # it, rather than restoring the user sub.
+
+        $class->_remove_lexical_subs($pkg,{ $symbol => undef });
 
     }
 }
@@ -598,6 +590,10 @@ sub _make_fatal {
 
             # A regular user sub, or a user sub wrapping a
             # core sub.
+            #
+            # TODO - autodie.t fails "vanilla autodie cleanup",
+            # and it seems to be related to us wrongly identifying
+            # code...  Or that could be a red herring.
 
             $sref = \&$sub;
             $proto = prototype $sref;
