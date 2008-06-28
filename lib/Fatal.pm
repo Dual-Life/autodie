@@ -61,22 +61,6 @@ my %Use_defined_or;
     CORE::send CORE::recv
 )} = ();
 
-
-# Every time we're asked to Fatalise a with lexical scope subroutine,
-# we generate it a unique sequential ID number and store it in our
-# %Hints_index using the full package name as a key (or
-# CORE::$function for a core).  These indexes correspond to the
-# bit-strings we store in %^H to remember which subroutines have been
-# fatalised with a lexical scope.
-
-my %Hints_index   = (); # Tracks indexes used in our %^H bitstring
-
-# Tracks which subs have already been fatalised.  Important to
-# avoid doubling up on work.  Keys are always the calling package
-# name, and the fatalised sub.  Eg, 'main::open'.
-
-my %Already_fatalised = ();
-
 # Cached_fatalised_sub caches the various versions of our
 # fatalised subs as they're produced.  This means we don't
 # have to build our own replacement of CORE::open and friends
@@ -167,20 +151,23 @@ sub import {
             # and we've already been called with 'no autodie qw(x)'
             # in the same scope, we consider this to be an error.
             # Mixing Fatal and autodie effects was considered to be
-            # needlessly confusing in p5p.
+            # needlessly confusing on p5p.
 
             my $sub = $func;
             $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-            my $index = _get_sub_index($sub);
-
             # If we're being called as Fatal, and we've previously
             # had a 'no X' in scope for the subroutine.
 
-            no warnings 'uninitialized';
-            if (! $lexical and vec($^H{$NO_PACKAGE}, $index, 1)) {
-                croak(sprintf(ERROR_FATAL_CONFLICT, $_, $_));
-            }
+            # XXX - We need another way of doing this.
+            #
+            # NB, previously we checked a lexical hint in %^H, and
+            # this *did* work fine, even under 5.8.  Check out
+            # v_chocolateboy for an example.
+
+            # if (! $lexical and "we had a no autodie qw(x) already") {
+            #     croak(sprintf(ERROR_FATAL_CONFLICT, $_, $_));
+            # }
 
             # We're not being used in a confusing way, so make
             # the sub fatal.
@@ -204,9 +191,9 @@ sub import {
         # in blood.
 
         # This magic bit causes %^H to be lexically scoped.
-        # TODO - Apparently this *can* leak across file boundries,
-        # and needs to be investigated.  Chocolateboy's 'autobox'
-        # uses a workaround to detect this.
+
+        # TODO - We'll still leak across file boundries.  Add
+        # guards to check the caller's file to see if we have.
 
         $^H |= 0x020000;
 
@@ -226,7 +213,7 @@ sub import {
 # by Robert "phaylon" Sedlacek.
 #
 # It's been redesigned after feedback from ikegami on perlmonks.
-# See http://perlmonks.org/?node_id=693338
+# See http://perlmonks.org/?node_id=693338 .  Ikegami rocks.
 #
 # This code would now be better called _install_lexical_subs
 # since it's now primarily used for installing, even though it
@@ -235,13 +222,7 @@ sub import {
 sub _remove_lexical_subs {
     my ($class, $pkg, $subs_to_reinstate) = @_;
 
-    # Many thanks to ikegami for this rather wonderful
-    # symbol resolving code.
-
     my $pkg_sym = "${pkg}::";
-    # foreach my $path (split /::/, $pkg) {
-    #    $pkg_sym = $pkg_sym->{"${path}::"};
-    # }
 
     while(my ($sub_name, $sub_ref) = each %$subs_to_reinstate) {
 
@@ -321,51 +302,15 @@ sub unimport {
             # leaves it nuked.  We really want an un-nuke
             # function at the end.
 
-	    $class->_remove_lexical_subs($pkg,{ $symbol => undef });
+            $class->_remove_lexical_subs($pkg,{ $symbol => undef });
 
-            # Fiddle the appropriate bits to say that this
-            # should not die for this lexical scope.  We do
-            # this even if the sub hasn't been Fatalised yet,
-            # since that may happen in a later invocation.
-
-            my $index = _get_sub_index($sub);
-
-            {
-                # XXX - This shouldn't need warnings removed in
-                # 5.8.  In fact, I think we shouldn't need this code
-                # *at all*, but removing it causes the tests that
-                # say that using Fatal and no autodie together is
-                # naughty.
-
-                # XXX - These may be happening from import() being
-                # called at *RUN-TIME* under 5.8.  The whole
-                # calling import at run-time needs to be addressed.
-
-                # In 5.10, this works fine without the 'no warnings'.
-
-                no warnings 'uninitialized';
-
-                vec($^H{$PACKAGE},    $index,1) = 0;
-                vec($^H{$NO_PACKAGE}, $index,1) = 1;
-
-            }
         }
     } else {
 
-        # We hit this for 'no autodie', etc.  Disable all
-        # lexical Fatal functionality.  NB, empty string rather
-        # than zero because when passed into vec, 0 gets treated
-        # like a string.
+        # XXX - This is awful!  Fix it.
 
-        $^H{$PACKAGE} = "";
+        croak "'no autodie' not supported (yet)";
 
-        # Enable the "don't autodie" bits for all known functions.
-        # This code may end up writing an extra byte, but we
-        # don't care, since those bytes will never be looked
-        # at.
-
-        my $bytes = int(keys(%Hints_index) / 8)+1;
-        $^H{$NO_PACKAGE} = "\x{ff}" x $bytes;
     }
 }
 
@@ -405,15 +350,7 @@ sub unimport {
 
 }
 
-# Get, or generate and get, the bit-index of the given subroutine.
-
-sub _get_sub_index {
-    my ($sub) = @_;
-
-    return $Hints_index{$sub} if defined $Hints_index{$sub};
-
-    return $Hints_index{$sub} = keys %Hints_index;
-}
+# This code is from the original Fatal.  It scares me.
 
 sub fill_protos {
     my $proto = shift;
@@ -612,8 +549,6 @@ sub _make_fatal {
 
     $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
-    my $Already_fatalised = $Already_fatalised{$sub};
-
     # Figure if we're using lexical or package semantics and
     # twiddle the appropriate bits.
 
@@ -624,6 +559,10 @@ sub _make_fatal {
     # Return immediately if we've already fatalised our code.
     # XXX - Disabled under 5.8+, since we need to instate our
     # replacement subs every time.
+
+    # TODO - We *should* be able to do skipping, since we know when
+    # we've lexicalised / unlexicalised a subroutine.
+
     # return if not defined $Already_fatalised;
 
     $name = $sub;
@@ -748,9 +687,6 @@ sub _make_fatal {
         $class->_remove_lexical_subs($pkg, { $name => $code });
 
         $Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
-
-        # Mark the sub as fatalised.
-        $Already_fatalised{$sub} = 1;
     }
 
     return $sref;
