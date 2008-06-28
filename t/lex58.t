@@ -62,8 +62,12 @@ eval {
 
 ok(! $@);
 
-# Test exotic system.
+{
+    no warnings;  # Disables "can't exec..." warning.
 
-eval " system { NO_SUCH_FILE } 1; ";
+    # Test exotic system.
 
-ok(! $@);
+    eval " system { NO_SUCH_FILE } 1; ";
+
+    ok(! $@);
+}
