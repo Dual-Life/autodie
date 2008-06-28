@@ -1,25 +1,12 @@
 package Fatal;
 
-use 5.008;  # 5.08 needed for lexical Fatal
+use 5.008;  # 5.8.x needed for autodie
 use Carp;
 use strict;
 use warnings;
-use autodie::exception;
+use autodie::exception;	# TODO - Dynamically load when/if needed
 use constant PERL58 => ($] < 5.010);
 use if PERL58, 'Scope::Guard';
-
-# When one of our wrapped subroutines is called, there are
-# possibilities:
-#
-# 1) We've been turned on for the current lexical context.
-#    (Checked by a bit in $hints->{$PACKAGE}
-# 2) We've been explicitly turned OFF for the lexical context.
-#    (Checked by a bit in $hints->{$NO_PACKAGE}
-# 3) We've been used lexically somewhere else, but we're currently
-#    acting with default Perl semantics
-#    (Checked by the above two being false, and NO entry in %Package_Fatal)
-# 4) We're just working with package fatal semantics.
-#    (Checked by (1) and (2) being false, and an entry in %Package_Fatal)
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -41,11 +28,10 @@ use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while 
 
 use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
 
-use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
+# Older versions of IPC::System::Simple don't support all the
+# features we need.
 
-# Don't allow lexical user subs under 5.8.  They don't get properly
-# lexicalised.
-use constant ALLOW_LEXICAL_USER_SUBS => PERL58 ? 0 : 1;
+use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 # All the Fatal/autodie modules share the same version number.
 our $VERSION = "1.10_07";
