@@ -1,6 +1,6 @@
 Revision history for Fatal
 
-1.10_07 Sun Jun 29 15:37:53 AUSEST 2008
+1.10_07  Sun Jun 29 15:54:26 AUSEST 2008
 	* RELEASE CODENAME: "ikegami", in thanks for solving the problem
       of getting lexical replacement of subroutines working for real
       under Perl 5.8.  As this works better than my 5.10 implemenation,
@@ -35,6 +35,8 @@ Revision history for Fatal
 
 	* Expanded documentation on autodie, particularly for
 	  exception handling under Perl 5.8.
+
+    * Less warnings from t/exceptions.t when running under 5.10.
 
 1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
 

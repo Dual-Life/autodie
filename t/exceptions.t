@@ -24,6 +24,7 @@ ok($@ ~~ ':io',		"Exception from open / class :io"	);
 ok($@ ~~ ':all',	"Exception from open / class :all"	);
 
 eval {
+    no warnings 'once';    # To prevent the following close from complaining.
 	close(THIS_FILEHANDLE_AINT_OPEN);
 };
 
