@@ -16,11 +16,13 @@ Revision history for Fatal
 	* autodie::exception::match is better exercised in the 5.8
 	  test suite.
 
-	* Re-enabled (failing) 'use autodie' vanilla tests.  Currently
-	  autodie seems to be leaking scope in an odd way, possibly
-	  from clean-up code not triggering?
+	* Re-enabled 'use autodie' vanilla tests.
 
 	* t/backcompat.t no longer fails under Devel::Cover
+
+	* Repeating function names in arguments to autodie no
+	  longer causes those functions to become 'stuck' in
+	  autodying mode.
 
 1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
 
