@@ -24,6 +24,12 @@ Revision history for Fatal
 	  longer causes those functions to become 'stuck' in
 	  autodying mode.
 
+	* Wrong-version of Fatal.pm support added, along with basic
+	  hints on how to get it working.
+
+	* Expanded documentation on autodie, particularly for
+	  exception handling under Perl 5.8.
+
 1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
 
 	* RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful

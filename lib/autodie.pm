@@ -5,7 +5,50 @@ use warnings;
 
 use Fatal ();
 our @ISA = qw(Fatal);
-our $VERSION = "1.10_07";
+our $VERSION;
+
+BEGIN {
+    $VERSION = "1.10_07";
+}
+
+use constant ERROR_WRONG_FATAL => q{
+Incorrect version of Fatal.pm loaded by autodie.
+
+The autodie pragma uses an updated version of Fatal to do its
+heavy lifting.  We seem to have loaded Fatal version %s, which is
+probably the version that came with your version of Perl.  However
+autodie needs version %s, which would have come bundled with
+autodie.
+
+You may be able to solve this problem by adding the following
+line of code to your main program, before any use of Fatal or
+autodie.
+
+    use lib "%s";
+
+};
+
+# We have to check we've got the right version of Fatal before we
+# try to compile the rest of our code, lest we use a constant
+# that doesn't exist.
+
+BEGIN {
+
+    # If we have the wrong Fatal, then we've probably loaded the system
+    # one, not our own.  Complain, and give a useful hint. ;)
+
+    if ($Fatal::VERSION ne $VERSION) {
+        my $autodie_path = $INC{'autodie.pm'};
+
+        $autodie_path =~ s/autodie\.pm//;
+
+        require Carp;
+
+        Carp::croak sprintf(
+            ERROR_WRONG_FATAL, $Fatal::VERSION, $VERSION, $autodie_path
+        );
+    }
+}
 
 # When passing args to Fatal we want to keep the first arg
 # (our package) in place.  Hence the splice.
@@ -69,16 +112,18 @@ description of that module for more information.
 
 Exceptions produced by the C<autodie> pragma are members of the
 L<autodie::exception> class.  The preferred way to work with
-these exceptions is as follows:
+these exceptions under Perl 5.10 is as follows:
 
     use feature qw(switch);
 
     eval {
-        use autodie ':io';
+        use autodie;
 
         open(my $fh, '<', $some_file);
 
         my @records = <$fh>;
+
+        # Do things with @records...
 
         close($fh);
 
@@ -92,6 +137,28 @@ these exceptions is as follows:
         default        { say "Not an autodie error at all." }
     }
 
+Under Perl 5.8, the C<given/when> structure is not available, so the
+following structure may be used:
+
+    eval {
+        use autodie;
+
+        open(my $fh, '<', $some_file);
+
+        my @records = <$fh>;
+
+        # Do things with @records...
+
+        close($fh);
+    };
+
+    if ($@ and $@->isa('autodie::exception')) {
+        if ($@->matches('open')) { print "Error from open\n";   }
+        if ($@->matches(':io' )) { print "Non-open, IO error."; }
+    } elsif ($@) {
+        # A non-autodie exception.
+    }
+
 See L<autodie::exception> for further information on interrogating
 exceptions.
 
@@ -100,6 +167,11 @@ exceptions.
 Functions called in list context are assumed to have failed if they
 return an empty list, or a list consisting only of a single undef
 element.
+
+A bare autodie will change from meaning C<:all> to C<:default>
+before the final release.  There is the possibility for C<:default>
+may contain user-defined subs, or for some built-ins that exist in
+C<:all> to have been removed from C<:default>.
 
 =head1 DIAGNOSTICS
 
@@ -111,11 +183,19 @@ turned off, use C<no autodie> instead.
 
 =head1 BUGS
 
-Plenty!  See L<http://github.com/pfenwick/autodie/tree/master/TODO>
-for a selection of what's remaining to be fixed.
 
-A bare autodie will change from meaning C<:all> to C<:default>
-before the final release.
+Applying C<autodie> to C<system> causes the exotic C<system { ... } @args >
+form to be considered a syntax error until the end of the lexical scope.
+If you really need to use the exotic form, you cna call C<CORE::system>
+instead.
+
+The use of C<use>, C<require> or C<do file> inside the same scope as
+autodie will cause autodying behaviour to "leak" into that file.
+This is a bug that will be fixed before the final release.
+
+There are penty more bugs!  See
+L<http://github.com/pfenwick/autodie/tree/master/TODO> for a selection
+of what's remaining to be fixed.
 
 =head1 AUTHOR
 
@@ -133,5 +213,9 @@ L<Fatal>, L<autodie::exception>, L<IPC::System::Simple>
 =head1 ACKNOWLEDGEMENTS
 
 Mark Reed and Roland Giersig -- Klingon translators.
+
+See the F<AUTHORS> file for full credits.  The latest version of this
+file can be found at
+L<http://github.com/pfenwick/autodie/tree/AUTHORS> .
 
 =cut
