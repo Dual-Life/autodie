@@ -12,6 +12,8 @@ Revision history for Fatal
 	* autodie::exception::match is better exercised in the 5.8
 	  test suite.
 
+	* t/backcompat.t no longer fails under Devel::Cover
+
 1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
 
 	* RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful
