@@ -4,7 +4,7 @@ use 5.008;  # 5.8.x needed for autodie
 use Carp;
 use strict;
 use warnings;
-use autodie::exception;	# TODO - Dynamically load when/if needed
+use autodie::exception; # TODO - Dynamically load when/if needed
 use Scope::Guard;
 
 use constant LEXICAL_TAG => q{:lexical};
@@ -120,10 +120,14 @@ sub import {
 
     my @fatalise_these =  @_;
 
+    # Thiese subs will get unloaded at the end of lexical scope.
+    my %unload_later;
+
+    # This hash helps us track if we've alredy done work.
+    my %done_this;
+
     # NB: we're using while/shift rather than foreach, since
     # we'll be modifying the array as we walk through it.
-
-    my %made_fatal;
 
     while (my $func = shift @fatalise_these) {
 
@@ -140,6 +144,11 @@ sub import {
         } else {
 
             # Otherwise, fatalise it.
+
+            # If we've already made something fatal this call,
+            # then don't do it twice.
+
+            next if $done_this{$func};
 
             # We're going to make a subroutine fatalistic.
             # However if we're being invoked with 'use Fatal qw(x)'
@@ -169,11 +178,13 @@ sub import {
 
             my $sub_ref = $class->_make_fatal($func, $pkg, $void, $lexical);
 
+            $done_this{$func}++;
+
             # If we're making lexical changes, we need to arrange
             # for them to be cleaned at the end of our scope, so
             # record them here.
 
-            $made_fatal{$func} = $sub_ref if $lexical;
+            $unload_later{$func} = $sub_ref if $lexical;
 
         }
     }
@@ -196,7 +207,7 @@ sub import {
         # scope.
 
         push(@ { $^H{$PACKAGE_GUARD} }, Scope::Guard->new(sub {
-            $class->_remove_lexical_subs($pkg, \%made_fatal);
+            $class->_remove_lexical_subs($pkg, \%unload_later);
         }));
     }
 
@@ -239,13 +250,9 @@ sub _remove_lexical_subs {
             *{ $full_path } = *__tmp{ $slot };
         }
 
-        warn "Altering $sub_name\n" if $Debug;
-
         # Put back the old sub (if there was one).
 
         if ($sub_ref) {
-
-            warn "Pointing $sub_name to $sub_ref\n" if $Debug;
 
             no strict;
             *{ $pkg_sym . $sub_name } = $sub_ref;
@@ -370,7 +377,7 @@ sub write_invocation {
         my @argv = @{$argvs[0]};
         shift @argv;
 
-	return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+    return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
 
     } else {
         my $else = "\t";
@@ -382,12 +389,12 @@ sub write_invocation {
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
-	    push @out, one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        push @out, one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
         }
         push @out, q[
             }
             die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
-	];
+    ];
 
         return join '', @out;
     }

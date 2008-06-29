@@ -44,12 +44,8 @@ eval {
 
 like($@, qr{Can't open}, "vanilla use autodie turns on everything.");
 
-TODO: {
-    local $TODO = "use autodie doesn't seem to clean properly.";
-
-    eval { open(my $fh, '<', NO_SUCH_FILE); };
-    is($@,"","vanilla autodie cleans up");
-}
+eval { open(my $fh, '<', NO_SUCH_FILE); };
+is($@,"","vanilla autodie cleans up");
 
 {
     use autodie qw(:io);
