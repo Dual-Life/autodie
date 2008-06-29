@@ -13,6 +13,9 @@ Revision history for Fatal
 	  %^H.  Our code now exclusively uses the more portable
 	  5.8 code that employs Scope::Guard (and has less side-effects).
 
+	* Exotic system is no longer clobbered under 5.10 outside of
+	  autodie's scope.
+
 	* autodie::exception::match is better exercised in the 5.8
 	  test suite.
 
