@@ -794,6 +794,8 @@ See the L</"SEE ALSO"> section of this documentation.
 You've found a bug in C<Fatal>.  Please report it using
 the C<perlbug> command.
 
+=back
+
 =head1 GOTCHAS
 
 Subroutines that normally return a list can be Fatalised without

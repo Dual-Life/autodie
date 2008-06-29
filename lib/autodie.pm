@@ -175,14 +175,17 @@ C<:all> to have been removed from C<:default>.
 
 =head1 DIAGNOSTICS
 
+=over 4
+
 =item :void cannot be used with lexical scope
 
 The C<:void> option is supported in L<Fatal>, but not
 C<autodie>.  If you want a block of code with C<autodie>
 turned off, use C<no autodie> instead.
 
-=head1 BUGS
+=back
 
+=head1 BUGS
 
 Applying C<autodie> to C<system> causes the exotic C<system { ... } @args >
 form to be considered a syntax error until the end of the lexical scope.
