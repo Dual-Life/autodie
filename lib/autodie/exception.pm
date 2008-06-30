@@ -41,7 +41,7 @@ and interface may change!>
 
 When an L<autodie> enabled function fails, it generates an
 C<autodie::exception> object.  This can be interrogated to
-determine further information about the error that occured.
+determine further information about the error that occurred.
 
 This document is broken into two sections; those methods that
 are most useful to the end-developer, and those methods for
@@ -106,7 +106,7 @@ sub function   { return $sub_of{ refaddr $_[0] } }
 
     my $file = $E->file;
 
-The file in which the error occured (eg, C<myscript.pl> or
+The file in which the error occurred (eg, C<myscript.pl> or
 C<MyTest.pm>).
 
 =cut
@@ -147,7 +147,7 @@ sub line        { return $line_of{ refaddr $_[0] } }
 
     my $errno = $E->errno;
 
-The value of C<$!> at the time when the exception occured.
+The value of C<$!> at the time when the exception occurred.
 
 B<NOTE>: This method will leave the main C<autodie::exception> class
 and become part of a role in the future.  You should only call
@@ -319,7 +319,7 @@ sub register {
 
 =head3 add_file_and_line
 
-    say "Problem occured",$@->add_file_and_line;
+    say "Problem occurred",$@->add_file_and_line;
 
 Returns the string C< at %s line %d>, where C<%s> is replaced with
 the filename, and C<%d> is replaced with the line number.

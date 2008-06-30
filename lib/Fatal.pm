@@ -805,13 +805,13 @@ consisting of a single undef.
 
 =head1 BUGS
 
-Fatal only makes changes the package(s) in which it is used, even when
-changing built-in function.  Changing to a new package will cause Fatal not
+Fatal only affects the package(s) in which it is used, even when
+changing built-in functions.  Changing to a new package will cause Fatal not
 to check calls to any functions for failure (unless Fatal was called there,
 too).
 
-C<Fatal> clobbers the context in which a function is called, always
-making it a scalar context, except when the C<:void> tag is used.
+C<Fatal> clobbers the context in which a function is called and always
+makes it a scalar context, except when the C<:void> tag is used.
 This problem does not exist in L<autodie>.
 
 =head1 AUTHOR
