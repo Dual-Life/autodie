@@ -44,6 +44,7 @@ my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
     ':file'    => [qw(open close)],
     ':filesys' => [qw(opendir)],
+    ':threads' => [qw(fork)],
     # Can we use qw(getpeername getsockname)? What do they do on failure?
     # XXX - Can socket return false?
     ':socket'  => [qw(accept bind connect getsockopt listen recv send
@@ -58,7 +59,9 @@ $TAGS{':all'} = [ keys %TAGS ];
 my %Use_defined_or;
 
 @Use_defined_or{qw(
-    CORE::send CORE::recv
+    CORE::fork
+    CORE::recv
+    CORE::send
 )} = ();
 
 # Cached_fatalised_sub caches the various versions of our

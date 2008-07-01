@@ -31,7 +31,7 @@ This is not an exhaustive list of TODO items.
 
 * Test the many varied forms of sysopen.
 
-* Add fork() to the list of things that are defined-or-die
+* Test fork()
 
 * Test fcntl.
 
