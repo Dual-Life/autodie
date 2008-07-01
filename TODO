@@ -31,14 +31,11 @@ This is not an exhaustive list of TODO items.
 
 * Test the many varied forms of sysopen.
 
-* Add fork() to the list of things that are defined-or-die
+* Test fork()
 
 * Test fcntl.
 
 == 5.8 / The One True Autodie ==
-
-* Remove/fix kludge that forces || as the only test
-  operator under 5.8
 
 * Reduce the number of lexical guards we need in our array.
   We should be able to combine these, or have a single guard

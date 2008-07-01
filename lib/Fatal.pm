@@ -33,7 +33,7 @@ use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 # All the Fatal/autodie modules share the same version number.
-our $VERSION = "1.10_07";
+our $VERSION = "1.10_08";
 
 our $Debug ||= 0;
 
@@ -44,6 +44,7 @@ my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
     ':file'    => [qw(open close)],
     ':filesys' => [qw(opendir)],
+    ':threads' => [qw(fork)],
     # Can we use qw(getpeername getsockname)? What do they do on failure?
     # XXX - Can socket return false?
     ':socket'  => [qw(accept bind connect getsockopt listen recv send
@@ -58,7 +59,9 @@ $TAGS{':all'} = [ keys %TAGS ];
 my %Use_defined_or;
 
 @Use_defined_or{qw(
-    CORE::send CORE::recv
+    CORE::fork
+    CORE::recv
+    CORE::send
 )} = ();
 
 # Cached_fatalised_sub caches the various versions of our
@@ -441,14 +444,6 @@ sub one_invocation {
         }
     }
 
-    # New autodie implementation.
-
-    my $op = '||';
-
-    if (exists $Use_defined_or{$call}) {
-        $op = '//';
-    }
-
     # The name of our original function is:
     #   $call if the function is CORE
     #   $sub if our function is non-CORE
@@ -508,11 +503,19 @@ sub one_invocation {
 
     }
 
-    # XXX Total kludge, force operator to always be || under 5.8
 
-    $op = '||' if $] < 5.010;
+    # Should we be testing to see if our result is defined, or
+    # just true?
+    my $use_defined_or = exists ( $Use_defined_or{$call} );
 
     local $" = ', ';
+
+    # If we're going to throw an exception, here's the code to use.
+    my $die = qq{
+        die autodie::exception->new(
+            function => q{$true_sub_name}, args => [ @argv ]
+        )
+    };
 
     return qq{
         if (wantarray) {
@@ -520,19 +523,28 @@ sub one_invocation {
             # If we got back nothing, or we got back a single
             # undef, we die.
             if (! \@results or (\@results == 1 and ! defined \$results[0])) {
-                die autodie::exception->new(
-                    function => q{$true_sub_name}, args => [ @argv ]
-                );
+                $die;
             };
             return \@results;
         }
 
         # Otherwise, we're in scalar context.
+        # We're never in a void context, since we have to look
+        # at the result.
 
-        return $call(@argv) $op die autodie::exception->new(
-            function => q{$true_sub_name}, args => [ @argv ]
-        );
-    };
+        my \$result = $call(@argv);
+
+    } . ( $use_defined_or ? qq{
+
+        $die if not defined \$result;
+
+        return \$result;
+
+    } : qq{
+
+        return \$result || $die;
+
+    } ) ;
 
 }
 

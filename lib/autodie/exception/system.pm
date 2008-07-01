@@ -6,7 +6,7 @@ use base 'autodie::exception';
 use Carp qw(croak);
 use Scalar::Util qw(refaddr);
 
-our $VERSION = '1.10_07';
+our $VERSION = '1.10_08';
 
 =head1 NAME
 
