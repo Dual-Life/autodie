@@ -1,5 +1,12 @@
 Revision history for Fatal
 
+1.10_08
+
+        * 5.8 now has the ability to differentiate between calls
+          that return false to indicate failure, and those that
+          only return undef to indicate failure.  CORE::send and
+          CORE::recv are examples of these.
+
 1.10_07  Sun Jun 29 15:54:26 AUSEST 2008
 	* RELEASE CODENAME: "ikegami", in thanks for solving the problem
 	  of getting lexical replacement of subroutines working for real
