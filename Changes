@@ -1,6 +1,6 @@
 Revision history for Fatal
 
-1.10_07  Sun Jun 29 15:54:26 AUSEST 2008
+1.10_07  Sun Jun 29 15:54:26 AEST 2008
 	* RELEASE CODENAME: "ikegami", in thanks for solving the problem
 	  of getting lexical replacement of subroutines working for real
 	  under Perl 5.8.  As this works better than my 5.10 implemenation,
@@ -40,7 +40,7 @@ Revision history for Fatal
 
 	* All releases now really depend upon Scope::Guard, not just 5.8.
 
-1.10_06 Sun Jun 22 21:50:39 AUSEST 2008
+1.10_06 Sun Jun 22 21:50:39 AEST 2008
 
 	* RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful
 	  insights, and for letting me sound off way too many ideas
@@ -109,7 +109,7 @@ Revision history for Fatal
 	* Added resources to Makefile.PL / META.yml
 
 
-1.10_05 Sun Jun 15 15:46:38 AUSEST 2008
+1.10_05 Sun Jun 15 15:46:38 AEST 2008
 	* Kludgy support for Perl 5.8 using Scope::Guard and dark
 	  and terrible magicks taken from namespace::clean.
 
@@ -148,7 +148,7 @@ Revision history for Fatal
 
 	* Squished a spurious warning from lex58.t
 
-1.10_04 Sat Jun 14 15:02:17 AUSEST 2008
+1.10_04 Sat Jun 14 15:02:17 AEST 2008
 	* Made all $VERSION numbers more friendly to static code
 	  analysis tools (including CPAN).
 	* Added a test to make sure all version numbers are incremented
@@ -164,14 +164,14 @@ Revision history for Fatal
 	* recv.t corrected to use a custom socket (closed for writing)
 	  and to ignore SIGPIPEs.
 
-1.10_03 Fri Jun 13 11:04:17 AUSEST 2008
+1.10_03 Fri Jun 13 11:04:17 AEST 2008
 	* Updated backwards compatibility tests to work on
 	  non-Enligh systems.
 
-1.10_02 Fri Jun 13 10:55:00 AUSEST 2008
+1.10_02 Fri Jun 13 10:55:00 AEST 2008
 	* Tweaked boilerplate test to remove windows-only paths.
 
-1.10_01	Thu Jun 12 17:19:13 AUSEST 2008
+1.10_01	Thu Jun 12 17:19:13 AEST 2008
 	* First beta release of module.
 
 1.09	UNRELEASED
@@ -185,6 +185,6 @@ Revision history for Fatal
 	  what may be getting replaced (eg, CORE::open instead of
 	  main::open).
 
-1.08	Sat Mar 29 10:54:20 AUSEDT 2008
+1.08	Sat Mar 29 10:54:20 AEDT 2008
         Dual-lifed module internally from work I was doing on p5p.
 
