@@ -27,16 +27,10 @@ SKIP: {
 
     is($buffer,'xy',"recv() operational without autodie");
 
-    TODO: {
+    # Read the last byte from the socket.
+    eval { $ret = recv($sock2, $buffer, 1, 0); };
 
-        local $TODO = "False vs undef checking not yet implemented on 5.8"
-            if $] < 5.010;
-
-        # Read the last byte from the socket.
-        eval { $ret = recv($sock2, $buffer, 1, 0); };
-
-        is($@, "", "recv should not die on returning an emtpy string.");
-    }
+    is($@, "", "recv should not die on returning an emtpy string.");
 
     is($buffer,"z","recv() operational with autodie");
     is($ret,"","recv returns undying empty string for local sockets");
