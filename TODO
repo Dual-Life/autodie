@@ -31,8 +31,6 @@ This is not an exhaustive list of TODO items.
 
 * Test the many varied forms of sysopen.
 
-* Test fork()
-
 * Test fcntl.
 
 == 5.8 / The One True Autodie ==

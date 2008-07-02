@@ -13,6 +13,8 @@ Revision history for Fatal
         * t/todo.t removed.  We have passing tests (recv.t)
           for the reminder I had stuffed into here.
 
+	* t/fork.t added, for testing autodying fork.
+
 1.10_07  Sun Jun 29 15:54:26 AEST 2008
 	* RELEASE CODENAME: "ikegami", in thanks for solving the problem
 	  of getting lexical replacement of subroutines working for real
