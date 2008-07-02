@@ -2,8 +2,7 @@
 use strict;
 
 # Check for %^H leaking across file boundries.  Many thanks
-# to chocolateboy for pointing out this can be a problem in
-# older perls.
+# to chocolateboy for pointing out this can be a problem.
 
 use lib 't';
 
@@ -11,7 +10,6 @@ use Test::More 'no_plan';
 
 use constant NO_SUCH_FILE => 'this_file_had_better_not_exist';
 use autodie qw(open);
-
 
 eval {
     open(my $fh, '<', NO_SUCH_FILE);
@@ -29,8 +27,7 @@ eval {
     leak_test(NO_SUCH_FILE);
 };
 
-like($@,qr{^$|Undefined subroutine},
-    "main::open should not leak to other files");
+is($@,"","autodying main::open should not leak to other files");
 
 eval {
     autodie_test_module::your_open(NO_SUCH_FILE);
