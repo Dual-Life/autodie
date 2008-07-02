@@ -54,3 +54,8 @@ This is not an exhaustive list of TODO items.
 
 * Consider what happens when import is called at run-time!
   (Both in 5.10 and 5.8, but especially 5.8)
+
+== Wishlist ==
+
+* Think about padwalker integration.  This can give us really
+  pretty errors!
