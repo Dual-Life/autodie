@@ -27,6 +27,7 @@ t/context.t
 t/context_lexical.t
 t/exceptions.t
 t/Fatal.t
+t/fork.t
 t/kwalitee.t
 t/lex58.t
 t/pod-coverage.t
