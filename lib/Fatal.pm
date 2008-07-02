@@ -384,7 +384,7 @@ sub write_invocation {
         my @argv = @{$argvs[0]};
         shift @argv;
 
-    return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
 
     } else {
         my $else = "\t";
@@ -696,6 +696,7 @@ sub _make_fatal {
     # and filehandles.
 
     {
+        local $@;
         no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
         $code = eval("package $pkg; use Carp; $code");
         Carp::confess($@) if $@;
@@ -703,14 +704,65 @@ sub _make_fatal {
 
     # Now we need to wrap our fatalised sub inside an itty bitty
     # closure, which can detect if we've leaked into another file.
+    # Luckily, we only need to do this for lexical (autodie)
+    # subs.  Fatal subs can leak all they want, it's considered
+    # a "feature" (or at least backwards compatible).
 
-    # TODO: Ccache our leak guards!
-    # XXX - PJF - Write this bit here.
-    # my $leak_guards =
+    # TODO: Cache our leak guards!
 
-    $class->_install_subs($pkg, { $name => $code });
+    # TODO: This is pretty hairy code.  A lot more tests would
+    # be really nice for this.
 
-    $Cached_fatalised_sub{$sub}{$void}{$lexical} = $code;
+    my $leak_guard;
+
+    if ($lexical) {
+
+        $leak_guard = qq<
+            sub$real_proto {
+
+                # If we're called from the correct file, then use the
+                # autodying code.
+                goto &\$code if ((caller)[1] eq \$filename);
+
+                # Oh bother, we've leaked into another file.  Call the
+                # original code.  Note that \$sref may actually be a
+                # reference to a Fatalised version of a core built-in.
+                # That's okay, because Fatal *always* leaks between files.
+
+                goto &\$sref if \$sref;
+        >;
+
+
+        # If we're here, it must have been a core subroutine called.
+        # Warning: The following code may disturb some viewers.
+
+        # TODO: It should be possible to combine this with
+        # write invocations.
+
+        foreach my $proto (@protos) {
+            local $" = ", ";    # So @args is formatted correctly.
+            my ($count, @args) = @$proto;
+            $leak_guard .= qq<
+                if (\@_ == $count) {
+                    return $call(@args);
+                }
+            >;
+        }
+
+        $leak_guard .= qq< croak "Internal error in Fatal/autodie.  Leak-guard failure"; } >;
+
+        # warn "$leak_guard\n";
+
+        local $@;
+
+        $leak_guard = eval $leak_guard;
+
+        die "Internal error in Fatal/autodie: Leak-guard installation failure: $@" if $@;
+    }
+
+    $class->_install_subs($pkg, { $name => $leak_guard || $code });
+
+    $Cached_fatalised_sub{$sub}{$void}{$lexical} = $leak_guard || $code;
 
     return $sref;
 

@@ -2,27 +2,30 @@ Revision history for Fatal
 
 1.10_08
 
-	* 5.8 now has the ability to differentiate between calls
+	* FEATURE: 5.8 now has the ability to differentiate between calls
 	  that return false to indicate failure, and those that
 	  only return undef to indicate failure.  CORE::send and
 	  CORE::recv are examples of these.
 
-	* You can now 'use autodie qw(fork)' to make sure your
+	* FEATURE: You can now 'use autodie qw(fork)' to make sure your
 	  forks are successful (they must return defined).
 
-        * t/todo.t removed.  We have passing tests (recv.t)
+        * TEST: t/todo.t removed.  We have passing tests (recv.t)
           for the reminder I had stuffed into here.
 
-	* t/fork.t added, for testing autodying fork.
+	* TEST: t/fork.t added, for testing autodying fork.
 
-        * The internal subroutine _remove_lexical_subs has been
+        * INTERNAL: The internal subroutine _remove_lexical_subs has been
           renamed to a much less misleading name of _install_subs,
           since that's what it actually does now.
 
-        * Found and fixed a nasty bug where autodie's internal subroutine
-          cache was being too agressive.  This could result in
-          handles from the incorrect package being used.  Scalar
-          filehandles have never been affected by this bug.
+        * BUGFIX: Found and fixed a nasty bug where autodie's internal
+          subroutine cache was being too agressive.  This could result in
+          handles from the incorrect package being used.  Scalar filehandles
+          have never been affected by this bug.
+
+        * BUGFIX: Autodying subroutines will no longer leak into other
+          files if they are used/required/done in the same lexical scope.
 
 1.10_07  Sun Jun 29 15:54:26 AEST 2008
 	* RELEASE CODENAME: "ikegami", in thanks for solving the problem

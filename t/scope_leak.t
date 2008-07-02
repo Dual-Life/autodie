@@ -25,16 +25,12 @@ use autodie_test_module;
 # just loaded will still have an autodying main::open (although
 # its own open should be unaffected).
 
-TODO: {
-    local $TODO = "Leak-plugging bit not yet implemented";
+eval {
+    leak_test(NO_SUCH_FILE);
+};
 
-    eval {
-	leak_test(NO_SUCH_FILE);
-    };
-
-    like($@,qr{^$|Undefined subroutine},
-        "main::open should not leak to other files");
-}
+like($@,qr{^$|Undefined subroutine},
+    "main::open should not leak to other files");
 
 eval {
     autodie_test_module::your_open(NO_SUCH_FILE);

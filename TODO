@@ -49,9 +49,6 @@ This is not an exhaustive list of TODO items.
   Does this happen under Linux?  Can we get rid of it, or
   document it better?
 
-* Fix leaking of autodie into other files when they are used from
-  within an autodying scope.
-
 * Consider what happens when import is called at run-time!
   (Both in 5.10 and 5.8, but especially 5.8)
 
@@ -59,3 +56,8 @@ This is not an exhaustive list of TODO items.
 
 * Think about padwalker integration.  This can give us really
   pretty errors!
+
+* Catch require/do and remove any autodying subs upon entry.
+  At the end of file, replace them.  This is a better solution
+  to using leak-guards, which require more time and space at
+  run-time.
