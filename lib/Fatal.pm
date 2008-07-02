@@ -718,6 +718,8 @@ sub _make_fatal {
     if ($lexical) {
 
         $leak_guard = qq<
+            package $pkg;
+
             sub$real_proto {
 
                 # If we're called from the correct file, then use the
