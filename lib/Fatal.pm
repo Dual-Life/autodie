@@ -568,14 +568,8 @@ sub _make_fatal {
         $Package_Fatal{$sub} = 1;
     }
 
-    # Return immediately if we've already fatalised our code.
-    # XXX - Disabled under 5.8+, since we need to instate our
-    # replacement subs every time.
-
     # TODO - We *should* be able to do skipping, since we know when
     # we've lexicalised / unlexicalised a subroutine.
-
-    # return if not defined $Already_fatalised;
 
     $name = $sub;
     $name =~ s/.*::// or $name =~ s/^&//;
@@ -610,10 +604,6 @@ sub _make_fatal {
 
             # A regular user sub, or a user sub wrapping a
             # core sub.
-            #
-            # TODO - autodie.t fails "vanilla autodie cleanup",
-            # and it seems to be related to us wrongly identifying
-            # code...  Or that could be a red herring.
 
             $sref = \&$sub;
             $proto = prototype $sref;
@@ -685,13 +675,14 @@ sub _make_fatal {
     $code .= "}\n";
     warn $code if $Debug;
 
-
-    # TODO: This changes into our required package, executes our
-    # code, and takes a reference to the resulting sub.  It then
-    # slots that sub into the GLOB table.  However this is a monumental
-    # waste of time for CORE subs, since they're always going to be
-    # the same (assuming same lexical/void switches) regardless of
-    # the package.  It would be nice to cache these.
+    # I thought that changing package was a monumental waste of
+    # time for CORE subs, since they'll always be the same.  However
+    # that's not the case, since they may refer to package-based
+    # filehandles (eg, with open).
+    #
+    # There is potential to more aggressively cache core subs
+    # that we know will never want to interact with package variables
+    # and filehandles.
 
     {
         no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
