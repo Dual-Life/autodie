@@ -210,7 +210,7 @@ sub import {
         # scope.
 
         push(@ { $^H{$PACKAGE_GUARD} }, Scope::Guard->new(sub {
-            $class->_remove_lexical_subs($pkg, \%unload_later);
+            $class->_install_subs($pkg, \%unload_later);
         }));
     }
 
@@ -224,11 +224,12 @@ sub import {
 # It's been redesigned after feedback from ikegami on perlmonks.
 # See http://perlmonks.org/?node_id=693338 .  Ikegami rocks.
 #
-# This code would now be better called _install_lexical_subs
-# since it's now primarily used for installing, even though it
-# can delete as well.
+# Given a package, and hash of (subname => subref) pairs,
+# we install the given subroutines into the package.  If
+# a subref is undef, the subroutine is removed.  Otherwise
+# it replaces any existing subs which were already there.
 
-sub _remove_lexical_subs {
+sub _install_subs {
     my ($class, $pkg, $subs_to_reinstate) = @_;
 
     my $pkg_sym = "${pkg}::";
@@ -311,7 +312,7 @@ sub unimport {
         # function at the end.  Plus, it compeltely nukes
         # it, rather than restoring the user sub.
 
-        $class->_remove_lexical_subs($pkg,{ $symbol => undef });
+        $class->_install_subs($pkg,{ $symbol => undef });
 
     }
 }
@@ -671,7 +672,7 @@ sub _make_fatal {
     # together.
 
     if (my $subref = $Cached_fatalised_sub{$true_name}{$void}{$lexical}) {
-        $class->_remove_lexical_subs($pkg, { $name => $subref });
+        $class->_install_subs($pkg, { $name => $subref });
         return $sref;
     }
 
@@ -697,9 +698,8 @@ sub _make_fatal {
         $code = eval("package $pkg; use Carp; $code");
         Carp::confess($@) if $@;
         no warnings;   # to avoid: Subroutine foo redefined ...
-        # *{$sub} = $code;
 
-        $class->_remove_lexical_subs($pkg, { $name => $code });
+        $class->_install_subs($pkg, { $name => $code });
 
         $Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
     }
