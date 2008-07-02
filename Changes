@@ -19,6 +19,11 @@ Revision history for Fatal
           renamed to a much less misleading name of _install_subs,
           since that's what it actually does now.
 
+        * Found and fixed a nasty bug where autodie's internal subroutine
+          cache was being too agressive.  This could result in
+          handles from the incorrect package being used.  Scalar
+          filehandles have never been affected by this bug.
+
 1.10_07  Sun Jun 29 15:54:26 AEST 2008
 	* RELEASE CODENAME: "ikegami", in thanks for solving the problem
 	  of getting lexical replacement of subroutines working for real

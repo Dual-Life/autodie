@@ -91,8 +91,9 @@ my $PACKAGE_GUARD = "guard $PACKAGE";
 sub import {
     my $class   = shift(@_);
     my $void    = 0;
-    my $pkg     = (caller)[0];
     my $lexical = 0;
+
+    my ($pkg, $filename)= caller();
 
     @_ or return;   # 'use Fatal' is a no-op.
 
@@ -179,7 +180,9 @@ sub import {
             # We're not being used in a confusing way, so make
             # the sub fatal.
 
-            my $sub_ref = $class->_make_fatal($func, $pkg, $void, $lexical);
+            my $sub_ref = $class->_make_fatal(
+                $func, $pkg, $void, $lexical, $filename
+            );
 
             $done_this{$func}++;
 
@@ -549,13 +552,16 @@ sub one_invocation {
 
 }
 
-# Under 5.8 this returns the old copy of the sub, so we can
+# This returns the old copy of the sub, so we can
 # put it back at end of scope.
 
-# TODO : Make sure prototypes are restored correctly.
+# TODO : Check to make sure prototypes are restored correctly.
+
+# TODO: Taking a huge list of arguments is awful.  Rewriting to
+#       take a hash would be lovely.
 
 sub _make_fatal {
-    my($class, $sub, $pkg, $void, $lexical) = @_;
+    my($class, $sub, $pkg, $void, $lexical, $filename) = @_;
     my($name, $code, $sref, $real_proto, $proto, $core, $call);
     my $ini = $sub;
 
@@ -661,7 +667,12 @@ sub _make_fatal {
     # wrapping already wrapped code when autodie and Fatal are used
     # together.
 
-    if (my $subref = $Cached_fatalised_sub{$true_name}{$void}{$lexical}) {
+    # NB: We must use '$sub' (the name plus package) and not
+    # just '$name' (the short name) here.  Failing to do so
+    # results code that's in the wrong package, and hence has
+    # access to the wrong package filehandles.
+
+    if (my $subref = $Cached_fatalised_sub{$sub}{$void}{$lexical}) {
         $class->_install_subs($pkg, { $name => $subref });
         return $sref;
     }
@@ -688,12 +699,18 @@ sub _make_fatal {
         no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
         $code = eval("package $pkg; use Carp; $code");
         Carp::confess($@) if $@;
-        no warnings;   # to avoid: Subroutine foo redefined ...
-
-        $class->_install_subs($pkg, { $name => $code });
-
-        $Cached_fatalised_sub{$true_name}{$void}{$lexical} = $code;
     }
+
+    # Now we need to wrap our fatalised sub inside an itty bitty
+    # closure, which can detect if we've leaked into another file.
+
+    # TODO: Ccache our leak guards!
+    # XXX - PJF - Write this bit here.
+    # my $leak_guards =
+
+    $class->_install_subs($pkg, { $name => $code });
+
+    $Cached_fatalised_sub{$sub}{$void}{$lexical} = $code;
 
     return $sref;
 
