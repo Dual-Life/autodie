@@ -16,4 +16,6 @@ recommends(	'IPC::System::Simple' => '0.12'); # For autodying system()
 resources(      repository => 'http://github.com/pfenwick/autodie/tree/master');
 resources(	blog => 'http://pjf.id.au/blog/toc.html?tag=autodie');
 
+installdirs(    'perl');    # This overwrites a core module!
+
 WriteAll();
