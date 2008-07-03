@@ -192,6 +192,10 @@ form to be considered a syntax error until the end of the lexical scope.
 If you really need to use the exotic form, you can call C<CORE::system>
 instead.
 
+"Used only once" warnings can be generated when C<autodie> or C<Fatal>
+is used with package filehandles (eg, C<FILE>).  It's strongly recommended
+you use scalar filehandles instead.
+
 There are plenty more bugs!  See
 L<http://github.com/pfenwick/autodie/tree/master/TODO> for a selection
 of what's remaining to be fixed.
