@@ -204,9 +204,6 @@ sub import {
 
         # This magic bit causes %^H to be lexically scoped.
 
-        # TODO - We'll still leak across file boundries.  Add
-        # guards to check the caller's file to see if we have.
-
         $^H |= 0x020000;
 
         # Our package guard gets invoked when we leave our lexical
@@ -326,7 +323,7 @@ sub unimport {
     my %tag_cache;
 
     sub _expand_tag {
-        my ($tag) = @_;
+        my ($class, $tag) = @_;
 
         if (my $cached = $tag_cache{$tag}) {
             return $cached;
@@ -377,14 +374,14 @@ sub fill_protos {
 # This generates the code that will become our fatalised subroutine.
 
 sub write_invocation {
-    my ($core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
+    my ($class, $core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
 
     if (@argvs == 1) {        # No optional arguments
 
         my @argv = @{$argvs[0]};
         shift @argv;
 
-        return one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        return $class->one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
 
     } else {
         my $else = "\t";
@@ -396,7 +393,7 @@ sub write_invocation {
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
-        push @out, one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        push @out, $class->one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
         }
         push @out, q[
             }
@@ -408,7 +405,7 @@ sub write_invocation {
 }
 
 sub one_invocation {
-    my ($core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
+    my ($class, $core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
 
     # If someone is calling us directly (a child class perhaps?) then
     # they could try to mix void without enabling backwards
@@ -416,7 +413,7 @@ sub one_invocation {
     # about it rather than doing something unwise.
 
     if ($void and not $back_compat) {
-        Carp::confess("Internal error: :void mode not supported with autodie");
+        Carp::confess("Internal error: :void mode not supported with $class");
     }
 
     # @argv only contains the results of the in-built prototype
@@ -496,6 +493,10 @@ sub one_invocation {
             }
 
             if (\$E) {
+
+                # XXX - TODO - This can't be overridden in child
+                # classes!
+
                 die autodie::exception::system->new(
                     function => q{CORE::system}, args => [ @argv ],
                     message => "\$E"
@@ -516,8 +517,9 @@ sub one_invocation {
 
     # If we're going to throw an exception, here's the code to use.
     my $die = qq{
-        die autodie::exception->new(
-            function => q{$true_sub_name}, args => [ @argv ]
+        die $class->throw(
+            function => q{$true_sub_name}, args => [ @argv ],
+            pragma => q{$class}
         )
     };
 
@@ -682,7 +684,7 @@ sub _make_fatal {
             local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
     ];
     my @protos = fill_protos($proto);
-    $code .= write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
+    $code .= $class->write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
     $code .= "}\n";
     warn $code if $Debug;
 
@@ -699,7 +701,7 @@ sub _make_fatal {
         local $@;
         no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
         $code = eval("package $pkg; use Carp; $code");
-        Carp::confess($@) if $@;
+        Carp::confess("$@") if $@;
     }
 
     # Now we need to wrap our fatalised sub inside an itty bitty
@@ -759,7 +761,7 @@ sub _make_fatal {
 
         $leak_guard = eval $leak_guard;
 
-        die "Internal error in Fatal/autodie: Leak-guard installation failure: $@" if $@;
+        die "Internal error in $class: Leak-guard installation failure: $@" if $@;
     }
 
     $class->_install_subs($pkg, { $name => $leak_guard || $code });
@@ -768,6 +770,12 @@ sub _make_fatal {
 
     return $sref;
 
+}
+
+sub throw {
+    my ($class, @args) = @_;
+
+    return autodie::exception->new(@args);
 }
 
 1;

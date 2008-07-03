@@ -224,8 +224,17 @@ C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
         # This rather awful looking line checks to see if our sub is in the
         # list of expanded tags, caches it, and returns the result.
 
-        return $cache{$sub}{$that} = grep { $_ eq $sub } @{ Fatal::_expand_tag($that) };
+        return $cache{$sub}{$that} = grep { $_ eq $sub } @{ $this->_expand_tag($that) };
     }
+}
+
+# This exists primarily so that child classes can override or
+# augment it if they wish.
+
+sub _expand_tag {
+    my ($this, @args) = @_;
+
+    return Fatal->_expand_tag(@args);
 }
 
 =head2 Advanced methods
@@ -455,12 +464,29 @@ sub _init {
 
     my $class = ref $this;
 
-    # TODO - This always assumes we should be using caller(2).
-    # should this be made smarter (or perhaps take an optional
-    # caller-number argument) to play nicely with child classes
-    # and exception factories?
+    # We're going to walk up our call stack, looking for the
+    # first thing that doesn't look like our exception
+    # code, autodie/Fatal, or some whacky eval.
 
-    my ($package, $file, $line, $sub) = CORE::caller(2);
+    my ($package, $file, $line, $sub);
+
+    my $depth = 0;
+
+    while (1) {
+        $depth++;
+
+        ($package, $file, $line, $sub) = CORE::caller($depth);
+
+        # Skip up the call stack until we find something outside
+        # of the Fatal/autodie/eval space.
+
+        next if $package->isa('Fatal');
+        next if $package->isa($class);
+        next if $file =~ /^\(eval\s\d+\)$/;
+
+        last;
+
+    }
 
     my $id = refaddr $this;
 
