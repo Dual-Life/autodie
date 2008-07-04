@@ -3,7 +3,6 @@ use 5.008;
 use strict;
 use warnings;
 use Carp qw(croak);
-use Scalar::Util qw(refaddr);
 
 our $DEBUG = 0;
 
@@ -11,9 +10,13 @@ use overload
     q{""} => "stringify"
 ;
 
+# Overload smart-match only if we're using 5.10
+
 use if ($] >= 5.010), overload => '~~'  => "matches";
 
 our $VERSION = '1.10_08';
+
+my $PACKAGE = __PACKAGE__;  # Useful to have a scalar for hash keys.
 
 =head1 NAME
 
@@ -65,22 +68,6 @@ is called which may reset or alter C<$@>.
 
 =cut
 
-# autodie::exception objects are inside-out objects.  They were
-# going to be based on fieldhashes, but that breaks things for 5.8.
-# Instead we do the work ourselves.
-
-my(
-    %args_of,
-    %file_of,
-    %caller_of,
-    %line_of,
-    %package_of,
-    %sub_of,
-    %errno_of,
-    %call_of,
-);
-
-
 =head3 args
 
     my $array_ref = $E->args;
@@ -90,7 +77,7 @@ that died.
 
 =cut
 
-sub args        { return $args_of{ refaddr $_[0] } }
+sub args        { return $_[0]->{$PACKAGE}{args}; }
 
 =head3 function
 
@@ -100,7 +87,7 @@ The subroutine (including package) that threw the exception.
 
 =cut
 
-sub function   { return $sub_of{ refaddr $_[0] } }
+sub function   { return $_[0]->{$PACKAGE}{function};  }
 
 =head3 file
 
@@ -111,7 +98,7 @@ C<MyTest.pm>).
 
 =cut
 
-sub file        { return $file_of{ refaddr $_[0] } }
+sub file        { return $_[0]->{$PACKAGE}{file};  }
 
 =head3 package
 
@@ -121,7 +108,7 @@ The package from which the exceptional subroutine was called.
 
 =cut
 
-sub package     { return $package_of{ refaddr $_[0] } }
+sub package     { return $_[0]->{$PACKAGE}{package}; }
 
 =head3 caller
 
@@ -131,7 +118,7 @@ The subroutine that I<called> the exceptional code.
 
 =cut
 
-sub caller      { return $caller_of{ refaddr $_[0] } }
+sub caller      { return $_[0]->{$PACKAGE}{caller};  }
 
 =head3 line
 
@@ -141,7 +128,7 @@ The line in C<< $E->file >> where the exceptional code was called.
 
 =cut
 
-sub line        { return $line_of{ refaddr $_[0] } }
+sub line        { return $_[0]->{$PACKAGE}{line};  }
 
 =head3 errno
 
@@ -159,7 +146,7 @@ set on failure.
 # TODO: Make errno part of a role.  It doesn't make sense for
 # everything.
 
-sub errno       { return $errno_of{ refaddr $_[0] } }
+sub errno       { return $_[0]->{$PACKAGE}{errno}; }
 
 =head3 matches
 
@@ -325,7 +312,6 @@ sub register {
 
 }
 
-
 =head3 add_file_and_line
 
     say "Problem occurred",$@->add_file_and_line;
@@ -442,14 +428,13 @@ automatically, and cannot be specified.
 sub new {
     my ($class, @args) = @_;
 
-    my $this = \ do { my $o };
+    my $this = {};
 
     bless($this,$class);
 
-    # XXX - Figure out how to cleanly ensure all our inits are
-    # called.  EVERY causes our code to die because it wants to
-    # stringify our objects before they're initialised, causing
-    # everything to explode.
+    # I'd love to use EVERY here, but it causes our code to die
+    # because it wants to stringify our objects before they're
+    # initialised, causing everything to explode.
 
     $this->_init(@args);
 
@@ -488,39 +473,20 @@ sub _init {
 
     }
 
-    my $id = refaddr $this;
+    $this->{$PACKAGE}{package} = $package;
+    $this->{$PACKAGE}{file}    = $file;
+    $this->{$PACKAGE}{line}    = $line;
+    $this->{$PACKAGE}{caller}  = $sub;
+    $this->{$PACKAGE}{package} = $package;
+    $this->{$PACKAGE}{errno}   = $!;
 
-    $package_of{ $id} = $package;
-    $file_of{    $id} = $file;
-    $line_of{    $id} = $line;
-    $caller_of{  $id} = $sub;
-    $package_of{ $id} = $package;
-    $errno_of{   $id} = $!;
-
-    $args_of{    $id} = $args{args}     || [];
-    $sub_of{     $id} = $args{function} or
+    $this->{$PACKAGE}{args}    = $args{args} || [];
+    $this->{$PACKAGE}{function}= $args{function} or
               croak("$class->new() called without function arg");
 
     return $this;
 
 }
-
-sub DESTROY {
-    my ($this) = @_;
-    my $id  = refaddr $this;
-
-    delete $package_of{ $id};
-    delete $file_of{    $id};
-    delete $line_of{    $id};
-    delete $caller_of{  $id};
-    delete $package_of{ $id};
-    delete $errno_of{   $id};
-    delete $args_of{    $id};
-    delete $sub_of{     $id};
-
-}
-
-# TODO : Write a CLONE method to support our inside-out design.
 
 1;
 

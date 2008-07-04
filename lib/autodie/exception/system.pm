@@ -4,9 +4,10 @@ use strict;
 use warnings;
 use base 'autodie::exception';
 use Carp qw(croak);
-use Scalar::Util qw(refaddr);
 
 our $VERSION = '1.10_08';
+
+my $PACKAGE = __PACKAGE__;
 
 =head1 NAME
 
@@ -36,29 +37,10 @@ C<system> command.
 
 =cut
 
-# TODO and DANGER!
-#
-# We're using {refaddr $this} everywhere, rather than just '$this'
-# because otherwise we end up in an endless recursive loop, presumably as
-# perl tries to stringify '$this' for the hash lookup.
-#
-# For some reason the $message_of{$this} doesn't cause the problem
-# in _init() - it seems to store fine.  However we do end up with
-# pain and suffering when we try to look it up again in stringify.
-#
-# This may be a bug in fieldhashes, or it may be something that
-# I'm missing.  In the meantime, we're using refaddr.
-#
-# As the pod says, this code will change.
-
-my(
-    %message_of,
-);
-
 sub _init {
     my ($this, %args) = @_;
 
-    $message_of{refaddr $this} = $args{message}
+    $this->{$PACKAGE}{message} = $args{message}
         || croak "'message' arg not supplied to autodie::exception::system->new";
 
     return $this->SUPER::_init(%args);
@@ -76,16 +58,8 @@ sub stringify {
 
     my ($this) = @_;
 
-    return $message_of{refaddr $this} . $this->add_file_and_line;
+    return $this->{$PACKAGE}{message} . $this->add_file_and_line;
 
-}
-
-sub DESTROY {
-    my ($this) = @_;
-
-    delete $message_of{refaddr $this};
-
-    $this->SUPER::DESTROY;
 }
 
 1;
