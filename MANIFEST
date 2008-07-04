@@ -30,9 +30,11 @@ t/Fatal.t
 t/filehandles.t
 t/fork.t
 t/kwalitee.t
+t/lethal.t
 t/lex58.t
 t/lib/autodie/test/au.pm
 t/lib/autodie/test/au/exception.pm
+t/lib/lethal.pm
 t/pod-coverage.t
 t/pod.t
 t/recv.t
