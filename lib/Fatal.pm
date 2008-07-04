@@ -56,10 +56,14 @@ $TAGS{':all'} = [ keys %TAGS ];
 
 my %Use_defined_or;
 
+# CORE::open returns undef on failure.  It can legitimately return
+# 0 on success, eg: open(my $fh, '-|') || exec(...);
+
 @Use_defined_or{qw(
     CORE::fork
     CORE::recv
     CORE::send
+    CORE::open
 )} = ();
 
 # Cached_fatalised_sub caches the various versions of our

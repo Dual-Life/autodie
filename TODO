@@ -36,6 +36,8 @@ This is not an exhaustive list of TODO items.
 * Make sure that all the internal subroutines in Fatal continue to
   work using their old wacky interfaces.
 
+* Test open(my $fh, '|-') || exec().
+
 == 5.8 / The One True Autodie ==
 
 * Support 're-instating' original subs when we've used autodie
