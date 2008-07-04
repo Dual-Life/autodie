@@ -33,6 +33,9 @@ This is not an exhaustive list of TODO items.
 
 * !!! We need a proper way to override exceptions from system!
 
+* Make sure that all the internal subroutines in Fatal continue to
+  work using their old wacky interfaces.
+
 == 5.8 / The One True Autodie ==
 
 * Support 're-instating' original subs when we've used autodie
@@ -40,10 +43,6 @@ This is not an exhaustive list of TODO items.
   off a sub until the end of a scope.
 
 	* We do this now!  Or we should.  More tests are needed.
-
-* lex58 still produces a warning from system, even under Cygwin.
-  Does this happen under Linux?  Can we get rid of it, or
-  document it better?
 
 * Consider what happens when import is called at run-time!
   (Both in 5.10 and 5.8, but especially 5.8)
