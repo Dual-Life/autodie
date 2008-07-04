@@ -8,18 +8,18 @@ Revision history for Fatal
           instrumental in ensuring autodie has the clean and
           simple interface that it does now.
 
-	* FEATURE: 5.8 now has the ability to differentiate between calls
-	  that return false to indicate failure, and those that
-	  only return undef to indicate failure.  CORE::send and
-	  CORE::recv are examples of these.
+        * FEATURE: 5.8 now has the ability to differentiate between calls
+          that return false to indicate failure, and those that
+          only return undef to indicate failure.  CORE::send and
+          CORE::recv are examples of these.
 
-	* FEATURE: You can now 'use autodie qw(fork)' to make sure your
-	  forks are successful (they must return defined).
+        * FEATURE: You can now 'use autodie qw(fork)' to make sure your
+          forks are successful (they must return defined).
 
         * TEST: t/todo.t removed.  We have passing tests (recv.t)
           for the reminder I had stuffed into here.
 
-	* TEST: t/fork.t added, for testing autodying fork.
+        * TEST: t/fork.t added, for testing autodying fork.
 
         * INTERNAL: The internal subroutine _remove_lexical_subs has been
           renamed to a much less misleading name of _install_subs,
@@ -57,190 +57,190 @@ Revision history for Fatal
           recommends IPC::System::Simple.)
 
 1.10_07 Sun Jun 29 15:54:26 AEST 2008
-	* RELEASE CODENAME: "ikegami", in thanks for solving the problem
-	  of getting lexical replacement of subroutines working for real
-	  under Perl 5.8.  As this works better than my 5.10 implemenation,
-	  it forms the foundation for this release.
+        * RELEASE CODENAME: "ikegami", in thanks for solving the problem
+          of getting lexical replacement of subroutines working for real
+          under Perl 5.8.  As this works better than my 5.10 implemenation,
+          it forms the foundation for this release.
 
-	* Removed inappropriate diagnostics about :lexical from Fatal.pm
+        * Removed inappropriate diagnostics about :lexical from Fatal.pm
 
-	* Moved can't mix lexical and void diagnostics to autodie.pm
+        * Moved can't mix lexical and void diagnostics to autodie.pm
 
-	* Added some basic tests for sysopen()
+        * Added some basic tests for sysopen()
 
-	* Removed the 5.10 only way of tracking lexical hints with
-	  %^H.  Our code now exclusively uses the more portable
-	  5.8 code that employs Scope::Guard (and has less side-effects).
+        * Removed the 5.10 only way of tracking lexical hints with
+          %^H.  Our code now exclusively uses the more portable
+          5.8 code that employs Scope::Guard (and has less side-effects).
 
-	* Exotic system is no longer clobbered under 5.10 outside of
-	  autodie's scope.
+        * Exotic system is no longer clobbered under 5.10 outside of
+          autodie's scope.
 
-	* autodie::exception::match is better exercised in the 5.8
-	  test suite.
+        * autodie::exception::match is better exercised in the 5.8
+          test suite.
 
-	* Re-enabled 'use autodie' vanilla tests.
+        * Re-enabled 'use autodie' vanilla tests.
 
-	* t/backcompat.t no longer fails under Devel::Cover
+        * t/backcompat.t no longer fails under Devel::Cover
 
-	* Repeating function names in arguments to autodie no
-	  longer causes those functions to become 'stuck' in
-	  autodying mode.
+        * Repeating function names in arguments to autodie no
+          longer causes those functions to become 'stuck' in
+          autodying mode.
 
-	* Wrong-version of Fatal.pm support added, along with basic
-	  hints on how to get it working.
+        * Wrong-version of Fatal.pm support added, along with basic
+          hints on how to get it working.
 
-	* Expanded documentation on autodie, particularly for
-	  exception handling under Perl 5.8.
+        * Expanded documentation on autodie, particularly for
+          exception handling under Perl 5.8.
 
-	* Less warnings from t/exceptions.t when running under 5.10.
+        * Less warnings from t/exceptions.t when running under 5.10.
 
-	* All releases now really depend upon Scope::Guard, not just 5.8.
+        * All releases now really depend upon Scope::Guard, not just 5.8.
 
 1.10_06 Sun Jun 22 21:50:39 AEST 2008
 
-	* RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful
-	  insights, and for letting me sound off way too many ideas
-	  about how things may be done.
+        * RELEASE CODENAME: "Chocolateboy", in thanks for his wonderful
+          insights, and for letting me sound off way too many ideas
+          about how things may be done.
 
-	* Fixed speeling errors in context.t, thanks to Stennie.
+        * Fixed speeling errors in context.t, thanks to Stennie.
 
-	* Fixed minor pod errors and omissions.
+        * Fixed minor pod errors and omissions.
 
-	* Fixed bug in recv.t which resulted in an incorrect number
-	  of skipped tests on systems using socketpair emulation.
+        * Fixed bug in recv.t which resulted in an incorrect number
+          of skipped tests on systems using socketpair emulation.
 
-	* Fixed a bug that would cause unwanted interactions between
-	  autodie and autobox.  Thanks to chocolateboy. (5.8)
+        * Fixed a bug that would cause unwanted interactions between
+          autodie and autobox.  Thanks to chocolateboy. (5.8)
 
-	* Wrote a (failing) test case demonstrating that the
-	  autodie pragma could leak across files.  Many thanks to
-	  chocolateboy for bringing this to my attention.
+        * Wrote a (failing) test case demonstrating that the
+          autodie pragma could leak across files.  Many thanks to
+          chocolateboy for bringing this to my attention.
 
-	* t/system.t checks to see if exotic system has been injured
-	  in the same package as 'use qutodie qw(system)'
+        * t/system.t checks to see if exotic system has been injured
+          in the same package as 'use qutodie qw(system)'
 
-	* Calling filename reliably reported in 5.8 error messages
-	  and error objects.
+        * Calling filename reliably reported in 5.8 error messages
+          and error objects.
 
-	* User subs can be made autodying under 5.8, but they leak
-	  over the entire package (which is very bad!)
+        * User subs can be made autodying under 5.8, but they leak
+          over the entire package (which is very bad!)
 
-	* Context-checking tests split into package-scope tests and
-	  lexical scope tests.
+        * Context-checking tests split into package-scope tests and
+          lexical scope tests.
 
-	* Lexical user-subs are disabled under Perl 5.8.  They were
-	  leaking everywhere and not being lexical at all.  Attempting
-	  to use a lexical user-sub under 5.8 now causes an error.
+        * Lexical user-subs are disabled under Perl 5.8.  They were
+          leaking everywhere and not being lexical at all.  Attempting
+          to use a lexical user-sub under 5.8 now causes an error.
 
-	* Bugs found in interaction between autodie and Fatal in
-	  5.8.  When used together, we can't reliably replace a
-	  Fatalised sub with an autodying one, and then switch it
-	  back again at the end of block.
+        * Bugs found in interaction between autodie and Fatal in
+          5.8.  When used together, we can't reliably replace a
+          Fatalised sub with an autodying one, and then switch it
+          back again at the end of block.
 
-	* Bugs described above fixed, thanks to ikegami!
+        * Bugs described above fixed, thanks to ikegami!
 
-	* Overhauled _remove_lexical_subs, based on ikegami's
-	  input.  This routine would now be better named
-	  "_install_lexical_subs", since it can now both
-	  install and remove.
+        * Overhauled _remove_lexical_subs, based on ikegami's
+          input.  This routine would now be better named
+          "_install_lexical_subs", since it can now both
+          install and remove.
 
-	* Surpressed some warnings under 5.8 about uninitialised
-	  hints hashes.
+        * Surpressed some warnings under 5.8 about uninitialised
+          hints hashes.
 
-	* Added support for backwards compatible Fatal calls in
-	  5.8.  These are currently a little *too* backwards compatible,
-	  possessing the same bugs as the old Fatal (clobbering
-	  context).
+        * Added support for backwards compatible Fatal calls in
+          5.8.  These are currently a little *too* backwards compatible,
+          possessing the same bugs as the old Fatal (clobbering
+          context).
 
-	* Improved caching of pre-generated subroutines.  We now
-	  cache the compiled subroutine, rather than the uncompiled
-	  code.
+        * Improved caching of pre-generated subroutines.  We now
+          cache the compiled subroutine, rather than the uncompiled
+          code.
 
-	* Added more tests to ensure Fatal throws backcompat
-	  strings, whereas autodie throws exception objects.
+        * Added more tests to ensure Fatal throws backcompat
+          strings, whereas autodie throws exception objects.
 
-	* Support for lexical user-subs enabled, tested, and working
-	  in 5.8!
+        * Support for lexical user-subs enabled, tested, and working
+          in 5.8!
 
-	* Added resources to Makefile.PL / META.yml
+        * Added resources to Makefile.PL / META.yml
 
 
 1.10_05 Sun Jun 15 15:46:38 AEST 2008
-	* Kludgy support for Perl 5.8 using Scope::Guard and dark
-	  and terrible magicks taken from namespace::clean.
+        * Kludgy support for Perl 5.8 using Scope::Guard and dark
+          and terrible magicks taken from namespace::clean.
 
-	* Rudimentary caching of generated code, to avoid having
-	  to regenerate the same code every single time Fatal/autodie
-	  is used on the same function.
+        * Rudimentary caching of generated code, to avoid having
+          to regenerate the same code every single time Fatal/autodie
+          is used on the same function.
 
-	* Nuking subroutines at end of lexical scope moved into
-	  own subroutine.
+        * Nuking subroutines at end of lexical scope moved into
+          own subroutine.
 
-	* Perl 5.8 support working!  Backcompat mode not yet
-	  supported, nor is autodie with user defined subs.
-	  The 5.8 support that is there is rather kludgy, and
-	  still needs a lot of work.
+        * Perl 5.8 support working!  Backcompat mode not yet
+          supported, nor is autodie with user defined subs.
+          The 5.8 support that is there is rather kludgy, and
+          still needs a lot of work.
 
-	* Perl 5.8 code no longer gets executed under 5.10 when
-	  executing write_invocation().
+        * Perl 5.8 code no longer gets executed under 5.10 when
+          executing write_invocation().
 
-	* lex58.t tells the user that we'll get warnings under
-	  Win32, and these are to be ignored.  This is due to
-	  a Perl behaviour where it always calls the shell under
-	  Win32, even when multi-arg system is used.
+        * lex58.t tells the user that we'll get warnings under
+          Win32, and these are to be ignored.  This is due to
+          a Perl behaviour where it always calls the shell under
+          Win32, even when multi-arg system is used.
 
-	* lex58.t no longer fails to compile on Perl 5.10 which
-	  is still clobbering exotic open.  Perl 5.8 does not
-	  clobber the exotic form.
+        * lex58.t no longer fails to compile on Perl 5.10 which
+          is still clobbering exotic open.  Perl 5.8 does not
+          clobber the exotic form.
 
-	* Backcompat tests are all marked as TODO under perl 5.8
+        * Backcompat tests are all marked as TODO under perl 5.8
 
-	* Makefile.PL moved back to saying autodie works under 5.8
+        * Makefile.PL moved back to saying autodie works under 5.8
 
-	* Context/user-sub tests skipped under 5.8, which does
-	  not yet support autodying of user subs.
+        * Context/user-sub tests skipped under 5.8, which does
+          not yet support autodying of user subs.
 
-	* lex58 tests now skipped if IPC::System::Simple not installed.
+        * lex58 tests now skipped if IPC::System::Simple not installed.
 
-	* Squished a spurious warning from lex58.t
+        * Squished a spurious warning from lex58.t
 
 1.10_04 Sat Jun 14 15:02:17 AEST 2008
-	* Made all $VERSION numbers more friendly to static code
-	  analysis tools (including CPAN).
-	* Added a test to make sure all version numbers are incremented
-	  in lock-step.
+        * Made all $VERSION numbers more friendly to static code
+          analysis tools (including CPAN).
+        * Added a test to make sure all version numbers are incremented
+          in lock-step.
 
-	* Started 5.8 support
-		* Removed dependencies on 5.10 'use feature'.
-		* Removed dependencies on 5.10 fieldhashes.
-		* a::e::match no longer uses smart-match or //
-		* %^H init doesn't use // anymore.
-		* 5.8 won't try to use // in fatalised subs (kludge)
+        * Started 5.8 support
+                * Removed dependencies on 5.10 'use feature'.
+                * Removed dependencies on 5.10 fieldhashes.
+                * a::e::match no longer uses smart-match or //
+                * %^H init doesn't use // anymore.
+                * 5.8 won't try to use // in fatalised subs (kludge)
 
-	* recv.t corrected to use a custom socket (closed for writing)
-	  and to ignore SIGPIPEs.
+        * recv.t corrected to use a custom socket (closed for writing)
+          and to ignore SIGPIPEs.
 
 1.10_03 Fri Jun 13 11:04:17 AEST 2008
-	* Updated backwards compatibility tests to work on
-	  non-Enligh systems.
+        * Updated backwards compatibility tests to work on
+          non-Enligh systems.
 
 1.10_02 Fri Jun 13 10:55:00 AEST 2008
-	* Tweaked boilerplate test to remove windows-only paths.
+        * Tweaked boilerplate test to remove windows-only paths.
 
-1.10_01	Thu Jun 12 17:19:13 AEST 2008
-	* First beta release of module.
+1.10_01 Thu Jun 12 17:19:13 AEST 2008
+        * First beta release of module.
 
-1.09	UNRELEASED
-	* Many changes not documented here.
-	* Fatal is now fully backwaards compatible again.
-	* system() can be fatalised/autodying if IPC::System::Simple
-	  is installed.
-	* Rationlisation of autodie::exception API.
-	* autodie::exception->function() now always returns the
-	  full function name as best we can find it, and not
-	  what may be getting replaced (eg, CORE::open instead of
-	  main::open).
+1.09    UNRELEASED
+        * Many changes not documented here.
+        * Fatal is now fully backwaards compatible again.
+        * system() can be fatalised/autodying if IPC::System::Simple
+          is installed.
+        * Rationlisation of autodie::exception API.
+        * autodie::exception->function() now always returns the
+          full function name as best we can find it, and not
+          what may be getting replaced (eg, CORE::open instead of
+          main::open).
 
-1.08	Sat Mar 29 10:54:20 AEDT 2008
+1.08    Sat Mar 29 10:54:20 AEDT 2008
         Dual-lifed module internally from work I was doing on p5p.
 
