@@ -1,6 +1,12 @@
 Revision history for Fatal
 
-1.10_08
+1.11_01 Fri Jul  4 12:53:11 AEST 2008
+
+        * RELEASE CODENAME: "Aristotle", in thanks for the many
+          long and detailed discussions about the autodie interface
+          and how it should interact with Fatal.  Aristotle was
+          instrumental in ensuring autodie has the clean and
+          simple interface that it does now.
 
 	* FEATURE: 5.8 now has the ability to differentiate between calls
 	  that return false to indicate failure, and those that
@@ -50,7 +56,7 @@ Revision history for Fatal
           autodie can be installed with no dependencies.  (It still
           recommends IPC::System::Simple.)
 
-1.10_07  Sun Jun 29 15:54:26 AEST 2008
+1.10_07 Sun Jun 29 15:54:26 AEST 2008
 	* RELEASE CODENAME: "ikegami", in thanks for solving the problem
 	  of getting lexical replacement of subroutines working for real
 	  under Perl 5.8.  As this works better than my 5.10 implemenation,
