@@ -4,8 +4,6 @@ use 5.008;  # 5.8.x needed for autodie
 use Carp;
 use strict;
 use warnings;
-use autodie::exception; # TODO - Dynamically load when/if needed
-use Scope::Guard;
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -209,7 +207,7 @@ sub import {
         # Our package guard gets invoked when we leave our lexical
         # scope.
 
-        push(@ { $^H{$PACKAGE_GUARD} }, Scope::Guard->new(sub {
+        push(@ { $^H{$PACKAGE_GUARD} }, autodie::Scope::Guard->new(sub {
             $class->_install_subs($pkg, \%unload_later);
         }));
     }
@@ -775,7 +773,26 @@ sub _make_fatal {
 sub throw {
     my ($class, @args) = @_;
 
+    require autodie::exception;
     return autodie::exception->new(@args);
+}
+
+package autodie::Scope::Guard;
+
+# This code schedules the cleanup of subroutines at the end of
+# scope.  It's directly inspired by chocolateboy's excellent
+# Scope::Guard module.
+
+sub new {
+    my ($class, $handler) = @_;
+
+    return bless $handler, $class;
+}
+
+sub DESTROY {
+    my ($self) = @_;
+
+    $self->();
 }
 
 1;
