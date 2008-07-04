@@ -895,19 +895,7 @@ the C<perlbug> command.
 
 =back
 
-=head1 GOTCHAS
-
-Subroutines that normally return a list can be Fatalised without
-clobbering their context.  It should be noted that Fatal will consider
-the subroutine to fail if it returns either an empty list, or a list
-consisting of a single undef.
-
 =head1 BUGS
-
-Fatal only affects the package(s) in which it is used, even when
-changing built-in functions.  Changing to a new package will cause Fatal not
-to check calls to any functions for failure (unless Fatal was called there,
-too).
 
 C<Fatal> clobbers the context in which a function is called and always
 makes it a scalar context, except when the C<:void> tag is used.
@@ -931,6 +919,7 @@ same terms as Perl itself.
 
 L<autodie> for a nicer way to use lexical Fatal.
 
-L<IPC::System::Simple> for a similar idea for calls to C<system()>.
+L<IPC::System::Simple> for a similar idea for calls to C<system()>
+and backticks.
 
 =cut
