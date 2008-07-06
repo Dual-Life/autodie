@@ -42,5 +42,6 @@ t/repeat.t
 t/scope_leak.t
 t/sysopen.t
 t/system.t
+t/usersub.t
 t/version.t
 TODO
