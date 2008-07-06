@@ -190,11 +190,17 @@ turned off, use C<no autodie> instead.
 Applying C<autodie> to C<system> causes the exotic C<system { ... } @args >
 form to be considered a syntax error until the end of the lexical scope.
 If you really need to use the exotic form, you can call C<CORE::system>
-instead.
+instead, or use C<no autodie qw(system)> before calling the exotic form.
 
 "Used only once" warnings can be generated when C<autodie> or C<Fatal>
 is used with package filehandles (eg, C<FILE>).  It's strongly recommended
 you use scalar filehandles instead.
+
+When using C<autodie> or C<Fatal> with user subroutines, the
+declaration of those subroutines must appear before the first use of
+C<Fatal> or C<autodie>, or have been exported from a module.
+Attempting to ue C<Fatal> or C<autodie> on other user subroutines will
+result in a compile-time error.
 
 There are plenty more bugs!  See
 L<http://github.com/pfenwick/autodie/tree/master/TODO> for a selection
