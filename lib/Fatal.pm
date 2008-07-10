@@ -73,19 +73,21 @@ my %Use_defined_or;
 
 my %Cached_fatalised_sub = ();
 
-# Evry time we're called with package scope, we record the subroutine
-# (including package or CORE::) in %Package_Fatal.  If we find ourselves
-# in a Fatalised sub without any %^H hints turned on, we can use this
-# to determine if we should be acting with package scope, or we've
-# just fallen out of lexical context.
-#
-# TODO - This doing a lot less than it used to now.  Check
-# what still uses it and how.
+# Every time we're called with package scope, we record the subroutine
+# (including package or CORE::) in %Package_Fatal.  This allows us
+# to detect illegal combinations of autodie and Fatal, and makes sure
+# we don't accidently make a Fatal function autodying (which isn't
+# very useful).
 
-my %Package_Fatal = (); # Tracks Fatal with package scope
+my %Package_Fatal = ();
+
+# We use our package in a few hash-keys.  Having it in a scalar is
+# convenient.  The "guard $PACKAGE" string is used as a key when
+# setting up lexical guards.
 
 my $PACKAGE       = __PACKAGE__;
 my $PACKAGE_GUARD = "guard $PACKAGE";
+my $NO_PACKAGE    = "no $PACKAGE";      # Used to detect 'no autodie'
 
 # Here's where all the magic happens when someone write 'use Fatal'
 # or 'use autodie'.
@@ -95,7 +97,7 @@ sub import {
     my $void    = 0;
     my $lexical = 0;
 
-    my ($pkg, $filename)= caller();
+    my ($pkg, $filename) = caller();
 
     @_ or return;   # 'use Fatal' is a no-op.
 
@@ -108,6 +110,9 @@ sub import {
 
         # If we see no arguments and :lexical, we assume they
         # wanted ':all'.
+        #
+        # TODO - Change this to ':default', and figure out what
+        # that default should be.
 
         if (@_ == 0) {
             push(@_, ':all');
@@ -167,17 +172,12 @@ sub import {
             $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
             # If we're being called as Fatal, and we've previously
-            # had a 'no X' in scope for the subroutine.
+            # had a 'no X' in scope for the subroutine, then complain
+            # bitterly.
 
-            # XXX - We need another way of doing this.
-            #
-            # NB, previously we checked a lexical hint in %^H, and
-            # this *did* work fine, even under 5.8.  Check out
-            # v_chocolateboy for an example.
-
-            # if (! $lexical and "we had a no autodie qw(x) already") {
-            #     croak(sprintf(ERROR_FATAL_CONFLICT, $_, $_));
-            # }
+            if (! $lexical and $^H{$NO_PACKAGE}{$sub}) {
+                 croak(sprintf(ERROR_FATAL_CONFLICT, $func, $func));
+            }
 
             # We're not being used in a confusing way, so make
             # the sub fatal.
@@ -193,7 +193,6 @@ sub import {
             # record them here.
 
             $unload_later{$func} = $sub_ref if $lexical;
-
         }
     }
 
@@ -214,6 +213,7 @@ sub import {
         push(@ { $^H{$PACKAGE_GUARD} }, autodie::Scope::Guard->new(sub {
             $class->_install_subs($pkg, \%unload_later);
         }));
+
     }
 
     return;
@@ -315,6 +315,10 @@ sub unimport {
         # it, rather than restoring the user sub.
 
         $class->_install_subs($pkg,{ $symbol => undef });
+
+        # Record 'no autodie qw($sub)' as being in effect.
+
+        $^H{$NO_PACKAGE}{$sub} = 1;
 
     }
 }

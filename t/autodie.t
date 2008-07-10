@@ -93,15 +93,11 @@ is($@,"","vanilla autodie cleans up");
 
     ok($@,"no autodie on Fataled sub an error.");
 
-    TODO: {
-        local $TODO = "Broken under the One True Way (for now)";
+    eval "
+        no autodie qw(close);
+        use Fatal 'close';
+    ";
 
-        eval "
-            no autodie qw(close);
-            use Fatal 'close';
-        ";
-
-        ok($@, "Using fatal after autodie is an error.");
-    }
+    like($@, qr{not allowed}, "Using fatal after autodie is an error.");
 }
 
