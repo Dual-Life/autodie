@@ -40,9 +40,9 @@ our $Debug ||= 0;
 
 my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
-    ':file'    => [qw(open close)],
+    ':file'    => [qw(open close sysopen fcntl)],
     ':filesys' => [qw(opendir)],
-    ':threads' => [qw(fork)],
+    ':threads' => [qw(fork exec)],
     # Can we use qw(getpeername getsockname)? What do they do on failure?
     # XXX - Can socket return false?
     ':socket'  => [qw(accept bind connect getsockopt listen recv send

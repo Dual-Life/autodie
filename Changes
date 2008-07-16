@@ -19,6 +19,9 @@ Revision history for Fatal
         * FEATURE: Conflicts between 'no autodie' and 'use Fatal'
           re-enabled.
 
+        * FEATURE: Added sysopen() and fcntl() to :file, and
+          exec() to :threads
+
 1.11_01 Fri Jul  4 12:53:11 AEST 2008
 
         * RELEASE CODENAME: "Aristotle", in thanks for the many
