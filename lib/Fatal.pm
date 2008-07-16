@@ -40,9 +40,9 @@ our $Debug ||= 0;
 
 my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
-    ':file'    => [qw(open close)],
+    ':file'    => [qw(open close sysopen fcntl)],
     ':filesys' => [qw(opendir)],
-    ':threads' => [qw(fork)],
+    ':threads' => [qw(fork exec)],
     # Can we use qw(getpeername getsockname)? What do they do on failure?
     # XXX - Can socket return false?
     ':socket'  => [qw(accept bind connect getsockopt listen recv send
@@ -193,6 +193,11 @@ sub import {
             # record them here.
 
             $unload_later{$func} = $sub_ref if $lexical;
+
+            # Stash the subroutine reference into %^H just in
+            # case we need it for 'no autodie'.
+
+            $^H{$PACKAGE}{$sub} = $sub_ref if $lexical;
         }
     }
 
@@ -306,15 +311,17 @@ sub unimport {
             croak(sprintf(ERROR_AUTODIE_CONFLICT,$symbol,$symbol));
         }
 
-        # Under 5.8, we'll just nuke the sub out of
-        # our namespace.
+        # Look up the old version of the sub (if it's there), or
+        # use 'undef' otherwise.
+
+        my $new_subref = $^H{PACKAGE}{$sub};
 
         # XXX - This isn't a great solution, since it
         # leaves it nuked.  We really want an un-nuke
         # function at the end.  Plus, it compeltely nukes
         # it, rather than restoring the user sub.
 
-        $class->_install_subs($pkg,{ $symbol => undef });
+        $class->_install_subs($pkg,{ $symbol => $new_subref });
 
         # Record 'no autodie qw($sub)' as being in effect.
 
