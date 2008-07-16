@@ -42,11 +42,26 @@ my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
     ':file'    => [qw(open close sysopen fcntl)],
     ':filesys' => [qw(opendir)],
-    ':threads' => [qw(fork exec)],
+    ':threads' => [qw(fork)],
+
+    # XXX - exec() doesn't actually work with autodie yet, since it
+    # can't be overridden (due to the exotic form).  It needs to be
+    # special-cased.
+    ':system'  => [qw(system exec)],
+
     # Can we use qw(getpeername getsockname)? What do they do on failure?
     # XXX - Can socket return false?
     ':socket'  => [qw(accept bind connect getsockopt listen recv send
                    setsockopt shutdown socketpair)],
+
+    # Our defaults don't include system(), because it depends upon
+    # an optional module, and it breaks the exotic form.
+    #
+    # This *may* change in the future.  I'd love IPC::System::Simple
+    # to be a dependency rather than a recommendation, and hence for
+    # system() to be autodying by default.
+
+    ':default' => [qw(:io :threads)],
 );
 
 $TAGS{':all'} = [ keys %TAGS ];
@@ -109,13 +124,10 @@ sub import {
         shift @_;
 
         # If we see no arguments and :lexical, we assume they
-        # wanted ':all'.
-        #
-        # TODO - Change this to ':default', and figure out what
-        # that default should be.
+        # wanted ':default'.
 
         if (@_ == 0) {
-            push(@_, ':all');
+            push(@_, ':default');
         }
 
         # Don't allow :lexical with :void, it's needlessly confusing.
