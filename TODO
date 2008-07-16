@@ -31,6 +31,8 @@ This is not an exhaustive list of TODO items.
 
 * Test fcntl.
 
+* Test fileno.
+
 * !!! We need a proper way to override exceptions from system!
 
 * Make sure that all the internal subroutines in Fatal continue to
