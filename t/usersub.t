@@ -30,21 +30,26 @@ $return = eval {
 
 isa_ok($@,'autodie::exception',"autodie mytest/undef throws exception");
 
+# We set initial values here because we're expecting $data to be
+# changed to undef later on.   Having it as undef to begin with means
+# we can't see mytest(undef) working correctly.
+
+my ($data, $data2) = (1,1);
+
 eval {
     use autodie qw(mytest);
 
     {
         no autodie qw(mytest);
 
-        mytest(undef);
+        $data  = mytest(undef);
+        $data2 = mytest('foo');
     }
 };
 
-TODO: {
-    local $TODO = "Bug!  no autodie doesn't work properly with user subs";
-
-    is($@,"","no autodie can counter use autodie for user subs");
-}
+is($@,"","no autodie can counter use autodie for user subs");
+ok(!defined($data), "mytest(undef) should return undef");
+is($data2, "foo", "mytest(foo) should return foo");
 
 eval {
     mytest(undef);

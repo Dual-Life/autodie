@@ -34,14 +34,6 @@ This is not an exhaustive list of TODO items.
 
 * Test open(my $fh, '|-') || exec().
 
-== 5.8 / The One True Autodie ==
-
-* Support 're-instating' original subs when we've used autodie
-  on user subs, or when we've used 'no autodie ...' to turn
-  off a sub until the end of a scope.
-
-	* We do this now!  Or we should.  More tests are needed.
-
 * Consider what happens when import is called at run-time!
   (Both in 5.10 and 5.8, but especially 5.8)
 

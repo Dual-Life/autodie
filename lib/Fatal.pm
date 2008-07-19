@@ -93,6 +93,11 @@ my %Cached_fatalised_sub = ();
 
 my %Package_Fatal = ();
 
+# The first time we're called with a user-sub, we cache it here.
+# In the case of a "no autodie ..." we put back the cached copy.
+
+my %Original_user_sub = ();
+
 # We use our package in a few hash-keys.  Having it in a scalar is
 # convenient.  The "guard $PACKAGE" string is used as a key when
 # setting up lexical guards.
@@ -189,13 +194,17 @@ sub import {
             }
 
             # We're not being used in a confusing way, so make
-            # the sub fatal.
+            # the sub fatal.  Note that _make_fatal returns the
+            # old (original) version of the sub, or undef for
+            # built-ins.
 
             my $sub_ref = $class->_make_fatal(
                 $func, $pkg, $void, $lexical, $filename
             );
 
             $done_this{$func}++;
+
+            $Original_user_sub{$sub} ||= $sub_ref;
 
             # If we're making lexical changes, we need to arrange
             # for them to be cleaned at the end of our scope, so
@@ -315,21 +324,27 @@ sub unimport {
             croak(sprintf(ERROR_AUTODIE_CONFLICT,$symbol,$symbol));
         }
 
-        # Under 5.8, we'll just nuke the sub out of
-        # our namespace.
-
-        # XXX - This isn't a great solution, since it
-        # leaves it nuked.  We really want an un-nuke
-        # function at the end.  Plus, it compeltely nukes
-        # it, rather than restoring the user sub.
-
-        $class->_install_subs($pkg,{ $symbol => undef });
-
         # Record 'no autodie qw($sub)' as being in effect.
+        # This is to catch conflicting semantics elsewhere
+        # (eg, mixing Fatal with no autodie)
 
         $^H{$NO_PACKAGE}{$sub} = 1;
 
+        if (my $original_sub = $Original_user_sub{$sub}) {
+            # Hey, we've got an original one of these, put it back.
+            $class->_install_subs($pkg, { $symbol => $original_sub });
+            next;
+        }
+
+        # We don't have an original copy of the sub, on the assumption
+        # it's core (or doesn't exist), we'll just nuke it.
+
+        $class->_install_subs($pkg,{ $symbol => undef });
+
     }
+
+    return;
+
 }
 
 # TODO - This is rather terribly inefficient right now.
