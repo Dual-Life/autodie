@@ -28,6 +28,7 @@ t/crickey.t
 t/exceptions.t
 t/Fatal.t
 t/filehandles.t
+t/fileno.t
 t/fork.t
 t/internal.t
 t/kwalitee.t

@@ -40,7 +40,7 @@ our $Debug ||= 0;
 
 my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
-    ':file'    => [qw(open close sysopen fcntl)],
+    ':file'    => [qw(open close sysopen fcntl fileno)],
     ':filesys' => [qw(opendir)],
     ':threads' => [qw(fork)],
 
@@ -79,6 +79,7 @@ my %Use_defined_or;
     CORE::recv
     CORE::send
     CORE::open
+    CORE::fileno
 )} = ();
 
 # Cached_fatalised_sub caches the various versions of our
