@@ -30,6 +30,10 @@ use Fatal qw(list_return);
 use Fatal qw(:void list_return2);
 
 TODO: {
+
+    # Clobbering context was documented as a bug in the original
+    # Fatal, so we'll still consider it a bug here.
+
     local $TODO = "Fatal clobbers context, just like it always has.";
 
     my @list = list_return();
