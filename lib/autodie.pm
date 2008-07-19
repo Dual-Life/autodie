@@ -187,10 +187,12 @@ turned off, use C<no autodie> instead.
 
 =head1 BUGS
 
-Applying C<autodie> to C<system> causes the exotic C<system { ... } @args >
-form to be considered a syntax error until the end of the lexical scope.
+Applying C<autodie> to C<system> or C<exec> causes the exotic
+forms C<system { $cmd } @args > or C<exec { $cmd } @args>
+to be considered a syntax error until the end of the lexical scope.
 If you really need to use the exotic form, you can call C<CORE::system>
-instead, or use C<no autodie qw(system)> before calling the exotic form.
+or C<CORE::exec> instead, or use C<no autodie qw(system exec)> before
+calling the exotic form.
 
 "Used only once" warnings can be generated when C<autodie> or C<Fatal>
 is used with package filehandles (eg, C<FILE>).  It's strongly recommended

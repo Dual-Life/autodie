@@ -34,8 +34,6 @@ This is not an exhaustive list of TODO items.
 
 * Test open(my $fh, '|-') || exec().
 
-* exec() needs a special-case due to its prototype.
-
 == 5.8 / The One True Autodie ==
 
 * Support 're-instating' original subs when we've used autodie

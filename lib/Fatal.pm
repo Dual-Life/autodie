@@ -43,10 +43,6 @@ my %TAGS = (
     ':file'    => [qw(open close sysopen fcntl fileno)],
     ':filesys' => [qw(opendir)],
     ':threads' => [qw(fork)],
-
-    # XXX - exec() doesn't actually work with autodie yet, since it
-    # can't be overridden (due to the exotic form).  It needs to be
-    # special-cased.
     ':system'  => [qw(system exec)],
 
     # Can we use qw(getpeername getsockname)? What do they do on failure?
@@ -448,7 +444,7 @@ sub one_invocation {
 
         if ($call eq 'CORE::system') {
             return q{
-                croak("UNIMPLEMENTED: use Fatal qw(system) not supported.");
+                croak("UNIMPLEMENTED: use Fatal qw(system) not yet supported.");
             };
         }
 
@@ -666,6 +662,15 @@ sub _make_fatal {
         $call = 'CORE::system';
         $name = 'system';
 
+    } elsif ($name eq 'exec') {
+        # Exec doesn't have a prototype.  We don't care.  This
+        # breaks the exotic form with lexical scope, and gives
+        # the regular form a "do or die" beaviour as expected.
+
+        $call = 'CORE::exec';
+        $name = 'exec';
+        $core = 1;
+
     } else {            # CORE subroutine
         $proto = eval { prototype "CORE::$name" };
         croak(sprintf(ERROR_NOT_BUILT,$name)) if $@;
@@ -702,6 +707,11 @@ sub _make_fatal {
         sub$real_proto {
             local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
     ];
+
+    # Don't have perl whine if exec fails, since we'll be handling
+    # the exception now.
+    $code .= "no warnings qw(exec);\n" if $call eq "CORE::exec";
+
     my @protos = fill_protos($proto);
     $code .= $class->write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
     $code .= "}\n";
