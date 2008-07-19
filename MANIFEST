@@ -29,6 +29,7 @@ t/exceptions.t
 t/Fatal.t
 t/filehandles.t
 t/fork.t
+t/internal.t
 t/kwalitee.t
 t/lethal.t
 t/lex58.t
