@@ -176,6 +176,8 @@ For a string that does start with a colon, if the subroutine
 throwing the exception I<does> that behaviour.  For example, the
 C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
 
+See L<autodie/ROLES> for futher information.
+
 =back
 
 =cut

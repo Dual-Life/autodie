@@ -73,7 +73,7 @@ autodie - Replace functions with ones that succeed or die with lexical scope
 
 =head1 SYNOPSIS
 
-    use autodie;    # Recommended, implies 'use autodie qw(:all)'
+    use autodie;    # Recommended, implies 'use autodie qw(:default)'
 
     use autodie qw(open close);   # open/close succeed or die
 
@@ -92,9 +92,6 @@ autodie - Replace functions with ones that succeed or die with lexical scope
         It is better to die() than to return() in failure.
 
                 -- Klingon programming proverb.
-
-B<NOTE!  This is BETA code.  It is NOT the final release.  Implementation
-and interface may change!>
 
 The C<autodie> pragma provides a convenient way to replace functions
 that normally return false on failure with equivalents that throw
@@ -162,6 +159,40 @@ following structure may be used:
 See L<autodie::exception> for further information on interrogating
 exceptions.
 
+=head1 ROLES
+
+=for comment XXX - This needs to be expanded.
+
+Autodie uses a very simple role classification.
+
+    :all
+        :default
+            :io
+                :file
+                    close
+                    fcntl
+                    fileno
+                    open
+                    sysopen
+                :filesys
+                    opendir
+                :socket
+                    accept
+                    bind
+                    connect
+                    getsockopt
+                    listen
+                    recv
+                    send
+                    setsockopt
+                    shutdown
+                    socketpair
+            :threads
+                fork
+        :system
+            system
+            exec
+
 =head1 GOTCHAS
 
 Functions called in list context are assumed to have failed if they
@@ -180,8 +211,10 @@ C<:all> to have been removed from C<:default>.
 =item :void cannot be used with lexical scope
 
 The C<:void> option is supported in L<Fatal>, but not
-C<autodie>.  If you want a block of code with C<autodie>
-turned off, use C<no autodie> instead.
+C<autodie>.  However you can explicitly disable autodie
+end the end of the current block with C<no autodie>.
+To disable autodie for only a single function (eg, open)
+use or C<no autodie qw(open)>.
 
 =back
 
