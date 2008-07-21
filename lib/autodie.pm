@@ -161,9 +161,9 @@ exceptions.
 
 =head1 ROLES
 
-=for comment XXX - This needs to be expanded.
-
-Autodie uses a very simple role classification.
+Autodie uses a very simple role classification.  Each build-in I<does> the
+role matching its name, and each other role up the heirarchy.  For example,
+C<open> does C<open>, C<:file>, C<:io>, C<:default> and C<:all>. 
 
     :all
         :default
@@ -192,6 +192,10 @@ Autodie uses a very simple role classification.
         :system
             system
             exec
+
+To add these rules to your own subroutines you can sub-class autodie.
+Although the hierarchy exists, nothing prevents an exception  from
+inheriting roles from separate parts of the heirarchy. 
 
 =head1 GOTCHAS
 
