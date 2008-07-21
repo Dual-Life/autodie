@@ -13,7 +13,9 @@ requires(	'perl' => '5.8.0');
 recommends(	'IPC::System::Simple' => '0.12'); # For autodying system()
 
 resources(      repository => 'http://github.com/pfenwick/autodie/tree/master');
-resources(	blog => 'http://pjf.id.au/blog/toc.html?tag=autodie');
+resources(      bugtracker => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie');
+resources(      license    => 'http://dev.perl.org/licenses/');
+resources(	Blog       => 'http://pjf.id.au/blog/toc.html?tag=autodie');
 
 installdirs(    'perl');    # This overwrites a core module!
 
