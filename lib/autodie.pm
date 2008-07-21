@@ -8,7 +8,7 @@ our @ISA = qw(Fatal);
 our $VERSION;
 
 BEGIN {
-    $VERSION = "1.11_01";
+    $VERSION = "2.00";
 }
 
 use constant ERROR_WRONG_FATAL => q{
@@ -227,6 +227,8 @@ use or C<no autodie qw(open)>.
 
 =back
 
+See also L<Fatal/DIAGNOSTICS>.
+
 =head1 BUGS
 
 Applying C<autodie> to C<system> or C<exec> causes the exotic
@@ -246,9 +248,14 @@ C<Fatal> or C<autodie>, or have been exported from a module.
 Attempting to ue C<Fatal> or C<autodie> on other user subroutines will
 result in a compile-time error.
 
-There are plenty more bugs!  See
-L<http://github.com/pfenwick/autodie/tree/master/TODO> for a selection
-of what's remaining to be fixed.
+A TODO list of items remaining for improvement can be found in
+the development tree for the module at
+L<http://github.com/pfenwick/autodie/tree/master/TODO>.
+
+=head2 REPORTING BUGS
+
+Please report bugs via the CPAN Request Tracker at
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie>.
 
 =head1 AUTHOR
 
