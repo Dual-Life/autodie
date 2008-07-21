@@ -39,9 +39,6 @@ autodie::exception - Exceptions from autodying functions.
 
 =head1 DESCRIPTION
 
-B<NOTE!  This is BETA code.  It is NOT the final release.  Implementation
-and interface may change!>
-
 When an L<autodie> enabled function fails, it generates an
 C<autodie::exception> object.  This can be interrogated to
 determine further information about the error that occurred.

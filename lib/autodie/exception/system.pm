@@ -29,11 +29,13 @@ autodie::exception::system - Exceptions from autodying system().
 
 =head1 DESCRIPTION
 
-B<NOTE!  This is BETA code.  It is NOT the final release.  Implementation
-and interface may change!>  This is I<especially> true for this class.
-
 This is a L<autodie::exception> class for failures from the
 C<system> command.
+
+Presently there is no way to interrogate an C<autodie::exception::system>
+object for the command, exit status, and other information you'd expect
+such an object to hold.  The interface will be expanded to accommodate
+this in the future.
 
 =cut
 
