@@ -159,11 +159,15 @@ following structure may be used:
 See L<autodie::exception> for further information on interrogating
 exceptions.
 
-=head1 ROLES
+=head1 CATEGORIES
 
-Autodie uses a very simple role classification.  Each build-in I<does> the
-role matching its name, and each other role up the heirarchy.  For example,
-C<open> does C<open>, C<:file>, C<:io>, C<:default> and C<:all>. 
+Autodie uses a simple set of categories to group together similar
+built-ins.  Requesting a category type (starting with a colon) will
+enable autodie for all built-ins beneath that category.  For example,
+requesting C<:file> will enable autodie for C<close>, C<fcntl>,
+C<fileno>, C<open> and C<sysopen>.
+
+The categories are currently:
 
     :all
         :default
@@ -193,20 +197,21 @@ C<open> does C<open>, C<:file>, C<:io>, C<:default> and C<:all>.
             system
             exec
 
-To add these rules to your own subroutines you can sub-class autodie.
-Although the hierarchy exists, nothing prevents an exception  from
-inheriting roles from separate parts of the heirarchy. 
+
+A plain C<use autodie> implies C<use autodie qw(:default)>.  Note that
+C<system> and C<exec> are not enabled by default.  C<system> requires
+the optional L<IPC::System::Simple> module to be installed, and enabling
+C<system> or C<exec> will invalidate their exotic forms.  See L</BUGS>
+below for more details.
+
+Note that while the above category system is presently a strict
+hierarchy, this should not be assumed.
 
 =head1 GOTCHAS
 
 Functions called in list context are assumed to have failed if they
 return an empty list, or a list consisting only of a single undef
 element.
-
-A bare autodie will change from meaning C<:all> to C<:default>
-before the final release.  There is the possibility for C<:default>
-may contain user-defined subs, or for some built-ins that exist in
-C<:all> to have been removed from C<:default>.
 
 =head1 DIAGNOSTICS
 

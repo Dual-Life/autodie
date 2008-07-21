@@ -60,7 +60,7 @@ my %TAGS = (
     ':default' => [qw(:io :threads)],
 );
 
-$TAGS{':all'} = [ keys %TAGS ];
+$TAGS{':all'}  = [ keys %TAGS ];
 
 # This hash contains subroutines for which we should
 # subroutine() // die() rather than subroutine() || die()

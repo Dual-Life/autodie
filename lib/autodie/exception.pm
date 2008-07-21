@@ -174,9 +174,9 @@ C<CORE::> is assumed.
 
 For a string that does start with a colon, if the subroutine
 throwing the exception I<does> that behaviour.  For example, the
-C<CORE::open> subroutine does C<:file>, C<:io>, and C<:CORE>.
+C<CORE::open> subroutine does C<:file>, C<:io> and C<:all>.
 
-See L<autodie/ROLES> for futher information.
+See L<autodie/CATEGORIES> for futher information.
 
 =back
 
