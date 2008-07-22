@@ -10,6 +10,13 @@ Ilya Zakharevich
 Paul Fenwick
         - autodie, autodie::exception, Fatal overhaul
 
+BrowserUk
+        - Suggesting the name 'lethal', which the module was
+          called during much of development.
+
+Jured Waalboer
+        - Suggesting the name 'autodie'
+
 Aristotle Pagaltzis
         - Suggestions and sanity checking on design and interface
 
