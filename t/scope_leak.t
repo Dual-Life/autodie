@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
+use FindBin;
 
 # Check for %^H leaking across file boundries.  Many thanks
 # to chocolateboy for pointing out this can be a problem.
 
-use lib 't';
+use lib $FindBin::Bin;
 
 use Test::More 'no_plan';
 
