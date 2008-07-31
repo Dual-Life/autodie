@@ -3,6 +3,8 @@ Revision history for Fatal
 2.00
         * Makefile.PL is no longer executable.
 
+        * Internal tests changes to ease integration with core.
+
 1.99 Mon Jul 21 02:25:23 PDT 2008
 
         * RELEASE CODENAME: "jarich", in thanks for her giving

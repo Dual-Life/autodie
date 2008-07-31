@@ -3,6 +3,7 @@ use strict;
 use Test::More 'no_plan';
 
 use lib 't/lib';
+use lib 't/lib/autodie';
 
 use constant NO_SUCH_FILE => "crickey_mate_this_file_isnt_here_either";
 
