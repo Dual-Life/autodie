@@ -77,7 +77,7 @@ autodie - Replace functions with ones that succeed or die with lexical scope
 
     use autodie qw(open close);   # open/close succeed or die
 
-    open(my $fh, "<", $filename); # No need to check! 
+    open(my $fh, "<", $filename); # No need to check!
 
     {
         no autodie qw(open);          # open failures won't die

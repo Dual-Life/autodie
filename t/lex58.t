@@ -13,7 +13,7 @@ BEGIN {
     eval "use IPC::System::Simple";
     plan skip_all => "IPC::System::Simple required" if $@;
     plan skip_all => "IPC::System::Simple 0.12 required"
-    	if $IPC::System::Simple::VERSION < 0.12;
+        if $IPC::System::Simple::VERSION < 0.12;
 }
 
 plan 'no_plan';
