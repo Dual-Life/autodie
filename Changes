@@ -5,6 +5,8 @@ Revision history for Fatal
 
         * Internal tests changes to ease integration with core.
 
+        * 'chdir' added to defaults, and the :filesys group.
+
 1.99 Mon Jul 21 02:25:23 PDT 2008
 
         * RELEASE CODENAME: "jarich", in thanks for her giving
