@@ -1,5 +1,9 @@
 This is not an exhaustive list of TODO items.
 
+* use Fatal qw(system) now works!  Test to make sure it works sensibly
+  with Fatal semantics, rather than accidently slipping in autodie
+  semantics.  What does it mean for Fatal semantics to exist here?
+
 * Write a bunch of tests for the exception API
 
 * (More?) tests for user defined subs!
