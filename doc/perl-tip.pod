@@ -1,0 +1,293 @@
+=head1 autodie - The art of Klingon Programming
+
+   bIlujDI' yIchegh()Qo'; yIHegh()!
+
+   It is better to die() than to return() in failure.
+
+       -- Klingon programming proverb.
+
+=head2 The problem with error handling
+
+One of the first things most people learn when programming
+in Perl is to always check to see if system calls like C<open>
+are successful.  The most common construct seen for such
+checking is the I<do or die> style:
+
+    open(my $fh, '<', $filename) or die "Can't open $filename - $!";
+
+The problem with I<do or die> is that for calls to built-ins
+like C<open>, it's very rare that we'd want to do anything I<other>
+than die on failure.  Even if we wish to handle the error, the
+call to C<die> provides a convenient way to generate an exception,
+which we can then trap using an C<eval> block.
+
+Unfortunately, the I<do or die> construct is tiresome to repeat,
+easily forgotten, and in many cases takes up more code and visual
+space than the function it is designed to guard.
+
+Wouldn't it be nice if functions could die automatically on failure?
+
+=head2 Fatal
+
+Perl has come bundled with the C<Fatal> core module for many
+years.  Put simply, C<Fatal> allows a built-in or user-defined
+subroutine to implement the I<do or die> strategy by default.
+This saves us of the burden of having to remember to write
+C<or die> ourselves, and it means the lazy behaviour of not
+checking our system calls becomes correct usage.
+
+    use Fatal qw(open);
+
+    # open will die automatically on failure
+    open(my $fh, '<', $filename);
+
+Despite C<Fatal>'s long history in the Perl core, it suffers
+from some serious problems.  Since built-ins and subroutines
+need to be explicitly listed, it's possible to end up with
+very long and cumbersome use lines:
+
+    use Fatal qw(open close opendir sysopen fcntl chdir);
+
+C<Fatal> also tests the return values of subroutines and built-ins
+using a simple boolean test, but this makes C<Fatal> unsuitable
+for built-ins such as C<fork>.  The C<fork> call will create
+a child process, and returns the new process ID to the parent,
+and 0 to the child.  On error, it returns undef.  Unfortunately,
+C<Fatal> is unable to distinguish between a successful C<fork>
+being returned to the child (returning zero), and a genuine error
+(returning undef).
+
+Upon some investigation, there are a large number of Perl
+built-ins that use undef to indicate failure, but can potentially
+return 0 on success.  These include C<fileno>, C<send>, C<recv>,
+and even C<open> when used to create a pipe to a child process.
+Using C<Fatal> with any of these functions has the potential to
+introduce bugs.
+
+When used, C<Fatal> works with package-wide scope, changing all
+appropriate calls in the current package to the Fatal versions.
+Unfortunately, for a large package, this can result in difficult
+action-from-a-distance.  The code below contains a bug, as
+C<use_default_config()> is never reached.  The C<use Fatal>
+line deep inside the subroutine changes all calls to C<open>
+in the same package.
+
+    # Even though it doesn't look like it, the following
+    # open() will die on failure, meaning use_default_config
+    # will never get called.
+
+    if (open(my $fh, '<', $config)) {
+        read_config($fh);
+    } else {
+        use_default_config();
+    }
+
+    # Then, thousands of lines later...
+
+    sub open_or_default {
+        my ($file) = @_;
+
+        $file ||= 'default_customers.txt';
+
+        # The 'use Fatal' here still changes the open()
+        # thousands of lines above!
+
+        use Fatal qw(open);
+        open(my $fh, '<', $file);
+
+        return $fh;
+    }
+
+Howver the most common complaint levelled against C<Fatal> is that
+the generated error messages are ugly.  They're I<really> ugly.
+Just look at the code, and the error generated:
+
+    use Fatal qw(open);
+
+    open(my $fh, '<', 'no_such_file');
+
+The error:
+
+    Can't open(GLOB(0x10010dec), <, no_such_file): No such file or directory at (eval 1) line 4
+    main::__ANON__('GLOB(0x10010dec)', '<', 'no_such_file') called at - line 3
+
+While it's certainly possible to determine what went wrong, it's
+certainly not something that will say "quality software" to your users.
+
+=head2 autodie
+
+In Perl, laziness is a virtual.  Fatal allows one to write my code in
+a lazy fashion, without having to manually check every single system
+call for errors.  At least, that's what it's supposed to do; as we've
+just seen, it comes with its own set of bugs.
+
+Luckily, there's now a replacement for C<Fatal>, named C<autodie>.
+Developed by a brilliant young Australian, it fixes not only the
+multitude of bugs that come with C<Fatal>, but provides the laziest
+possible solution for having all relevant built-ins die on error:
+
+    use autodie;
+
+The C<autodie> pragma has I<lexical scope>, meaning it lasts until
+the end of the current eval, block, or file, in the same way that
+C<strict> and C<warnings> work.  This means it's perfect for
+adding to subroutines, without worrying about side-effects elsewhere
+in your code:
+
+    sub open_or_default {
+        my ($file) = @_;
+
+        $file ||= 'default_customers.txt';
+
+        # The 'use autodie' here only changes the call to open()
+        # in this subroutine, and no other.
+
+        use autodie;
+        open(my $fh, '<', $file);
+
+        return $fh;
+    }
+
+Just like C<Fatal>, it's possible to write C<use autodie qw(open)>
+to enable the do-or-die behaviour for individual functions.
+
+It's also possible to use C<no autodie> to disable the C<autodie>
+pragma until the end of the current lexical scope.
+
+=head2 Inpsecting the error
+
+Errors produced by C<autodie> aren't just strings, they're complete
+objects, and can be inspected to reveal a wealth of information.  For
+example, take the following snippet of code:
+
+    use POSIX qw(strftime);
+
+    eval {
+        use autodie;
+
+        # Create a report directory based upon the date.
+        my $date = strftime("%Y-%m-%d",localtime);
+        mkdir("reports/$date");
+
+        # Create our 'total-report.txt' inside.
+        open(my $report_fh, '>', "reports/$date/total-report.txt");
+
+        # Open our index of files to process.
+        open(my $index_fh, '<', $INDEX_FILENAME);
+
+        my $sum = 0;
+
+        # Walk through each file in our index...
+        while ( my $filename = <$index_fh> ) {
+
+            open(my $fh, '<', $filename);
+
+            # Examine each line in each file.  If we find
+            # a "Widgets" line, add it to our total.
+
+            while ( <$fh> ) {
+                if ( /Widgets: (\d+)/ ) {
+                    $sum += $1;
+                }
+            }
+        }
+
+        # Print our reports and close.
+        print {$report_fh} "$sum widgets produced\n";
+
+        close($report_fh);
+
+    };
+
+There are lots of things that can go wrong with our widget
+summation code.  We're creating directories, opening files all
+over the place, and even writing to one of them.  Even the call
+to C<close> can fail if we can't flush our buffers to disk.  But
+when sometimes does go wrong, how do we know what it is?  We
+I<inspect> it:
+
+    if (my $error = $@) {
+
+        if ($error->matches('open')) {
+
+            # We can access the arguments to our failed function
+
+            my $args = $error->args;
+
+            # Because we're always using the 3-argument open, we can
+            # grab the filename easily.  If we were unsure, we could
+            # use $args->[-1] instead for the last argument.
+
+            my $filename = $args->[2];
+
+            # We can also inspect other useful information.
+
+            my $file     = $error->file;
+            my $function = $error->function;
+            my $package  = $error->package;
+            my $caller   = $error->caller;
+            my $line     = $error->line;
+        }
+        elsif ($error->matches('close')) {
+
+            # Do error recovery for close failure here.
+
+        }
+    }
+
+For more information about inspecting errors, see the
+C<autodie::exception> documentation at
+L<http://search.cpan.org/perldoc?autodie::exception>.
+
+=head2 The problem with system
+
+When looking for the greatest disparity between the ease of calling
+and the difficulty of checking for errors, Perl's in-built C<system>
+function takes the cake.  Using C<system> to call a command is simple:
+
+    system("mount /mnt/backup");
+
+However the recommended error checking from C<perldoc -f system>
+is far from trivial:
+
+    if ($? == -1) {
+        print "failed to execute: $!\n";
+    }
+    elsif ($? & 127) {
+        printf "child died with signal %d, %s coredump\n",
+        ($? & 127),  ($? & 128) ? 'with' : 'without';
+    }
+    else {
+        printf "child exited with value %d\n", $? >> 8;
+    }
+
+The matter becomes even more complicated when one wishes to
+look up signal names (not just numbers).
+
+Unlike C<Fatal>, which doesn't support C<system> at all, the new
+C<autodie> pragma supports it provided the optional
+C<IPC::System::Simple> module is installed.  Because of the
+optional dependency, and because enabling the functionality can
+interfere with the rarely used indirect syntax of C<system>,
+this feature needs to be explcitly enabled:
+
+    use autodie qw(system);     # ONLY enable autodie for system
+
+    use autodie qw(:system);    # ONLY enable autodir for system and exec
+
+    use autodie qw(:default :system); # Enable for defaults, and system/exec
+
+    use autodie qw(:all);       # The same, but less typing.
+
+=head2 Further information
+
+The C<autodie> pragma is extremely flexible; it can be sub-classed
+to add extra features, or change how exceptions are generated.  To
+learn more about C<autodie>, see its documentation on the CPAN at
+L<http://search.cpan.org/perldoc?autodie>.
+
+C<autodie> works on Perl 5.8 and 5.10, and is due to become a core
+module with Perl 5.10.1.
+
+A number of blog posts regarding autodie can be found in
+Paul Fenwick's blog at L<http://pjf.id.au/blog/toc.html?tag=autodie> .
