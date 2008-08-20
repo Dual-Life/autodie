@@ -293,3 +293,9 @@ module with Perl 5.10.1.
 
 A number of blog posts regarding autodie can be found in
 Paul Fenwick's blog at L<http://pjf.id.au/blog/toc.html?tag=autodie> .
+
+=head2 Copyright
+
+This Perl tip and associated text is copyright 2008 Perl Training
+Australia.  You may freely distribute this text so long as it is
+distributed in full with this copyright notice attached.
