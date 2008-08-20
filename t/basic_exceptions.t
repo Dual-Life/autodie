@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 use constant NO_SUCH_FILE => "this_file_had_better_not_exist";
 
@@ -12,6 +12,7 @@ eval {
 
 like($@, qr/Can't open '\w+' for reading: /, "Prety printed open msg");
 like($@, qr{\Q$0\E}, "Our file mention in error message");
+like($@, qr{for reading: '.+'}, "Error should be in single-quotes");
 is($@->file, $0, "Correct file");
 is($@->function, 'CORE::open', "Correct dying sub");
 is($@->package, __PACKAGE__, "Correct package");

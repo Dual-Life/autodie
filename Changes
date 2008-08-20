@@ -7,6 +7,8 @@ Revision history for Fatal
 
         * 'chdir' added to defaults, and the :filesys group.
 
+        * Checks added for empty 'errno' string in basic_exceptions.t
+
 1.99 Mon Jul 21 02:25:23 PDT 2008
 
         * RELEASE CODENAME: "jarich", in thanks for her giving
