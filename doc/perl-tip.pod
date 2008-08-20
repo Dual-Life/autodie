@@ -98,7 +98,7 @@ in the same package.
         return $fh;
     }
 
-Howver the most common complaint levelled against C<Fatal> is that
+However the most common complaint levelled against C<Fatal> is that
 the generated error messages are ugly.  They're I<really> ugly.
 Just look at the code, and the error generated:
 
@@ -116,7 +116,7 @@ certainly not something that will say "quality software" to your users.
 
 =head2 autodie
 
-In Perl, laziness is a virtual.  Fatal allows one to write my code in
+In Perl, laziness is a virtue.  Fatal allows me to write my code in
 a lazy fashion, without having to manually check every single system
 call for errors.  At least, that's what it's supposed to do; as we've
 just seen, it comes with its own set of bugs.
@@ -126,7 +126,7 @@ Developed by a brilliant young Australian, it fixes not only the
 multitude of bugs that come with C<Fatal>, but provides the laziest
 possible solution for having all relevant built-ins die on error:
 
-    use autodie;
+    use autodie;	# All relevant built-ins now die on error!
 
 The C<autodie> pragma has I<lexical scope>, meaning it lasts until
 the end of the current eval, block, or file, in the same way that
@@ -140,7 +140,7 @@ in your code:
         $file ||= 'default_customers.txt';
 
         # The 'use autodie' here only changes the call to open()
-        # in this subroutine, and no other.
+        # in this block, and nowhere else.
 
         use autodie;
         open(my $fh, '<', $file);
@@ -154,7 +154,7 @@ to enable the do-or-die behaviour for individual functions.
 It's also possible to use C<no autodie> to disable the C<autodie>
 pragma until the end of the current lexical scope.
 
-=head2 Inpsecting the error
+=head2 Inspecting the error
 
 Errors produced by C<autodie> aren't just strings, they're complete
 objects, and can be inspected to reveal a wealth of information.  For
@@ -227,6 +227,8 @@ I<inspect> it:
             my $package  = $error->package;
             my $caller   = $error->caller;
             my $line     = $error->line;
+
+	    die "Error occurred opening $filename at $file, $line\n";
         }
         elsif ($error->matches('close')) {
 
@@ -269,11 +271,11 @@ C<autodie> pragma supports it provided the optional
 C<IPC::System::Simple> module is installed.  Because of the
 optional dependency, and because enabling the functionality can
 interfere with the rarely used indirect syntax of C<system>,
-this feature needs to be explcitly enabled:
+this feature needs to be explicitly enabled:
 
     use autodie qw(system);     # ONLY enable autodie for system
 
-    use autodie qw(:system);    # ONLY enable autodir for system and exec
+    use autodie qw(:system);    # ONLY enable autodie for system and exec
 
     use autodie qw(:default :system); # Enable for defaults, and system/exec
 
