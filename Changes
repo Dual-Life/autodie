@@ -3,11 +3,13 @@ Revision history for Fatal
 2.00
         * BUGFIX: Makefile.PL is no longer executable.
 
-        * TEST: Internal tests changes to ease integration with core.
-
         * BUGFIX: 'chdir' added to defaults, and the :filesys group.
 
+        * TEST: Internal tests changes to ease integration with core.
+
         * TEST: Checks added for empty 'errno' string in basic_exceptions.t
+
+        * TEST: Errors should end with a newline.
 
 1.99 Mon Jul 21 02:25:23 PDT 2008
 
