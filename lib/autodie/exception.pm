@@ -328,7 +328,7 @@ Primarily intended for use by format handlers.
 sub add_file_and_line {
     my ($this) = @_;
 
-    return sprintf(" at %s line %d", $this->file, $this->line);
+    return sprintf(" at %s line %d\n", $this->file, $this->line);
 }
 
 =head3 stringify

@@ -1,6 +1,11 @@
 Revision history for Fatal
 
 2.00
+
+        * BUGFIX: RT #38614, stringified autodie::exceptions objects
+          now always end with a newline.  Thanks to Offer Kaye for the
+          report.
+
         * BUGFIX: Makefile.PL is no longer executable.
 
         * BUGFIX: 'chdir' added to defaults, and the :filesys group.
