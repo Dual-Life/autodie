@@ -116,13 +116,7 @@ sub write {
 
 	# Make sure we have a new enough
 	require ExtUtils::MakeMaker;
-
-	# MakeMaker can complain about module versions that include
-	# an underscore, even though its own version may contain one!
-	# Hence the funny regexp to get rid of it.  See RT #35800
-	# for details.
-
-	$self->configure_requires( 'ExtUtils::MakeMaker' => $ExtUtils::MakeMaker::VERSION =~ /^(\d+\.\d+)/ );
+	$self->configure_requires( 'ExtUtils::MakeMaker' => $ExtUtils::MakeMaker::VERSION );
 
 	# Generate the 
 	my $args = $self->makemaker_args;
@@ -248,4 +242,4 @@ sub postamble {
 
 __END__
 
-#line 377
+#line 371

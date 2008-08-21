@@ -25,6 +25,8 @@ Revision history for Fatal
         * TEST: backcompat.t should no longer give strange failures on
           old versions of 5.8.3 or earlier.
 
+        * BUILD: Upgrade to Module::Install 0.75
+
 1.99 Mon Jul 21 02:25:23 PDT 2008
 
         * RELEASE CODENAME: "jarich", in thanks for her giving
