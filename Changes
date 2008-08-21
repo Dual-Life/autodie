@@ -1,6 +1,6 @@
 Revision history for Fatal
 
-2.00
+1.99_01
 
         * BUGFIX: RT #38614, stringified autodie::exceptions objects
           now always end with a newline.  Thanks to Offer Kaye for the
