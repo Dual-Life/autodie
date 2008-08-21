@@ -16,7 +16,7 @@ plan tests => TESTS;
 # This should prevent our process from being allowed to have
 # any children.
 
-my $rlimit_success = setrlimit(RLIMIT_NPROC, 0, 0);
+my $rlimit_success = eval { setrlimit(RLIMIT_NPROC, 0, 0); };
 
 SKIP: {
     skip("setrlimit does not allow child limiting",TESTS)

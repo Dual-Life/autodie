@@ -19,6 +19,9 @@ Revision history for Fatal
 
         * TEST: Errors should end with a newline.
 
+        * TEST: fork tests should no longer mysteriously fail
+          on Solaris.
+
 1.99 Mon Jul 21 02:25:23 PDT 2008
 
         * RELEASE CODENAME: "jarich", in thanks for her giving
