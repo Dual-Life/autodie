@@ -529,7 +529,7 @@ sub one_invocation {
 
                 die autodie::exception::system->new(
                     function => q{CORE::system}, args => [ @argv ],
-                    message => "\$E"
+                    message => "\$E", errno => \$!,
                 );
             }
 
@@ -549,7 +549,7 @@ sub one_invocation {
     my $die = qq{
         die $class->throw(
             function => q{$true_sub_name}, args => [ @argv ],
-            pragma => q{$class}
+            pragma => q{$class}, errno => \$!,
         )
     };
 

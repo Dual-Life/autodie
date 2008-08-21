@@ -10,6 +10,9 @@ Revision history for Fatal
 
         * BUGFIX: 'chdir' added to defaults, and the :filesys group.
 
+        * BUGFIX: RT #38598, the errno attribute on autodie::exception
+          objects is now correctly set.
+
         * TEST: Internal tests changes to ease integration with core.
 
         * TEST: Checks added for empty 'errno' string in basic_exceptions.t

@@ -13,13 +13,8 @@ eval {
 like($@, qr/Can't open '\w+' for reading: /, "Prety printed open msg");
 like($@, qr{\Q$0\E}, "Our file mention in error message");
 
-TODO: {
-    local $TODO = "Bug RT#38598";
-
-    like($@, qr{for reading: '.+'}, "Error should be in single-quotes");
-    like($@->errno,qr/./, "Errno should not be empty");
-
-}
+like($@, qr{for reading: '.+'}, "Error should be in single-quotes");
+like($@->errno,qr/./, "Errno should not be empty");
 
 like($@, qr{\n$}, "Errors should end with a newline");
 is($@->file, $0, "Correct file");
