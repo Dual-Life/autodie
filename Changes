@@ -13,6 +13,9 @@ Revision history for Fatal
         * BUGFIX: RT #38598, the errno attribute on autodie::exception
           objects is now correctly set.
 
+        * BUGFIX: RT #38066, exceptions from system() now report
+          the correct line number.
+
         * TEST: Internal tests changes to ease integration with core.
 
         * TEST: Checks added for empty 'errno' string in basic_exceptions.t
@@ -24,6 +27,8 @@ Revision history for Fatal
 
         * TEST: backcompat.t should no longer give strange failures on
           old versions of 5.8.3 or earlier.
+
+        * TEST: system.t ensures the correct file is reported.
 
         * BUILD: Upgrade to Module::Install 0.75
 

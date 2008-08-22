@@ -475,6 +475,7 @@ sub _init {
 
         next if $package->isa('Fatal');
         next if $package->isa($class);
+        next if $package->isa(__PACKAGE__);
         next if $file =~ /^\(eval\s\d+\)$/;
 
         last;

@@ -17,7 +17,7 @@ BEGIN {
     }
 }
 
-plan tests => 8;
+plan tests => 9;
 
 eval {
     use autodie qw(system);
@@ -39,6 +39,9 @@ ok($@, "Exception thrown");
 isa_ok($@, "autodie::exception") or diag $@;
 like($@,qr{failed to start}, "Reason for failure given");
 like($@,qr{@{[NO_SUCH_FILE]}},"Failed command given");
+
+# The error should report *this* file.  See RT #38066
+like($@,qr{at (?:t/)?system.t line \d});
 
 eval "system { \$^X} 'perl', '-e1'";
 is($@,"","Exotic system in same package not harmed");
