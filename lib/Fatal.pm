@@ -9,7 +9,7 @@ use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
 
 use constant ERROR_NOARGS    => 'Cannot use lexical %s with no arguments';
-use constant ERROR_VOID_LEX  => VOID_TAG. 'cannot be used with lexical scope';
+use constant ERROR_VOID_LEX  => VOID_TAG.' cannot be used with lexical scope';
 use constant ERROR_LEX_FIRST => LEXICAL_TAG.' must be used as first argument';
 use constant ERROR_NO_LEX    => "no %s can only start with ".LEXICAL_TAG;
 use constant ERROR_BADNAME   => "Bad subroutine name for %s: %s";
