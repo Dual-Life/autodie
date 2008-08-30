@@ -50,3 +50,6 @@ ikegami
 	- Enlightening me as to the correct way to reference globs.
 	- Reminding me that 'use' really does happen first, regardless
 	  of how it's been dressed.
+
+Matt Kraai
+        - Formatting fixess in diagnostics.

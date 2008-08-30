@@ -8,7 +8,7 @@ use Test::More tests => 6;
 # Lexical tests using the internal interface.
 
 eval { Fatal->import(qw(:lexical :void)) };
-like($@, qr{cannot be used with lexical}, ":void can't be used with :lexical");
+like($@, qr{:void cannot be used with lexical}, ":void can't be used with :lexical");
 
 eval { Fatal->import(qw(open close :lexical)) };
 like($@, qr{:lexical must be used as first}, ":lexical must come first");
