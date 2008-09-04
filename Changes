@@ -7,6 +7,8 @@ Revision history for Fatal
           produced by autodie when called with the ':void' switch.
           Many thanks to Matt Kraai for the patch!
 
+        * DOCUMENTATION: Added link to Perl tip on autodie.
+
 1.991 Fri Aug 22 23:57:24 AUSEST 2008
 
         * BUGFIX: RT #38614, stringified autodie::exceptions objects

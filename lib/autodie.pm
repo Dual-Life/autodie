@@ -270,6 +270,9 @@ same terms as Perl itself.
 
 L<Fatal>, L<autodie::exception>, L<IPC::System::Simple>
 
+I<Perl tips, autodie> at
+L<http://perltraining.com.au/tips/2008-08-20.html>
+
 =head1 ACKNOWLEDGEMENTS
 
 Mark Reed and Roland Giersig -- Klingon translators.
