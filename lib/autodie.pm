@@ -179,7 +179,10 @@ The categories are currently:
                     open
                     sysopen
                 :filesys
+                    chdir
                     opendir
+                    rename
+                    unlink
                 :socket
                     accept
                     bind

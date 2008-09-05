@@ -1,13 +1,18 @@
 Revision history for Fatal
 
-        * TEST: RT #38845, t/internal.t updated to detect malformed error
-          messages involving the mixing of ':void' and autodie.
+        * BUGFIX: unlink(), rename() and chdir() functions are now
+          included in the :filesys tag.
 
         * BUGFIX: RT #38845, corrected a missing space in the error
           produced by autodie when called with the ':void' switch.
           Many thanks to Matt Kraai for the patch!
 
+        * DOCUMENTATION: The :filesys tag is properly documented.
+
         * DOCUMENTATION: Added link to Perl tip on autodie.
+
+        * TEST: RT #38845, t/internal.t updated to detect malformed error
+          messages involving the mixing of ':void' and autodie.
 
 1.991 Fri Aug 22 23:57:24 AUSEST 2008
 

@@ -41,7 +41,7 @@ our $Debug ||= 0;
 my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
     ':file'    => [qw(open close sysopen fcntl fileno)],
-    ':filesys' => [qw(opendir chdir)],
+    ':filesys' => [qw(opendir chdir unlink rename)],
     ':threads' => [qw(fork)],
     ':system'  => [qw(system exec)],
 
