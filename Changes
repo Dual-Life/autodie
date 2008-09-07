@@ -1,4 +1,6 @@
-Revision history for Fatal
+Revision history for autodie
+
+1.992 Sun Sep  7 15:51:32 AUSEST 2008
 
         * BUGFIX: unlink(), rename(), chdir() and closedir() functions
           are now included in the :filesys tag.
