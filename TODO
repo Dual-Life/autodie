@@ -8,8 +8,6 @@ This is not an exhaustive list of TODO items.
 
 * (More?) tests for user defined subs!
 
-* Define roles properly.
-
 * Trawl through perlfunc to find which things autodie may apply to.
 
 * Generate a good way to allow subroutines to register themselves
@@ -21,11 +19,9 @@ This is not an exhaustive list of TODO items.
 
 * Provide a nicer way to override message handlers.
 
-* Finalise the exception interface.
+* Write more documentation.
 
-* Write a huge amount of documentation.
-
-* Write a huge amount of tests.
+* Write more tests.
 
 * Test the many varied forms of sysopen.
 
