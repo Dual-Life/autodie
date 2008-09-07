@@ -13,6 +13,14 @@ Revision history for Fatal
           produced by autodie when called with the ':void' switch.
           Many thanks to Matt Kraai for the patch!
 
+        * FEATURE: The dbmopen() and dbmclose() functions are now
+          supported in their own :dbm tag.  This is part of :io
+          (and hence :default).
+
+        * FEATURE: The dbmopen() built-in has its own formatter,
+          which ensures errors always display the mask in octal,
+          not decimal.
+
         * DOCUMENTATION: The :filesys tag is properly documented.
 
         * DOCUMENTATION: Added link to Perl tip on autodie.

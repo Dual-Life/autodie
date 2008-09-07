@@ -239,9 +239,37 @@ work closely with the C<autodie::exception> model.
 #        get used in most programs.
 
 my %formatter_of = (
-    'CORE::close' => \&_format_close,
-    'CORE::open'  => \&_format_open,
+    'CORE::close'   => \&_format_close,
+    'CORE::open'    => \&_format_open,
+    'CORE::dbmopen' => \&_format_dbmopen,
 );
+
+# Default formatter for CORE::dbmopen
+sub _format_dbmopen {
+    my ($this) = @_;
+    my @args   = @{$this->args};
+
+    # TODO: Presently, $args flattens out the (usually empty) hash
+    # which is passed as the first argument to dbmopen.  This is
+    # a bug in our args handling code (taking a reference to it would
+    # be better), but for the moment we'll just examine the end of
+    # our arguments list for message formatting.
+
+    my $mode = $args[-1];
+    my $file = $args[-2];
+
+    # If we have a mask, then display it in octal, not decimal.
+    # We don't do this if it already looks octalish, or doesn't
+    # look like a number.
+
+    if ($mode =~ /^[^\D0]\d+$/) {
+        $mode = sprintf("0%lo", $mode);
+    };
+
+    local $! = $this->errno;
+
+    return "Can't dbmopen(%hash, '$file', $mode): '$!'";
+}
 
 # Default formatter for CORE::close
 

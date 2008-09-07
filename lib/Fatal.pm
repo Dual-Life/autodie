@@ -39,7 +39,8 @@ our $Debug ||= 0;
 # These are all assumed to be CORE::
 
 my %TAGS = (
-    ':io'      => [qw(:file :filesys :socket)],
+    ':io'      => [qw(:dbm :file :filesys :socket)],
+    ':dbm'     => [qw(dbmopen dbmclose)],
     ':file'    => [qw(open close sysopen fcntl fileno binmode)],
     ':filesys' => [qw(opendir closedir chdir unlink rename)],
     ':threads' => [qw(fork)],
