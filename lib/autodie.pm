@@ -173,6 +173,7 @@ The categories are currently:
         :default
             :io
                 :file
+                    binmode
                     close
                     fcntl
                     fileno

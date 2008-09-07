@@ -3,6 +3,12 @@ Revision history for Fatal
         * BUGFIX: unlink(), rename() and chdir() functions are now
           included in the :filesys tag.
 
+        * BUGFIX: binmode() is now checked for failure as part of
+          the :file tag.
+
+        * BUGFIX: Using an unopened filehandle in an autodying
+          built-in no longer triggers a spurious warning.
+
         * BUGFIX: RT #38845, corrected a missing space in the error
           produced by autodie when called with the ':void' switch.
           Many thanks to Matt Kraai for the patch!

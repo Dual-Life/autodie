@@ -40,7 +40,7 @@ our $Debug ||= 0;
 
 my %TAGS = (
     ':io'      => [qw(:file :filesys :socket)],
-    ':file'    => [qw(open close sysopen fcntl fileno)],
+    ':file'    => [qw(open close sysopen fcntl fileno binmode)],
     ':filesys' => [qw(opendir chdir unlink rename)],
     ':threads' => [qw(fork)],
     ':system'  => [qw(system exec)],
@@ -553,7 +553,14 @@ sub one_invocation {
         )
     };
 
+    # AFAIK everything that can be given an unopned filehandle
+    # will fail if it tries to use it, so we don't really need
+    # the 'unopened' warning class here.  Especially since they
+    # then report the wrong line number.
+
     return qq{
+        no warnings qw(unopened);
+
         if (wantarray) {
             my \@results = $call(@argv);
             # If we got back nothing, or we got back a single
