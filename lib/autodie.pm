@@ -252,10 +252,6 @@ C<Fatal> or C<autodie>, or have been exported from a module.
 Attempting to ue C<Fatal> or C<autodie> on other user subroutines will
 result in a compile-time error.
 
-A TODO list of items remaining for improvement can be found in
-the development tree for the module at
-L<http://github.com/pfenwick/autodie/tree/master/TODO>.
-
 =head2 REPORTING BUGS
 
 Please report bugs via the CPAN Request Tracker at
