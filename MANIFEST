@@ -30,6 +30,7 @@ t/exec.t
 t/Fatal.t
 t/filehandles.t
 t/fileno.t
+t/files.t
 t/fork.t
 t/internal.t
 t/kwalitee.t
