@@ -1,7 +1,7 @@
 Revision history for Fatal
 
-        * BUGFIX: unlink(), rename() and chdir() functions are now
-          included in the :filesys tag.
+        * BUGFIX: unlink(), rename(), chdir() and closedir() functions
+          are now included in the :filesys tag.
 
         * BUGFIX: binmode() is now checked for failure as part of
           the :file tag.
