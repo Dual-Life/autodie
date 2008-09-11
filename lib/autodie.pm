@@ -184,6 +184,7 @@ The categories are currently:
                     sysopen
                 :filesys
                     chdir
+                    closedir
                     opendir
                     rename
                     unlink
