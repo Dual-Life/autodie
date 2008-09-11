@@ -1,10 +1,7 @@
 Fatal and autodie
 
 This distribution provides 'autodie', a lexical equivalent of
-'Fatal' for Perl 5.10.  The distribution also upgrades the Fatal
-module to contain better diagnostics and reporting.
-
-This distribution REQUIRES Perl 5.10 or later to run.
+'Fatal'.  This distribution REQUIRES Perl 5.8 or later to run.
 
 INSTALLATION
 
@@ -21,7 +18,6 @@ After installing, you can find documentation for this module with the
 perldoc command.
 
     perldoc autodie
-    perldoc Fatal
 
 You can also look for information at:
 
@@ -36,6 +32,12 @@ You can also look for information at:
 
     Search CPAN
         http://search.cpan.org/dist/autodie
+
+    Source Code Repository
+        http://github.com/pfenwick/autodie
+
+    Ohloh News and Statistics
+        http://www.ohloh.net/projects/autodie
 
 
 COPYRIGHT AND LICENCE
