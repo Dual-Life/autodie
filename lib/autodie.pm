@@ -172,6 +172,9 @@ The categories are currently:
     :all
         :default
             :io
+                :dbm
+                    dbmclose
+                    dbmopen
                 :file
                     binmode
                     close
