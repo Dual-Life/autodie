@@ -694,6 +694,17 @@ sub _make_fatal {
         $name = 'exec';
         $core = 1;
 
+    } elsif ($lexical and $name eq 'print') {
+        # EXPERIMENTAL!  We're going to break print's prototype.
+        # Use CORE::print or STDOUT->print() (or select()) if you
+        # need to print to a different filehandle.
+
+        # Currently only allowed with lexical scope.
+
+        $call = 'CORE::print';
+        $name = 'print';
+        $core = 1;
+
     } else {            # CORE subroutine
         $proto = eval { prototype "CORE::$name" };
         croak(sprintf(ERROR_NOT_BUILT,$name)) if $@;
