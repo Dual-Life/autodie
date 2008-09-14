@@ -1,6 +1,6 @@
 Revision history for autodie
 
-1.993  (Devel)
+1.993 Sun Sep 14 11:15:36 AUSEST 2008
 
         * DOCUMENTATION: The :dbm tag is now correctly documented
           in autodie/CATEGORIES.  Thanks to Darren Duncan for spotting
