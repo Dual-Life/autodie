@@ -12,6 +12,8 @@ Revision history for autodie
         * DOCUMENTATION: The closedir() function is properly
           documented as being included in the :filesys tag.
 
+        * BUILD: Upgrade to Module::Intstall 0.77
+
 1.992 Sun Sep  7 15:51:32 AUSEST 2008
 
         * BUGFIX: unlink(), rename(), chdir() and closedir() functions
