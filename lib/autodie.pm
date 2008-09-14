@@ -261,6 +261,16 @@ result in a compile-time error.
 Please report bugs via the CPAN Request Tracker at
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie>.
 
+=head1 FEEDBACK
+
+If you find this module useful, please consider rating it on the
+CPAN Ratings service at
+L<http://cpanratings.perl.org/rate?distribution=autodie> .
+
+The module author loves to hear how C<autodie> has made your life
+better (or worse).  Feedback can be sent to
+E<lt>pjf@perltraining.com.auE<gt>.
+
 =head1 AUTHOR
 
 Copyright 2008, Paul Fenwick E<lt>pjf@perltraining.com.auE<gt>
