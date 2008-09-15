@@ -19,14 +19,15 @@ plan tests => 3;
 
 eval {
     use autodie;
-    truncate(STDOUT,0);
+    truncate(\*STDOUT,0);
 };
 
 isa_ok($@, 'autodie::exception', "Truncating STDOUT should throw an exception");
 
 eval {
     use autodie;
-    truncate(FOO, 0);
+    no warnings 'once';
+    truncate(\*FOO, 0);
 };
 
 isa_ok($@, 'autodie::exception', "Truncating an unopened file is wrong.");
@@ -39,4 +40,4 @@ eval {
     truncate($tmpfh, 0);
 };
 
-is($@, undef, "Truncating a normal file should be fine");
+ok(! $@, "Truncating a normal file should be fine");
