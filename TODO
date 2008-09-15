@@ -1,5 +1,11 @@
 This is not an exhaustive list of TODO items.
 
+* autodie doesn't seem to give consistent error messages if it fails
+  to compile replacement code.  In particular, it doesn't seem to
+  halt the running program.  This deserves more investigation, and
+  seems to be centered around the "Carp::confess("$@") if $@" line
+  in Fatal.pm
+
 * use Fatal qw(system) now works!  Test to make sure it works sensibly
   with Fatal semantics, rather than accidently slipping in autodie
   semantics.  What does it mean for Fatal semantics to exist here?
