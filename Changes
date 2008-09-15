@@ -1,5 +1,9 @@
 Revision history for autodie
 
+        * Support for flock added to the :file tag.  flock will
+          not die on failure when called in LOCK_NB mode, unless
+          passed an invalid filehandle.
+
 1.993 Sun Sep 14 11:15:36 AUSEST 2008
 
         * DOCUMENTATION: The :dbm tag is now correctly documented

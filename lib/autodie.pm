@@ -180,6 +180,7 @@ The categories are currently:
                     close
                     fcntl
                     fileno
+                    flock
                     open
                     sysopen
                 :filesys
@@ -214,6 +215,12 @@ below for more details.
 
 Note that while the above category system is presently a strict
 hierarchy, this should not be assumed.
+
+=head1 FUNCTION SPECIFIC NOTES
+
+The return value of the C<flock> call is not checked when called with
+the LOCK_NB switch.  Regardles of switches, C<flock> will always throw
+an exception if passed an invalid or unopened filehandle.
 
 =head1 GOTCHAS
 
