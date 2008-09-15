@@ -41,7 +41,7 @@ our $Debug ||= 0;
 my %TAGS = (
     ':io'      => [qw(:dbm :file :filesys :socket)],
     ':dbm'     => [qw(dbmopen dbmclose)],
-    ':file'    => [qw(open close sysopen fcntl fileno binmode flock)],
+    ':file'    => [qw(flock open close sysopen fcntl fileno binmode)],
     ':filesys' => [qw(opendir closedir chdir unlink rename)],
     ':threads' => [qw(fork)],
     ':system'  => [qw(system exec)],
@@ -569,13 +569,13 @@ sub one_invocation {
             # If we're called with an unopened filehandle,
             # then we always die.
 
-            $die if (not defined fileno $_[0]);
+            $die if (not defined fileno \$_[0]);
 
             # If we're called with the LOCK_NB bit, then
             # don't check the return value, just return it
             # straight.
 
-            if (\$_[1] & Fcntl::LOCK_NB) {
+            if (\$_[1] & Fcntl::LOCK_NB() ) {
                 return $call(@argv);
             }
 
