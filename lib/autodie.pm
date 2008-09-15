@@ -182,6 +182,7 @@ The categories are currently:
                     fileno
                     open
                     sysopen
+                    truncate
                 :filesys
                     chdir
                     closedir
