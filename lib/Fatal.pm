@@ -41,7 +41,7 @@ our $Debug ||= 0;
 my %TAGS = (
     ':io'      => [qw(:dbm :file :filesys :socket)],
     ':dbm'     => [qw(dbmopen dbmclose)],
-    ':file'    => [qw(open close sysopen fcntl fileno binmode)],
+    ':file'    => [qw(open close sysopen fcntl fileno binmode flock)],
     ':filesys' => [qw(opendir closedir chdir unlink rename)],
     ':threads' => [qw(fork)],
     ':system'  => [qw(system exec)],
@@ -539,7 +539,6 @@ sub one_invocation {
 
     }
 
-
     # Should we be testing to see if our result is defined, or
     # just true?
     my $use_defined_or = exists ( $Use_defined_or{$call} );
@@ -553,6 +552,40 @@ sub one_invocation {
             pragma => q{$class}, errno => \$!,
         )
     };
+
+    if ($call eq 'CORE::flock') {
+
+        # flock needs special treatment.  When it fails with
+        # LOCK_UN, then it's not really fatal, it just means
+        # we couldn't get the lock right now.
+
+        require Fcntl;      # For Fcntl::LOCK_NB
+
+        # TODO - Find a way for us to signal a bad filehandle
+        # vs a failed call.
+
+        return qq{
+
+            # If we're called with an unopened filehandle,
+            # then we always die.
+
+            $die if (not defined fileno $_[0]);
+
+            # If we're called with the LOCK_NB bit, then
+            # don't check the return value, just return it
+            # straight.
+
+            if (\$_[1] & Fcntl::LOCK_NB) {
+                return $call(@argv);
+            }
+
+            # Otherwise, we use a standard do-or-die.  flock
+            # doesn't change behaviour in a list context, so
+            # using || here is fine.
+
+            return $call(@argv) || $die;
+        };
+    }
 
     # AFAIK everything that can be given an unopned filehandle
     # will fail if it tries to use it, so we don't really need
