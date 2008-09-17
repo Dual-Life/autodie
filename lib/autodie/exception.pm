@@ -242,7 +242,59 @@ my %formatter_of = (
     'CORE::close'   => \&_format_close,
     'CORE::open'    => \&_format_open,
     'CORE::dbmopen' => \&_format_dbmopen,
+    'CORE::flock'   => \&_format_flock,
 );
+
+# TODO: Our tests only check LOCK_EX | LOCK_NB is properly
+# formatted.  Try other combinations and ensure they work
+# correctly.
+
+sub _format_flock {
+    my ($this) = @_;
+
+    require Fcntl;
+
+    my $filehandle = $this->args->[0];
+    my $raw_mode   = $this->args->[1];
+
+    my $cooked_mode;
+
+    if    ($raw_mode & Fcntl::LOCK_EX) { $cooked_mode = "LOCK_EX"; }
+    elsif ($raw_mode & Fcntl::LOCK_SH) { $cooked_mode = "LOCK_SH"; }
+    elsif ($raw_mode & Fcntl::LOCK_UN) { $cooked_mode = "LOCK_UN"; }
+    else {
+
+        # I've got no idea what mode they're using.
+        # Just report it by number (excluding LOCK_NB,
+        # which we can detect)
+
+        $cooked_mode = $raw_mode & ~Fcntl::LOCK_NB;
+    }
+
+    if ($raw_mode & Fcntl::LOCK_NB) {
+        $cooked_mode .= " | LOCK_NB";
+    }
+
+    my $cooked_filehandle;
+
+    if ($filehandle and not ref $filehandle) {
+
+        # A package filehandle with a name!
+
+        $cooked_filehandle = $filehandle;
+    }
+    else {
+        # Otherwise we have a scalar filehandle.
+
+        $cooked_filehandle = '$fh';
+
+    }
+
+    local $! = $this->errno;
+
+    return "Can't flock($cooked_filehandle, $cooked_mode): $!";
+
+}
 
 # Default formatter for CORE::dbmopen
 sub _format_dbmopen {
@@ -284,6 +336,7 @@ sub _format_close {
         return "Can't close filehandle '$close_arg': '$!'";
     }
 
+    # TODO - This will probably produce an ugly error.  Test and fix.
     return "Can't close($close_arg) filehandle: '$!'";
 
 }

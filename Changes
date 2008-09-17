@@ -4,6 +4,10 @@ Revision history for autodie
 
         * BUGFIX: flock() is now part of the :file tag.
 
+        * FEATURE: Stringified exceptions from flock() are significantly
+          nicer to read, and display human-readable Fcntl-style flags rather
+          than raw numeric flags.
+
         * DOCUMENTATION: flock() is documented as being in the :file tag.
 
 1.993 Sun Sep 14 11:15:36 AUSEST 2008
