@@ -180,6 +180,7 @@ The categories are currently:
                     close
                     fcntl
                     fileno
+                    flock
                     open
                     sysopen
                 :filesys

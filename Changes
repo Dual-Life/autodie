@@ -1,5 +1,11 @@
 Revision history for autodie
 
+1.994
+
+        * BUGFIX: flock() is now part of the :file tag.
+
+        * DOCUMENTATION: flock() is documented as being in the :file tag.
+
 1.993 Sun Sep 14 11:15:36 AUSEST 2008
 
         * DOCUMENTATION: The :dbm tag is now correctly documented
