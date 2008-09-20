@@ -1,8 +1,17 @@
 Revision history for autodie
 
-        * Support for flock added to the :file tag.  flock will
-          not die on failure when called in LOCK_NB mode, unless
-          passed an invalid filehandle.
+1.994
+        * BUGFIX: flock() is now part of the :file tag.
+
+        * FEATURE: flock will not die on failure when called
+          with the LOCK_NB option and would return false
+          due to an EWOULDBLOCK.  See function specific notes
+          in autodie documentation for more details.
+
+        * FEATURE: Stringified exceptions from flock() are significantly
+          nicer to read.
+
+        * DOCUMENTATION: flock() is documented as being in the :file tag.
 
 1.993 Sun Sep 14 11:15:36 AUSEST 2008
 
