@@ -259,19 +259,19 @@ sub _format_flock {
 
     my $cooked_mode;
 
-    if    ($raw_mode & Fcntl::LOCK_EX) { $cooked_mode = "LOCK_EX"; }
-    elsif ($raw_mode & Fcntl::LOCK_SH) { $cooked_mode = "LOCK_SH"; }
-    elsif ($raw_mode & Fcntl::LOCK_UN) { $cooked_mode = "LOCK_UN"; }
+    if    ($raw_mode & Fcntl::LOCK_EX() ) { $cooked_mode = "LOCK_EX"; }
+    elsif ($raw_mode & Fcntl::LOCK_SH() ) { $cooked_mode = "LOCK_SH"; }
+    elsif ($raw_mode & Fcntl::LOCK_UN() ) { $cooked_mode = "LOCK_UN"; }
     else {
 
         # I've got no idea what mode they're using.
         # Just report it by number (excluding LOCK_NB,
         # which we can detect)
 
-        $cooked_mode = $raw_mode & ~Fcntl::LOCK_NB;
+        $cooked_mode = $raw_mode & ~Fcntl::LOCK_NB() ;
     }
 
-    if ($raw_mode & Fcntl::LOCK_NB) {
+    if ($raw_mode & Fcntl::LOCK_NB() ) {
         $cooked_mode .= " | LOCK_NB";
     }
 
