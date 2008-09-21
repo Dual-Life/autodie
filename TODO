@@ -1,5 +1,30 @@
 This is not an exhaustive list of TODO items.
 
+* chmod is not currently in our default list of things to make
+  autodying.  It should be, but probably needs its own special
+  handler, since it can return true even when some permissions
+  have not been changed.
+
+* Almost everything that applies to chmod() applies to kill().
+
+* Ditto for utime().
+
+* Can we overload readline()?  Will that change <>?
+
+* Ditto for readpipe().
+
+* What do setpgrp(), setpriority() and telldir() return?
+
+* tell() requires special handling, it returns -1 on failure.
+
+* Is it an error for wait() or waitpid() to return -1?  Currently
+  we don't check wait() or waitpid() at all.
+
+* Is there any point trying to examine the return from sleep()?
+
+* I don't think seekdir() returns anything.  It certainly doesn't
+  in Linux, but double-check in Perl.
+
 * autodie doesn't seem to give consistent error messages if it fails
   to compile replacement code.  In particular, it doesn't seem to
   halt the running program.  This deserves more investigation, and

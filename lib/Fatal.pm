@@ -39,11 +39,18 @@ our $Debug ||= 0;
 # These are all assumed to be CORE::
 
 my %TAGS = (
-    ':io'      => [qw(:dbm :file :filesys :socket)],
+    ':io'      => [qw(:dbm :file :filesys :ipc :socket
+                       read seek sysread syswrite sysseek )],
     ':dbm'     => [qw(dbmopen dbmclose)],
-    ':file'    => [qw(open close flock sysopen fcntl fileno binmode)],
-    ':filesys' => [qw(opendir closedir chdir unlink rename)],
+    ':file'    => [qw(open close flock sysopen fcntl fileno binmode
+                     ioctl truncate)],
+    ':filesys' => [qw(opendir closedir chdir link unlink rename mkdir
+                      symlink rmdir readlink umask)],
+    ':ipc'     => [qw(:msg :semaphore :shm pipe)],
+    ':msg'     => [qw(msgctl msgget msgrcv msgsnd)],
     ':threads' => [qw(fork)],
+    ':semaphore'=>[qw(semctl semget semop)],
+    ':shm'     => [qw(shmctl shmget shmread)],
     ':system'  => [qw(system exec)],
 
     # Can we use qw(getpeername getsockname)? What do they do on failure?
@@ -77,6 +84,12 @@ my %Use_defined_or;
     CORE::send
     CORE::open
     CORE::fileno
+    CORE::read
+    CORE::readlink
+    CORE::sysread
+    CORE::syswrite
+    CORE::sysseek
+    CORE::umask
 )} = ();
 
 # Cached_fatalised_sub caches the various versions of our
