@@ -2,6 +2,7 @@
 use strict;
 use Test::More;
 use Fcntl qw(:flock);
+use POSIX qw(EWOULDBLOCK);
 
 my ($self_fh, $self_fh2);
 
@@ -41,13 +42,22 @@ plan 'no_plan';
 
 ok( flock($self_fh, LOCK_EX | LOCK_NB), "Test file locked");
 
+my $return;
+
 eval {
     use autodie qw(flock);
-    flock($self_fh2, LOCK_EX | LOCK_NB);
+    $return = flock($self_fh2, LOCK_EX | LOCK_NB);
 };
 
-ok($@, "Locking a file twice throws an exception with autodie qw(flock)");
-isa_ok($@, "autodie::exception", "Exception is from autodie::exception");
+is($!+0, EWOULDBLOCK, "Double-flocking should be EWOULDBLOCK");
+ok(!$return, "flocking a file twice should fail");
+is($@, "", "Non-blocking flock should not fail on EWOULDBLOCK");
+
+__END__
+
+# These are old tests which I'd love to resurrect, but they need
+# a reliable way of getting flock to throw exceptions but with
+# minimal blocking.  They may turn into author tests.
 
 eval {
     use autodie;
