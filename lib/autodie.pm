@@ -172,6 +172,11 @@ The categories are currently:
     :all
         :default
             :io
+                read
+                seek
+                sysread
+                sysseek
+                syswrite
                 :dbm
                     dbmclose
                     dbmopen
@@ -181,14 +186,36 @@ The categories are currently:
                     fcntl
                     fileno
                     flock
+                    ioctl
                     open
                     sysopen
+                    truncate
                 :filesys
                     chdir
                     closedir
                     opendir
+                    link
+                    mkdir
+                    readlink
                     rename
+                    rmdir
+                    symlink
                     unlink
+                :ipc
+                    pipe
+                    :msg
+                        msgctl
+                        msgget
+                        msgrcv
+                        msgsnd
+                    :semaphore
+                        semctl
+                        semget
+                        semop
+                    :shm
+                        shmctl
+                        shmget
+                        shmread
                 :socket
                     accept
                     bind

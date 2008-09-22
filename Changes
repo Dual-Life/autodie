@@ -1,7 +1,26 @@
 Revision history for autodie
 
 1.994
-        * BUGFIX: flock() is now part of the :file tag.
+
+        * BUGFIX: flock(), ioctl() and truncate() are now part of
+          the :file tag.
+
+        * BUGFIX: link(), mkdir(), rmdir(), symlink() and umask()
+          are now part of the :filesys tag.
+
+        * BUGFIX: The new :msg tag contains msgctl(), msgget(), msgrcv(),
+          and msgsnd().
+
+        * BUGFIX: The new :semaphore tag contains semctl(), semget()
+          and semop().
+
+        * BUGFIX: The new :shm tag contains shmget(), shmread() and
+          shmctl().
+
+        * BUGFIX: The new :ipc tag contains :msg, :semaphore, :shm and pipe().
+
+        * BUGFIX: The read(), seek(), sysread(), syswrite() and sysseek()
+          methods have been added to :io.
 
         * FEATURE: flock will not die on failure when called
           with the LOCK_NB option and would return false
@@ -10,6 +29,9 @@ Revision history for autodie
 
         * FEATURE: Stringified exceptions from flock() are significantly
           nicer to read.
+
+        * TEST: New tests for rmdir(), mkdir(), and unlink(), thanks
+          to Jacinta Richardson.
 
         * DOCUMENTATION: flock() is documented as being in the :file tag.
 
