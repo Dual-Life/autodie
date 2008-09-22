@@ -569,34 +569,33 @@ sub one_invocation {
     if ($call eq 'CORE::flock') {
 
         # flock needs special treatment.  When it fails with
-        # LOCK_UN, then it's not really fatal, it just means
-        # we couldn't get the lock right now.
+        # LOCK_UN and EWOULDBLOCK, then it's not really fatal, it just
+        # means we couldn't get the lock right now.
 
         require Fcntl;      # For Fcntl::LOCK_NB
+        require POSIX;      # For POSIX::EWOULDBLOCK
 
         # TODO - Find a way for us to signal a bad filehandle
         # vs a failed call.
 
         return qq{
 
-            # If we're called with an unopened filehandle,
-            # then we always die.
+            # Try to flock.  If successful, return it immediately.
 
-            $die if (not defined fileno \$_[0]);
+            my \$retval = $call(@argv);
+            return \$retval if \$retval;
 
-            # If we're called with the LOCK_NB bit, then
-            # don't check the return value, just return it
-            # straight.
+            # If we failed, but we're using LOCK_NB and
+            # returned EWOULDBLOCK, it's not a real error.
 
-            if (\$_[1] & Fcntl::LOCK_NB() ) {
-                return $call(@argv);
+            if (\$_[1] & Fcntl::LOCK_NB() and \$! == POSIX::EWOULDBLOCK() ) {
+                return \$return;
             }
 
-            # Otherwise, we use a standard do-or-die.  flock
-            # doesn't change behaviour in a list context, so
-            # using || here is fine.
+            # Otherwise, we failed.  Die noisily.
 
-            return $call(@argv) || $die;
+            $die;
+
         };
     }
 
