@@ -245,9 +245,21 @@ hierarchy, this should not be assumed.
 
 =head1 FUNCTION SPECIFIC NOTES
 
-The return value of the C<flock> call is not checked when called with
-the LOCK_NB switch.  Regardles of switches, C<flock> will always throw
-an exception if passed an invalid or unopened filehandle.
+=head2 flock
+
+It is not considered an error for C<flock> to return false if it
+fails to an C<EWOULDBLOCK> condition.  This means one can still
+use the common convention of testing the return value of C<flock>
+when called with the C<LOCK_NB> option:
+
+    use autodie;
+
+    if ( flock($fh, LOCK_EX | LOCK_NB) ) {
+        # We have a lock
+    }
+
+Autodying C<flock> will generate an exception if C<flock> returns
+false with any other error.
 
 =head1 GOTCHAS
 
