@@ -31,7 +31,7 @@ close $fh2;
 # Check that file now exists
 -e TMPFILE or plan skip_all => "Failed to create test file";
 	
-plan tests => 5;
+plan tests => 6;
 
 # Try to delete directory (this should succeed)
 eval {
@@ -39,7 +39,8 @@ eval {
 	
 	unlink TMPFILE;
 };
-is($@, "", "Successfully unlinked test file");
+is($@, "", "Unlink appears to have been successful");
+ok(! -e TMPFILE, "File does not exist");
 
 # Try to delete file again (this should fail)
 eval {

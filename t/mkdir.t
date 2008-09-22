@@ -29,7 +29,7 @@ if(-d TMPDIR) { plan skip_all => "Failed to delete test directory"; }
 if(rmdir TMPDIR) { plan skip_all => "Able to rmdir directory twice"; }
 
 
-plan tests => 10;
+plan tests => 12;
 
 # Create a directory (this should succeed)
 eval {
@@ -37,7 +37,8 @@ eval {
 
 	mkdir TMPDIR;
 };
-is($@, "", "Successfully created test directory");
+is($@, "", "mkdir returned success");
+ok(-d TMPDIR, "Successfully created test directory");
 
 # Try to create it again (this should fail)
 eval {
@@ -56,7 +57,8 @@ eval {
 	
 	rmdir TMPDIR;
 };
-is($@, "", "Successfully removed test directory");
+is($@, "", "rmdir returned success");
+ok(! -d TMPDIR, "Successfully removed test directory");
 
 # Try to delete directory again (this should fail)
 eval {
