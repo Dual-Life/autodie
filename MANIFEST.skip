@@ -12,3 +12,4 @@ autodie-.*.tar.gz
 cover_db
 merge-core.pl
 doc/perl-tip.pod
+.*\.swp$
