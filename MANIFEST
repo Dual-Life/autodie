@@ -21,6 +21,7 @@ t/autodie.t
 t/autodie_test_module.pm
 t/backcompat.t
 t/basic_exceptions.t
+t/binmode.t
 t/boilerplate.t
 t/context.t
 t/context_lexical.t
@@ -31,7 +32,7 @@ t/exec.t
 t/Fatal.t
 t/filehandles.t
 t/fileno.t
-t/files.t
+t/flock.t
 t/fork.t
 t/internal.t
 t/kwalitee.t
@@ -40,6 +41,7 @@ t/lex58.t
 t/lib/autodie/test/au.pm
 t/lib/autodie/test/au/exception.pm
 t/lib/lethal.pm
+t/mkdir.t
 t/pod-coverage.t
 t/pod.t
 t/recv.t
@@ -47,6 +49,8 @@ t/repeat.t
 t/scope_leak.t
 t/sysopen.t
 t/system.t
+t/truncate.t
+t/unlink.t
 t/usersub.t
 t/version.t
 TODO
