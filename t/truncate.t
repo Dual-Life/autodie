@@ -17,12 +17,21 @@ if ($@) {
 
 plan tests => 3;
 
-eval {
-    use autodie;
-    truncate(\*STDOUT,0);
-};
+SKIP: {
+    my $can_truncate_stdout = truncate(\*STDOUT,0);
 
-isa_ok($@, 'autodie::exception', "Truncating STDOUT should throw an exception");
+    if ($can_truncate_stdout) {
+        skip("This system thinks we can truncate STDOUT. Suuure!", 1);
+    }
+
+    eval {
+        use autodie;
+        truncate(\*STDOUT,0);
+    };
+
+    isa_ok($@, 'autodie::exception', "Truncating STDOUT should throw an exception");
+
+}
 
 eval {
     use autodie;
