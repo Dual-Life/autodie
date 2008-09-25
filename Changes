@@ -45,6 +45,8 @@ Revision history for autodie
 
         * TEST: Added author-only perlcritic tests.
 
+        * META: META.yml has more correct author information.
+
 1.993 Sun Sep 14 11:15:36 AUSEST 2008
 
         * DOCUMENTATION: The :dbm tag is now correctly documented
