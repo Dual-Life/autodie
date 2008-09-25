@@ -279,12 +279,12 @@ sub _install_subs {
 
         # Copy symbols across to temp area.
 
-        no strict 'refs';
+        no strict 'refs';   ## no critic
 
         local *__tmp = *{ $full_path };
 
         # Nuke the old glob.
-        { no strict; delete $pkg_sym->{$sub_name}; }
+        { no strict; delete $pkg_sym->{$sub_name}; }    ## no critic
 
         # Copy innocent bystanders back.
 
@@ -297,7 +297,7 @@ sub _install_subs {
 
         if ($sub_ref) {
 
-            no strict;
+            no strict;  ## no critic
             *{ $pkg_sym . $sub_name } = $sub_ref;
         }
     }
@@ -801,8 +801,8 @@ sub _make_fatal {
 
     {
         local $@;
-        no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
-        $code = eval("package $pkg; use Carp; $code");
+        no strict 'refs'; ## no critic # to avoid: Can't use string (...) as a symbol ref ...
+        $code = eval("package $pkg; use Carp; $code");  ## no critic
         if (not $code) {
 
             # For some reason, using a die, croak, or confess in here
@@ -872,7 +872,7 @@ sub _make_fatal {
 
         local $@;
 
-        $leak_guard = eval $leak_guard;
+        $leak_guard = eval $leak_guard;  ## no critic
 
         die "Internal error in $class: Leak-guard installation failure: $@" if $@;
     }
