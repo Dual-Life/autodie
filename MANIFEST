@@ -26,6 +26,7 @@ t/boilerplate.t
 t/context.t
 t/context_lexical.t
 t/crickey.t
+t/critic.t
 t/dbmopen.t
 t/exceptions.t
 t/exec.t
