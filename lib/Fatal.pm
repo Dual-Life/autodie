@@ -31,7 +31,7 @@ use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 # All the Fatal/autodie modules share the same version number.
-our $VERSION = '1.993';
+our $VERSION = '1.994';
 
 our $Debug ||= 0;
 
@@ -66,6 +66,11 @@ my %TAGS = (
     # system() to be autodying by default.
 
     ':default' => [qw(:io :threads)],
+
+    # Version specific tags.  These allow someone to specify
+    # use autodie qw(:1.994) and know exactly what they'll get.
+
+    ':1.994' => [qw(:default)],
 );
 
 $TAGS{':all'}  = [ keys %TAGS ];

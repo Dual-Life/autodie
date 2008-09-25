@@ -53,4 +53,5 @@ t/truncate.t
 t/unlink.t
 t/usersub.t
 t/version.t
+t/version_tag.t
 TODO

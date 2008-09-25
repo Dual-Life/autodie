@@ -33,6 +33,9 @@ Revision history for autodie
         * FEATURE: Stringified exceptions from flock() are significantly
           nicer to read.
 
+        * FEATURE: use autodie qw(:1.994) can be used to specify the
+          :default tag from a particular version.
+
         * TEST: New tests for rmdir(), mkdir(), and unlink(), thanks
           to Jacinta Richardson.
 

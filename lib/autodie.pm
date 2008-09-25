@@ -8,7 +8,7 @@ our @ISA = qw(Fatal);
 our $VERSION;
 
 BEGIN {
-    $VERSION = "1.993";
+    $VERSION = "1.994";
 }
 
 use constant ERROR_WRONG_FATAL => q{
@@ -234,14 +234,23 @@ The categories are currently:
             exec
 
 
+Note that while the above category system is presently a strict
+hierarchy, this should not be assumed.
+
 A plain C<use autodie> implies C<use autodie qw(:default)>.  Note that
 C<system> and C<exec> are not enabled by default.  C<system> requires
 the optional L<IPC::System::Simple> module to be installed, and enabling
 C<system> or C<exec> will invalidate their exotic forms.  See L</BUGS>
 below for more details.
 
-Note that while the above category system is presently a strict
-hierarchy, this should not be assumed.
+The syntax:
+
+    use autodie qw(:1.994);
+
+allows the C<:default> list from a particular version to be used.  This
+provides the convenience of using the default methods, but the surity
+that no behavorial changes will occur if the C<autodie> module is
+upgraded.
 
 =head1 FUNCTION SPECIFIC NOTES
 
