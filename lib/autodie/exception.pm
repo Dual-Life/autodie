@@ -257,22 +257,25 @@ sub _format_flock {
     my $filehandle = $this->args->[0];
     my $raw_mode   = $this->args->[1];
 
-    my $cooked_mode;
+    my $mode_type;
+    my $lock_unlock;
 
-    if    ($raw_mode & Fcntl::LOCK_EX() ) { $cooked_mode = "LOCK_EX"; }
-    elsif ($raw_mode & Fcntl::LOCK_SH() ) { $cooked_mode = "LOCK_SH"; }
-    elsif ($raw_mode & Fcntl::LOCK_UN() ) { $cooked_mode = "LOCK_UN"; }
-    else {
-
-        # I've got no idea what mode they're using.
-        # Just report it by number (excluding LOCK_NB,
-        # which we can detect)
-
-        $cooked_mode = $raw_mode & ~Fcntl::LOCK_NB() ;
+    if ($raw_mode & Fcntl::LOCK_EX() ) {
+        $lock_unlock = "lock";
+        $mode_type = "for exclusive access";
     }
-
-    if ($raw_mode & Fcntl::LOCK_NB() ) {
-        $cooked_mode .= " | LOCK_NB";
+    elsif ($raw_mode & Fcntl::LOCK_SH() ) {
+        $lock_unlock = "lock";
+        $mode_type = "for shared access";
+    }
+    elsif ($raw_mode & Fcntl::LOCK_UN() ) {
+        $lock_unlock = "unlock";
+        $mode_type = "";
+    }
+    else {
+        # I've got no idea what they're trying to do.
+        $lock_unlock = "lock";
+        $mode_type = "with mode $raw_mode";
     }
 
     my $cooked_filehandle;
@@ -281,18 +284,18 @@ sub _format_flock {
 
         # A package filehandle with a name!
 
-        $cooked_filehandle = $filehandle;
+        $cooked_filehandle = " $filehandle";
     }
     else {
         # Otherwise we have a scalar filehandle.
 
-        $cooked_filehandle = '$fh';
+        $cooked_filehandle = '';
 
     }
 
     local $! = $this->errno;
 
-    return "Can't flock($cooked_filehandle, $cooked_mode): $!";
+    return "Can't $lock_unlock filehandle$cooked_filehandle $mode_type: $!";
 
 }
 
