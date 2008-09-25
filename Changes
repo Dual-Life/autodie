@@ -1,6 +1,6 @@
 Revision history for autodie
 
-1.994
+1.994 Thu Sep 25 16:18:56 AUSEST 2008
 
         * BUGFIX: flock(), ioctl() and truncate() are now part of
           the :file tag.
