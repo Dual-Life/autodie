@@ -10,12 +10,7 @@ test_requires(	'Test::More');
 
 requires(	'perl' => '5.8.0');
 
-# recommends(	'IPC::System::Simple' => '0.12'); # For autodying system()
-
-feature(
-    'Allow autodie to overload system()',
-    'IPC::System::Simple' => 0.12,
-);
+recommends(	'IPC::System::Simple' => '0.12'); # For autodying system()
 
 resources(      repository => 'http://github.com/pfenwick/autodie/tree/master');
 resources(      bugtracker => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie');
