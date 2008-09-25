@@ -589,7 +589,7 @@ sub one_invocation {
             # returned EWOULDBLOCK, it's not a real error.
 
             if (\$_[1] & Fcntl::LOCK_NB() and \$! == POSIX::EWOULDBLOCK() ) {
-                return \$return;
+                return \$retval;
             }
 
             # Otherwise, we failed.  Die noisily.
