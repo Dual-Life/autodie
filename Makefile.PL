@@ -5,8 +5,10 @@ use inc::Module::Install;
 name(		'autodie');
 
 all_from(	'lib/autodie.pm');
+
 version_from(   'lib/autodie/exception.pm');
 test_requires(	'Test::More');
+author(         'Paul Fenwick <pjf@cpan.org>');
 
 requires(	'perl' => '5.8.0');
 
