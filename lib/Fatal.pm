@@ -35,6 +35,15 @@ our $VERSION = '1.994';
 
 our $Debug ||= 0;
 
+# EWOULDBLOCK values for systems that don't supply their own.
+# Even though this is defined with our, that's to help our
+# test code.  Please don't rely upon this variable existing in
+# the future.
+
+our %_EWOULDBLOCK = (
+    MSWin32 => 33,
+);
+
 # We have some tags that can be passed in for use with import.
 # These are all assumed to be CORE::
 
@@ -582,45 +591,34 @@ sub one_invocation {
         local $@;   # Don't blat anyone else's $@.
 
         # Ensure that our vendor supports EWOULDBLOCK.  If they
-        # don't (eg, Windows), then a special flock is a waste of
-        # time.  On systems where EWOULDBLOCK is not defined, trying
-        # to evaluate it throws an exception.
+        # don't (eg, Windows), then we use known values for its
+        # equivalent on other systems.
 
-        eval { POSIX::EWOULDBLOCK(); };
+        my $EWOULDBLOCK = eval { POSIX::EWOULDBLOCK(); }
+                          || $_EWOULDBLOCK{$^O}
+                          || _autocroak("Internal error - can't overload flock - EWOULDBLOCK not defined on this system.");
 
-        if (not $@) {
-            # Yay!  EWOULDBLOCK is defined.  Implement the
-            # special handler.
+        require Fcntl;      # For Fcntl::LOCK_NB
 
-            require Fcntl;      # For Fcntl::LOCK_NB
+        return qq{
 
-            # TODO - Find a way for us to signal a bad filehandle
-            # vs a failed call.
+            # Try to flock.  If successful, return it immediately.
 
-            return qq{
+            my \$retval = $call(@argv);
+            return \$retval if \$retval;
 
-                # Try to flock.  If successful, return it immediately.
+            # If we failed, but we're using LOCK_NB and
+            # returned EWOULDBLOCK, it's not a real error.
 
-                my \$retval = $call(@argv);
-                return \$retval if \$retval;
+            if (\$_[1] & Fcntl::LOCK_NB() and \$! == $EWOULDBLOCK ) {
+                return \$retval;
+            }
 
-                # If we failed, but we're using LOCK_NB and
-                # returned EWOULDBLOCK, it's not a real error.
+            # Otherwise, we failed.  Die noisily.
 
-                if (\$_[1] & Fcntl::LOCK_NB() and \$! == POSIX::EWOULDBLOCK() ) {
-                    return \$retval;
-                }
+            $die;
 
-                # Otherwise, we failed.  Die noisily.
-
-                $die;
-
-            };
-        }
-
-        # If EWOULDBLOCK is not defined, then we'll fall-through and
-        # use the standard autodie semantics.
-
+        };
     }
 
     # AFAIK everything that can be given an unopned filehandle
@@ -830,9 +828,8 @@ sub _make_fatal {
             #
             # TODO: Fix the above.
 
-            warn Carp::longmess("Internal error in autodie/Fatal processing $true_name: $@");
+            _autocroak("Internal error in autodie/Fatal processing $true_name: $@");
 
-            exit(255);      # Ugh!
         }
     }
 
@@ -909,6 +906,18 @@ sub throw {
 
     require autodie::exception;
     return autodie::exception->new(@args);
+}
+
+# For some reason, dying while replacing our subs doesn't
+# kill our calling program.  It simply stops the loading of
+# autodie and keeps going with everything else.  The _autocroak
+# sub allows us to die with a vegence.  It should *only* ever be
+# used for serious internal errors, since the results of it can't
+# be captured.
+
+sub _autocroak {
+    warn Carp::longmess(@_);
+    exit(255);  # Ugh!
 }
 
 package autodie::Scope::Guard;
