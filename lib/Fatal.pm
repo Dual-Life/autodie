@@ -577,31 +577,50 @@ sub one_invocation {
         # LOCK_UN and EWOULDBLOCK, then it's not really fatal, it just
         # means we couldn't get the lock right now.
 
-        require Fcntl;      # For Fcntl::LOCK_NB
         require POSIX;      # For POSIX::EWOULDBLOCK
 
-        # TODO - Find a way for us to signal a bad filehandle
-        # vs a failed call.
+        local $@;   # Don't blat anyone else's $@.
 
-        return qq{
+        # Ensure that our vendor supports EWOULDBLOCK.  If they
+        # don't (eg, Windows), then a special flock is a waste of
+        # time.  On systems where EWOULDBLOCK is not defined, trying
+        # to evaluate it throws an exception.
 
-            # Try to flock.  If successful, return it immediately.
+        eval { POSIX::EWOULDBLOCK(); };
 
-            my \$retval = $call(@argv);
-            return \$retval if \$retval;
+        if (not $@) {
+            # Yay!  EWOULDBLOCK is defined.  Implement the
+            # special handler.
 
-            # If we failed, but we're using LOCK_NB and
-            # returned EWOULDBLOCK, it's not a real error.
+            require Fcntl;      # For Fcntl::LOCK_NB
 
-            if (\$_[1] & Fcntl::LOCK_NB() and \$! == POSIX::EWOULDBLOCK() ) {
-                return \$retval;
-            }
+            # TODO - Find a way for us to signal a bad filehandle
+            # vs a failed call.
 
-            # Otherwise, we failed.  Die noisily.
+            return qq{
 
-            $die;
+                # Try to flock.  If successful, return it immediately.
 
-        };
+                my \$retval = $call(@argv);
+                return \$retval if \$retval;
+
+                # If we failed, but we're using LOCK_NB and
+                # returned EWOULDBLOCK, it's not a real error.
+
+                if (\$_[1] & Fcntl::LOCK_NB() and \$! == POSIX::EWOULDBLOCK() ) {
+                    return \$retval;
+                }
+
+                # Otherwise, we failed.  Die noisily.
+
+                $die;
+
+            };
+        }
+
+        # If EWOULDBLOCK is not defined, then we'll fall-through and
+        # use the standard autodie semantics.
+
     }
 
     # AFAIK everything that can be given an unopned filehandle
