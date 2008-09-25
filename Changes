@@ -36,12 +36,14 @@ Revision history for autodie
         * FEATURE: use autodie qw(:1.994) can be used to specify the
           :default tag from a particular version.
 
+        * DOCUMENTATION: flock() is documented as being in the :file tag.
+
+        * DOCUMENTATION: Added function-specific notes in autodie.pm
+
         * TEST: New tests for rmdir(), mkdir(), and unlink(), thanks
           to Jacinta Richardson.
 
         * TEST: Added author-only perlcritic tests.
-
-        * DOCUMENTATION: flock() is documented as being in the :file tag.
 
 1.993 Sun Sep 14 11:15:36 AUSEST 2008
 
