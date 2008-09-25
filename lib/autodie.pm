@@ -256,10 +256,10 @@ upgraded.
 
 =head2 flock
 
-It is not considered an error for C<flock> to return false if it
-fails to an C<EWOULDBLOCK> condition.  This means one can still
-use the common convention of testing the return value of C<flock>
-when called with the C<LOCK_NB> option:
+It is not considered an error for C<flock> to return false if it fails
+to an C<EWOULDBLOCK> (or equivalent) condition.  This means one can
+still use the common convention of testing the return value of
+C<flock> when called with the C<LOCK_NB> option:
 
     use autodie;
 
@@ -269,6 +269,15 @@ when called with the C<LOCK_NB> option:
 
 Autodying C<flock> will generate an exception if C<flock> returns
 false with any other error.
+
+=head2 system/exec
+
+Applying C<autodie> to C<system> or C<exec> causes the exotic
+forms C<system { $cmd } @args > or C<exec { $cmd } @args>
+to be considered a syntax error until the end of the lexical scope.
+If you really need to use the exotic form, you can call C<CORE::system>
+or C<CORE::exec> instead, or use C<no autodie qw(system exec)> before
+calling the exotic form.
 
 =head1 GOTCHAS
 
@@ -293,13 +302,6 @@ use or C<no autodie qw(open)>.
 See also L<Fatal/DIAGNOSTICS>.
 
 =head1 BUGS
-
-Applying C<autodie> to C<system> or C<exec> causes the exotic
-forms C<system { $cmd } @args > or C<exec { $cmd } @args>
-to be considered a syntax error until the end of the lexical scope.
-If you really need to use the exotic form, you can call C<CORE::system>
-or C<CORE::exec> instead, or use C<no autodie qw(system exec)> before
-calling the exotic form.
 
 "Used only once" warnings can be generated when C<autodie> or C<Fatal>
 is used with package filehandles (eg, C<FILE>).  It's strongly recommended
