@@ -22,6 +22,9 @@ Revision history for autodie
         * BUGFIX: The read(), seek(), sysread(), syswrite() and sysseek()
           methods have been added to :io.
 
+        * BUGFIX: autodie produces more detailed messages on internal
+          faults, and is more aggressive about stopping code compilation.
+
         * FEATURE: flock will not die on failure when called
           with the LOCK_NB option and would return false
           due to an EWOULDBLOCK.  See function specific notes

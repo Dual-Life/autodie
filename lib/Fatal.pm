@@ -798,7 +798,18 @@ sub _make_fatal {
         local $@;
         no strict 'refs'; # to avoid: Can't use string (...) as a symbol ref ...
         $code = eval("package $pkg; use Carp; $code");
-        Carp::confess("$@") if $@;
+        if (not $code) {
+
+            # For some reason, using a die, croak, or confess in here
+            # results in the error being completely surpressed. As such,
+            # we need to do our own reporting.
+            #
+            # TODO: Fix the above.
+
+            warn Carp::longmess("Internal error in autodie/Fatal processing $true_name: $@");
+
+            exit(255);      # Ugh!
+        }
     }
 
     # Now we need to wrap our fatalised sub inside an itty bitty
