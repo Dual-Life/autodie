@@ -49,4 +49,4 @@ eval {
     truncate($tmpfh, 0);
 };
 
-ok(! $@, "Truncating a normal file should be fine");
+is($@, "", "Truncating a normal file should be fine");

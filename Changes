@@ -1,5 +1,7 @@
 Revision history for autodie
 
+        * TESTING: truncate.t provides more diagnostics on failure.
+
 1.994 Thu Sep 25 16:18:56 AUSEST 2008
 
         * BUGFIX: flock(), ioctl() and truncate() are now part of
