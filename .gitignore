@@ -6,6 +6,6 @@ lib/Fatal.pm~
 pm_to_blib
 .*.swp
 autodie-*.tar.gz
-autodie-*/
+autodie-[12].*
 MANIFEST.bak
 cover_db
