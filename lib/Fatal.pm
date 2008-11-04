@@ -377,6 +377,9 @@ sub unimport {
 
 # TODO - This is rather terribly inefficient right now.
 
+# NB: Perl::Critic's dump-autodie-tag-contents depends upon this
+# continuing to work.
+
 {
     my %tag_cache;
 
