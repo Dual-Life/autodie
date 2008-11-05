@@ -1,10 +1,12 @@
 Revision history for autodie
 
-        * TESTING: truncate.t provides more diagnostics on failure.
-
         * BUILD: Bundled Module::AutoInstall makes it clear to users
           they need to install IPC::System::Simple for autodying
           system() support.
+
+        * TEST: truncate.t provides more diagnostics on failure.
+
+        * TEST: Tests for better formatted reports from connect().
 
 1.994 Thu Sep 25 16:18:56 AUSEST 2008
 

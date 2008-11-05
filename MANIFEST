@@ -50,6 +50,7 @@ t/pod.t
 t/recv.t
 t/repeat.t
 t/scope_leak.t
+t/socket.t
 t/sysopen.t
 t/system.t
 t/truncate.t
