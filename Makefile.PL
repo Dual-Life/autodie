@@ -10,9 +10,15 @@ version_from(   'lib/autodie/exception.pm');
 test_requires(	'Test::More');
 author(         'Paul Fenwick <pjf@cpan.org>');
 
-requires(	'perl' => '5.8.0');
+include(        'Module::AutoInstall');
 
-recommends(	'IPC::System::Simple' => '0.12'); # For autodying system()
+requires(	'perl' => '5.8.0');
+recommends(     'IPC::System::Simple' => '0.12'); # For autodying system()
+
+feature(        'Support for autodying system()',
+                -default => 1,
+                'IPC::System::Simple' => '0.12'
+);
 
 resources(      repository => 'http://github.com/pfenwick/autodie/tree/master');
 resources(      bugtracker => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie');
