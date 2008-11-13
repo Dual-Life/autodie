@@ -8,6 +8,9 @@ Revision history for autodie
 
         * TEST: Tests for better formatted reports from connect().
 
+        * TEST: New 'open.t' contains specific tests for well-formatted
+          messages from open().
+
 1.994 Thu Sep 25 16:18:56 AUSEST 2008
 
         * BUGFIX: flock(), ioctl() and truncate() are now part of
