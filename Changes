@@ -1,5 +1,8 @@
 Revision history for autodie
 
+        * FEATURE: Errors from 2-argument open now have more human
+          friendly error messages for reading, writing, and appending.
+
         * BUILD: Bundled Module::AutoInstall makes it clear to users
           they need to install IPC::System::Simple for autodying
           system() support.

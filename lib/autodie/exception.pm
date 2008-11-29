@@ -345,18 +345,63 @@ sub _format_close {
 }
 
 # Default formatter for CORE::open
-# Currently only works with 3-arg open.
-# TODO: Pretty printing for 2-arg (and 1-arg?) open.
+
+use constant _FORMAT_OPEN => "Can't open '%s' for %s: '%s'";
+
+sub _format_open_with_mode {
+    my ($this, $mode, $file, $error) = @_;
+
+    my $wordy_mode;
+
+    if    ($mode eq '<')  { $wordy_mode = 'reading';   }
+    elsif ($mode eq '>')  { $wordy_mode = 'writing';   }
+    elsif ($mode eq '>>') { $wordy_mode = 'appending'; }
+
+    return sprintf _FORMAT_OPEN, $file, $wordy_mode, $error if $wordy_mode;
+
+    Carp::confess("Internal autodie::exception error: Don't know how to format mode '$mode'.");
+
+}
 
 sub _format_open {
     my ($this) = @_;
 
     my @open_args = @{$this->args};
 
-    # We'll only handle 3 argument open for the moment.
-    if (@open_args != 3) {
+    # Use the default formatter for single-arg and many-arg open
+    if (@open_args <= 1 or @open_args >= 4) {
         return $this->format_default;
     }
+
+    # For two arg open, we have to extract the mode
+    if (@open_args == 2) {
+        my ($fh, $file) = @open_args;
+
+        if (ref($fh) eq "GLOB") {
+            $fh = '$fh';
+        }
+
+        my ($mode) = $file =~ m{
+            ^\s*                # Spaces before mode
+            (
+                (?>             # Non-backtracking subexp.
+                    <           # Reading
+                    |>>?        # Writing/appending
+                )
+            )
+            [^&]                # Not an ampersand (which means a dup)
+        }x;
+
+        # Have a funny mode?  Use the default format.
+        return $this->format_default if not defined $mode;
+
+        # Localising $! means perl make make it a pretty error for us.
+        local $! = $this->errno;
+
+        return $this->_format_open_with_mode($mode, $file, $!);
+    }
+
+    # Here we must be using three arg open.
 
     my $file = $open_args[2];
 
@@ -364,9 +409,11 @@ sub _format_open {
 
     my $mode = $open_args[1];
 
-    if    ($mode eq '<')  { return "Can't open '$file' for reading: '$!'"    }
-    elsif ($mode eq '>')  { return "Can't open '$file' for writing: '$!'"    }
-    elsif ($mode eq '>>') { return "Can't open '$file' for appending: '$!'"  }
+    local $@;
+
+    my $msg = eval { $this->_format_open_with_mode($mode, $file, $!); };
+
+    return $msg if $msg;
 
     # Default message (for pipes and odd things)
 
@@ -480,8 +527,23 @@ sub format_default {
     # Trim package name off dying sub for error messages.
     $call =~ s/.*:://;
 
-    return "Can't $call(".
-        join(q{, }, map { defined($_) ? "'$_'" : "undef" } @{$this->args()}) . "): $!" .
+    # Walk through all our arguments, and...
+    #
+    #   * Replace undef with the word 'undef'
+    #   * Replace globs with the string '$fh'
+    #   * Quote all other args.
+
+    my @args = @{ $this->args() };
+
+    foreach my $arg (@args) {
+       if    (not defined($arg))   { $arg = 'undef' }
+       elsif (ref($arg) eq "GLOB") { $arg = '$fh'   }
+       else                        { $arg = qq{'$arg'} }
+    }
+
+    # Format our beautiful error.
+
+    return "Can't $call(".  join(q{, }, @args) . "): $!" .
         $this->add_file_and_line;
 
     # TODO - Handle user-defined errors from hash.

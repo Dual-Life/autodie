@@ -14,10 +14,5 @@ like($@, qr/for reading/, "Well-formatted 3-arg open failure");
 eval { open(my $fh, "< ".NO_SUCH_FILE) };
 ok($@, "2-arg opening non-existent file fails");
 
-TODO: {
-
-    local $TODO = "2-arg open messages not implemented";
-
-    like($@, qr/for reading/, "Well-formatted 2-arg open failure");
-    unlike($@, qr/GLOB\(0x/, "No ugly globs in 2-arg open messsage");
-}
+like($@, qr/for reading/, "Well-formatted 2-arg open failure");
+unlike($@, qr/GLOB\(0x/, "No ugly globs in 2-arg open messsage");
