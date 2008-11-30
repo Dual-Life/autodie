@@ -33,8 +33,4 @@ eval {
 isa_ok($@, 'autodie::exception');
 ok($@->matches('connect'), "connect threw an exception");
 
-TODO: {
-    local $TODO = "connect doesn't have pretty messages yet";
-
-    unlike($@, qr/GLOB/, "We shouldn't show ugly GLOB(...)s ever");
-}
+unlike($@, qr/GLOB/, "We shouldn't show ugly GLOB(...)s ever");

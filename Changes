@@ -1,7 +1,13 @@
 Revision history for autodie
 
+1.995
+
         * FEATURE: Errors from 2-argument open now have more human
           friendly error messages for reading, writing, and appending.
+
+        * FEATURE: autodie will never print unsightly references to
+          GLOB(0x...) structures in error messages; instead it uses
+          the placeholder '$fh'.
 
         * BUILD: Bundled Module::AutoInstall makes it clear to users
           they need to install IPC::System::Simple for autodying
