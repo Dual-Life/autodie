@@ -45,6 +45,7 @@ t/lib/autodie/test/au.pm
 t/lib/autodie/test/au/exception.pm
 t/lib/lethal.pm
 t/mkdir.t
+t/open.t
 t/pod-coverage.t
 t/pod.t
 t/recv.t
