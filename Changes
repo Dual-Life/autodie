@@ -1,6 +1,6 @@
 Revision history for autodie
 
-1.995
+1.995 Sun Nov 30 17:30:16 AUSEDT 2008
 
         * FEATURE: Errors from 2-argument open now have more human
           friendly error messages for reading, writing, and appending.
