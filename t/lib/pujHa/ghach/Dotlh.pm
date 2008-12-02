@@ -2,6 +2,10 @@ package pujHa'ghach::Dotlh;
 
 # Translator notes: Dotlh = status
 
+# Ideally this should be le'wI' - Thing that is exceptional. ;)
+# Unfortunately that results in a file called .pm, which may cause
+# problems on some filesystems.
+
 use strict;
 use warnings;
 
