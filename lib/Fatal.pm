@@ -873,7 +873,7 @@ sub _make_fatal {
         # Warning: The following code may disturb some viewers.
 
         # TODO: It should be possible to combine this with
-        # write invocations.
+        # write_invocation().
 
         foreach my $proto (@protos) {
             local $" = ", ";    # So @args is formatted correctly.
@@ -904,11 +904,48 @@ sub _make_fatal {
 
 }
 
-sub throw {
-    my ($class, @args) = @_;
+# This subroutine exists primarily so that child classes can override
+# it to point to their own exception class.  Doing this is significantly
+# less complex than overriding throw()
 
-    require autodie::exception;
-    return autodie::exception->new(@args);
+sub exception_class { return "autodie::exception" };
+
+{
+    my %exception_class_for;
+    my %class_loaded;
+
+    sub throw {
+        my ($class, @args) = @_;
+
+        # Find our exception class if we need it.
+        my $exception_class = 
+             $exception_class_for{$class} ||= $class->exception_class;
+
+        if (not $class_loaded{$exception_class}) {
+            if ($exception_class =~ /[^\w:']/) {
+                croak "Bad exception class '$exception_class'";
+            }
+
+
+            # Alas, Perl does turn barewords into modules unless they're
+            # actually barewords.  As such, we're left doing a string eval
+            # to make sure we load our file correctly.
+
+            local $@;
+            eval "require $exception_class";
+
+            # We need quotes around $@ to make sure it's stringified
+            # while still in scope.  Without them, we run the risk of
+            # $@ having been cleared by us exiting the local() block.
+
+            croak "$@" if $@;
+
+            $class_loaded{$exception_class}++;
+            
+        }
+
+        return $exception_class->new(@args);
+    }
 }
 
 # For some reason, dying while replacing our subs doesn't

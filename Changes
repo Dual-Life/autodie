@@ -1,5 +1,13 @@
 Revision history for autodie
 
+1.996 UNRELEASED
+
+        * FEATURE: Child classes can now provide an exception_class()
+          method that returns the desired exception class, rather
+          than over-riding the whole throw() method.  Existing classes
+          that over-ride throw() will still work as before.
+
+
 1.995 Sun Nov 30 17:30:16 AUSEDT 2008
 
         * FEATURE: Errors from 2-argument open now have more human
