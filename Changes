@@ -7,6 +7,13 @@ Revision history for autodie
           than over-riding the whole throw() method.  Existing classes
           that over-ride throw() will still work as before.
 
+        * BUGFIX: Fixed a bug where multiple autodie-derived classes
+          would share the same subroutine cache.  This could result
+          in excptions from the wrong class being thrown.
+
+          This bug did not affect programs which used only autodie,
+          or a single autodie-derived class.
+
 1.995 Sun Nov 30 17:30:16 AUSEDT 2008
 
         * FEATURE: Errors from 2-argument open now have more human

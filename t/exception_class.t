@@ -38,9 +38,20 @@ isnt($@,"",'$@ should not be empty');
 
 is(ref($@),"",'$@ should not be a reference or object');
 
-TODO: {
-    local $TODO = "About to be fixed in separate git commit.";
+like($@, qr/Bad exception class/, '$@ should contain bad exception class msg');
 
-    like($@, qr/Bad exception class/, '$@ should contain bad exception class msg');
+### Tests with well-formed exception class (in Klingon)
 
-}
+my $open_success3 = eval {
+    use pujHa'ghach qw(open);         #' <-- this makes my editor happy
+    open(my $fh, '<', NO_SUCH_FILE);
+    1;
+};
+
+is($open_success3,undef,"Open should fail");
+
+isnt($@,"",'$@ should not be empty');
+
+isa_ok($@, "pujHa'ghach::Dotlh", '$@ should be a Klingon exception');
+
+like($@, qr/Klingon exception/, '$@ should contain Klingon text');

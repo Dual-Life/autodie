@@ -9,6 +9,10 @@ package pujHa'ghach;
 #   puj   -> be weak (verb)
 #   -Ha'  -> not
 #   ghach -> normalise -Ha' verb into noun.
+#
+# I'm not use if -wI' should be used here.  pujwI' is "thing which
+# is weak".  One could conceivably use "pujHa'wI'" for "thing which
+# is not weak".
 
 use strict;
 use warnings;

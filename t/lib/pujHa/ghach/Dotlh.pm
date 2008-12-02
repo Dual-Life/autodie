@@ -5,10 +5,14 @@ package pujHa'ghach::Dotlh;
 use strict;
 use warnings;
 
+use base qw(autodie::exception);
+
 sub stringify {
     my ($this) = @_;
 
-    # XXX - Klingon stringification goes here.
+    my $base_str = $this->SUPER::stringify;
+
+    return "Klingon exception: $base_str\n";
 
 }
 

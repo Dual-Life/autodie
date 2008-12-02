@@ -791,7 +791,7 @@ sub _make_fatal {
     # results code that's in the wrong package, and hence has
     # access to the wrong package filehandles.
 
-    if (my $subref = $Cached_fatalised_sub{$sub}{$void}{$lexical}) {
+    if (my $subref = $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical}) {
         $class->_install_subs($pkg, { $name => $subref });
         return $sref;
     }
@@ -898,7 +898,7 @@ sub _make_fatal {
 
     $class->_install_subs($pkg, { $name => $leak_guard || $code });
 
-    $Cached_fatalised_sub{$sub}{$void}{$lexical} = $leak_guard || $code;
+    $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical} = $leak_guard || $code;
 
     return $sref;
 
