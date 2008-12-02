@@ -30,6 +30,7 @@ t/context_lexical.t
 t/crickey.t
 t/critic.t
 t/dbmopen.t
+t/exception_class.t
 t/exceptions.t
 t/exec.t
 t/Fatal.t
@@ -43,7 +44,11 @@ t/lethal.t
 t/lex58.t
 t/lib/autodie/test/au.pm
 t/lib/autodie/test/au/exception.pm
+t/lib/autodie/test/badname.pm
+t/lib/autodie/test/missing.pm
 t/lib/lethal.pm
+t/lib/pujHa/ghach.pm
+t/lib/pujHa/ghach/Dotlh.pm
 t/mkdir.t
 t/open.t
 t/pod-coverage.t
