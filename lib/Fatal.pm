@@ -80,6 +80,9 @@ my %TAGS = (
     # use autodie qw(:1.994) and know exactly what they'll get.
 
     ':1.994' => [qw(:default)],
+    ':1.995' => [qw(:default)],
+    ':1.996' => [qw(:default)],
+
 );
 
 $TAGS{':all'}  = [ keys %TAGS ];

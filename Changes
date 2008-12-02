@@ -14,6 +14,11 @@ Revision history for autodie
           This bug did not affect programs which used only autodie,
           or a single autodie-derived class.
 
+        * BUGFIX: Missing 1.995 version tag added to export list.
+
+        * TEST: Make sure that we always have a working version tag for
+          our current version.
+
 1.995 Sun Nov 30 17:30:16 AUSEDT 2008
 
         * FEATURE: Errors from 2-argument open now have more human
