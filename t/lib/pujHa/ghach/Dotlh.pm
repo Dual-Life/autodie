@@ -1,4 +1,6 @@
-package reH::Hegh::Dotlh;
+package pujHa'ghach::Dotlh;
+
+# Translator notes: Dotlh = status
 
 use strict;
 use warnings;
