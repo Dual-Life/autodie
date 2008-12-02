@@ -923,22 +923,26 @@ sub exception_class { return "autodie::exception" };
 
         if (not $class_loaded{$exception_class}) {
             if ($exception_class =~ /[^\w:']/) {
-                croak "Bad exception class '$exception_class'";
+                confess "Bad exception class '$exception_class'.\nThe '$class->exception_class' method wants to use $exception_class\nfor exceptions, but it contains characters which are not word-characters or colons.";
             }
-
 
             # Alas, Perl does turn barewords into modules unless they're
             # actually barewords.  As such, we're left doing a string eval
             # to make sure we load our file correctly.
 
-            local $@;
-            eval "require $exception_class";
+            my $E;
+
+            {
+                local $@;   # We can't clobber $@, it's wrong!
+                eval "require $exception_class";
+                $E = $@;    # Save $E despite ending our local.
+            }
 
             # We need quotes around $@ to make sure it's stringified
             # while still in scope.  Without them, we run the risk of
             # $@ having been cleared by us exiting the local() block.
 
-            croak "$@" if $@;
+            confess "Failed to load '$exception_class'.\nThis may be a typo in the '$class->exception_class' method,\nor the '$exception_class' module may not exist.\n\n $E" if $E;
 
             $class_loaded{$exception_class}++;
             

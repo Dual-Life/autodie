@@ -7,7 +7,6 @@ Revision history for autodie
           than over-riding the whole throw() method.  Existing classes
           that over-ride throw() will still work as before.
 
-
 1.995 Sun Nov 30 17:30:16 AUSEDT 2008
 
         * FEATURE: Errors from 2-argument open now have more human
