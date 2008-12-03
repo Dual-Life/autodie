@@ -20,6 +20,6 @@ plan skip_all => "Pod::Coverage $min_pc required for testing POD coverage"
     if $@;
 
 all_pod_coverage_ok({
-	also_private => [ qr{^(ERROR_\w+|unimport|fill_protos|one_invocation|write_invocation|throw)$} ],
+	also_private => [ qr{^(ERROR_\w+|unimport|fill_protos|one_invocation|write_invocation|throw|exception_class)$} ],
 });
 
