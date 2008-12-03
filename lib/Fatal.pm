@@ -937,7 +937,7 @@ sub exception_class { return "autodie::exception" };
 
             {
                 local $@;   # We can't clobber $@, it's wrong!
-                eval "require $exception_class";
+                eval "require $exception_class"; ## no critic
                 $E = $@;    # Save $E despite ending our local.
             }
 
