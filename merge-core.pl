@@ -24,11 +24,13 @@ system(qw(cp -v -r), glob("t/*"), qw(../perl/t/lib/autodie/));
 
 my @non_core_tests = qw(
     boilerplate.t
+    critic.t
     fork.t
     kwalitee.t
     lex58.t
     pod-coverage.t
     pod.t
+    socket.t
     system.t
 );
 
