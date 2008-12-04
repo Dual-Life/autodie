@@ -1,5 +1,9 @@
 Revision history for autodie
 
+        * BUILD: Removed Module::AutoInstall, which previously
+          was loaded but not used, but currently doesn't actually
+          do what we want.
+
 1.997 Thu Dec  4 15:14:00 AUSEDT 2008
         * TEST: Test::More 0.86 (and possibly 0.85) appears to
           dislike package names that contain the apostrophe

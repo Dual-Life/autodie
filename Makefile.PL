@@ -10,8 +10,6 @@ version_from(   'lib/autodie/exception.pm');
 test_requires(	'Test::More');
 author(         'Paul Fenwick <pjf@cpan.org>');
 
-include(        'Module::AutoInstall');
-
 requires(	'perl' => '5.8.0');
 recommends(     'IPC::System::Simple' => '0.12'); # For autodying system()
 
