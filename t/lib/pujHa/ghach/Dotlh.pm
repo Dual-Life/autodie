@@ -14,10 +14,44 @@ use base qw(autodie::exception);
 sub stringify {
     my ($this) = @_;
 
-    my $base_str = $this->SUPER::stringify;
+    my $error = $this->SUPER::stringify;
 
-    return "Klingon exception: $base_str\n";
+    return "QaghHommeyHeylIjmo':\n" .   # Due to your apparent minor errors
+           "$error\n" .
+           "lujqu'";                    # Epic fail
 
+
+}
+
+1;
+
+__END__
+
+# The following was a really neat idea, but currently autodie
+# always pushes values in $! to format them, which loses the
+# Klingon translation.
+
+use Errno qw(:POSIX);
+use Scalar::Util qw(dualvar);
+
+my %translation_for = (
+    EPERM()  => q{Dachaw'be'},        # You do not have permission
+    ENOENT() => q{De' vItu'laHbe'},   # I cannot find this information.
+);
+
+sub errno {
+    my ($this) = @_;
+
+    my $errno = int $this->SUPER::errno;
+
+    warn "In tlhIngan errno - $errno\n";
+
+    if ( my $tlhIngan = $translation_for{ $errno } ) {
+        return dualvar( $errno, $tlhIngan );
+    }
+
+    return $!;
+     
 }
 
 1;

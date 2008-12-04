@@ -58,5 +58,5 @@ SKIP: {
 
     isa_ok($@, "pujHa'ghach::Dotlh", '$@ should be a Klingon exception');
 
-    like($@, qr/Klingon exception/, '$@ should contain Klingon text');
+    like($@, qr/lujqu'/, '$@ should contain Klingon text');
 }
