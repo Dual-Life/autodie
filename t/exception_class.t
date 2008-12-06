@@ -42,21 +42,16 @@ like($@, qr/Bad exception class/, '$@ should contain bad exception class msg');
 
 ### Tests with well-formed exception class (in Klingon)
 
-SKIP: {
-    skip "Test::More >= 0.85 doesn't speak Klingon", 4
-        if $Test::More::VERSION >= 0.85;
+my $open_success3 = eval {
+    use pujHa'ghach qw(open);         #' <-- this makes my editor happy
+    open(my $fh, '<', NO_SUCH_FILE);
+    1;
+};
 
-    my $open_success3 = eval {
-        use pujHa'ghach qw(open);         #' <-- this makes my editor happy
-        open(my $fh, '<', NO_SUCH_FILE);
-        1;
-    };
+is($open_success3,undef,"Open should fail");
 
-    is($open_success3,undef,"Open should fail");
+isnt("$@","",'$@ should not be empty');
 
-    isnt($@,"",'$@ should not be empty');
+isa_ok($@, "pujHa'ghach::Dotlh", '$@ should be a Klingon exception');
 
-    isa_ok($@, "pujHa'ghach::Dotlh", '$@ should be a Klingon exception');
-
-    like($@, qr/lujqu'/, '$@ should contain Klingon text');
-}
+like($@, qr/lujqu'/, '$@ should contain Klingon text');

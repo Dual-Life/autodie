@@ -4,6 +4,10 @@ Revision history for autodie
           was loaded but not used, but currently doesn't actually
           do what we want.
 
+        * TEST: We manually stringify $@ for one test in
+          exception_class.t to avoid a bug involving overloaded
+          classes containing apostrophies.
+
 1.997 Thu Dec  4 15:14:00 AUSEDT 2008
         * TEST: Test::More 0.86 (and possibly 0.85) appears to
           dislike package names that contain the apostrophe
