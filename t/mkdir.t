@@ -2,10 +2,7 @@
 use strict;
 use Test::More;
 use FindBin qw($Bin);
-use constant TMPDIR => "mkdir_test_delete_me";
-
-# Change into the test directory
-chdir $Bin or plan skip_all => "Can't chdir to $Bin";
+use constant TMPDIR => "$Bin/mkdir_test_delete_me";
 
 # Delete our directory if it's there
 rmdir TMPDIR;
@@ -27,7 +24,6 @@ if(-d TMPDIR) { plan skip_all => "Failed to delete test directory"; }
 
 # Try to delete second time
 if(rmdir TMPDIR) { plan skip_all => "Able to rmdir directory twice"; }
-
 
 plan tests => 12;
 

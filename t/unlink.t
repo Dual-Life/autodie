@@ -2,10 +2,7 @@
 use strict;
 use Test::More;
 use FindBin qw($Bin);
-use constant TMPFILE => "unlink_test_delete_me";
-
-# Change into the test directory
-chdir $Bin or plan skip_all => "Can't chdir to $Bin";
+use constant TMPFILE => "$Bin/unlink_test_delete_me";
 
 # Create a file to practice unlinking
 open(my $fh, ">", TMPFILE)
