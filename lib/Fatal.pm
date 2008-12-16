@@ -1092,6 +1092,10 @@ C<Fatal> clobbers the context in which a function is called and always
 makes it a scalar context, except when the C<:void> tag is used.
 This problem does not exist in L<autodie>.
 
+"Used only once" warnings can be generated when C<autodie> or C<Fatal>
+is used with package filehandles (eg, C<FILE>).  It's strongly recommended
+you use scalar filehandles instead.
+
 =head1 AUTHOR
 
 Original module by Lionel Cons (CERN).
