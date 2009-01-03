@@ -1,7 +1,7 @@
 package pujHa'ghach;
 
 # Translator notes: reH Hegh is Kligon for "always dying".
-# It was the original name for this testing pragma, but 
+# It was the original name for this testing pragma, but
 # it lacked an apostrophe, which better shows how Perl is
 # useful in Klingon naming schemes.
 
