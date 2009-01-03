@@ -949,7 +949,7 @@ sub exception_class { return "autodie::exception" };
             confess "Failed to load '$exception_class'.\nThis may be a typo in the '$class->exception_class' method,\nor the '$exception_class' module may not exist.\n\n $E" if $E;
 
             $class_loaded{$exception_class}++;
-            
+
         }
 
         return $exception_class->new(@args);
