@@ -922,7 +922,7 @@ sub exception_class { return "autodie::exception" };
         my ($class, @args) = @_;
 
         # Find our exception class if we need it.
-        my $exception_class = 
+        my $exception_class =
              $exception_class_for{$class} ||= $class->exception_class;
 
         if (not $class_loaded{$exception_class}) {

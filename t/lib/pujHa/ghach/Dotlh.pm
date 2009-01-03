@@ -51,7 +51,7 @@ sub errno {
     }
 
     return $!;
-     
+
 }
 
 1;
