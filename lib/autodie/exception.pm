@@ -623,6 +623,7 @@ sub _init {
         next if $package->isa($class);
         next if $package->isa(__PACKAGE__);
         next if $file =~ /^\(eval\s\d+\)$/;
+        next if $sub  =~ /::__ANON__$/;
 
         last;
 
