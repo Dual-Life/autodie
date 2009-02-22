@@ -12,6 +12,11 @@ Revision history for autodie
           a built-in.  This could tigger extra (unnecessary) work
           inside autodie, but otherwise had no user impact.
 
+        * DOCUMENTATION: The synopsis for autodie::exception::system
+          previously implied system() was made autodying by default.
+          This was not the case.  It must still be enabled with
+          use autodie qw(system).
+
 1.998 Sat Jan  3 11:19:53 AUSEDT 2009
 
         * BUILD: Removed Module::AutoInstall, which previously
