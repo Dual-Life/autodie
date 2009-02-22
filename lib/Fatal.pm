@@ -440,14 +440,14 @@ sub fill_protos {
 # This generates the code that will become our fatalised subroutine.
 
 sub write_invocation {
-    my ($class, $core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
+    my ($class, $core, $call, $name, $void, $lexical, $sub, $sref, @argvs) = @_;
 
     if (@argvs == 1) {        # No optional arguments
 
         my @argv = @{$argvs[0]};
         shift @argv;
 
-        return $class->one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        return $class->one_invocation($core,$call,$name,$void,$sub,! $lexical, $sref, @argv);
 
     } else {
         my $else = "\t";
@@ -459,7 +459,7 @@ sub write_invocation {
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
-        push @out, $class->one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        push @out, $class->one_invocation($core,$call,$name,$void,$sub,! $lexical, $sref, @argv);
         }
         push @out, q[
             }
@@ -471,7 +471,7 @@ sub write_invocation {
 }
 
 sub one_invocation {
-    my ($class, $core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
+    my ($class, $core, $call, $name, $void, $sub, $back_compat, $sref, @argv) = @_;
 
     # If someone is calling us directly (a child class perhaps?) then
     # they could try to mix void without enabling backwards
@@ -521,14 +521,35 @@ sub one_invocation {
     # replace whatever it is that we're calling; as such, we actually
     # calling a subroutine ref.
 
-    # Unfortunately, none of this tells us the *ultimate* name.
-    # For example, if I export 'copy' from File::Copy, I'd like my
-    # ultimate name to be File::Copy::copy.
-    #
-    # TODO - Is there any way to find the ultimate name of a sub, as
-    # described above?
+    my $human_sub_name = $core ? $call : $sub;
 
-    my $true_sub_name = $core ? $call : $sub;
+    # Should we be testing to see if our result is defined, or
+    # just true?
+
+    my $use_defined_or;
+
+    my $hints = 0;      # All user-sub hints, including list hints.
+
+    if ( $core ) {
+
+        # Core hints are built into autodie.
+
+        $use_defined_or = exists ( $Use_defined_or{$call} );
+
+    }
+    else {
+
+        # User sub hints are looked up using autodie::hints,
+        # since users may wish to add their own hints.
+
+        require autodie::hints;
+
+        $hints = autodie::hints->get_hints_for( $sref );
+
+        $use_defined_or = ( $hints & autodie::hints->SCALAR_UNDEF_ONLY );
+    }
+
+    # Checks for special core subs.
 
     if ($call eq 'CORE::system') {
 
@@ -574,16 +595,12 @@ sub one_invocation {
 
     }
 
-    # Should we be testing to see if our result is defined, or
-    # just true?
-    my $use_defined_or = exists ( $Use_defined_or{$call} );
-
     local $" = ', ';
 
     # If we're going to throw an exception, here's the code to use.
     my $die = qq{
         die $class->throw(
-            function => q{$true_sub_name}, args => [ @argv ],
+            function => q{$human_sub_name}, args => [ @argv ],
             pragma => q{$class}, errno => \$!,
         )
     };
@@ -634,18 +651,45 @@ sub one_invocation {
     # the 'unopened' warning class here.  Especially since they
     # then report the wrong line number.
 
-    return qq{
+    my $code = qq[
         no warnings qw(unopened);
 
         if (wantarray) {
             my \@results = $call(@argv);
-            # If we got back nothing, or we got back a single
-            # undef, we die.
+
+    ];
+
+    if ( $hints and $hints & autodie::hints->LIST_EMPTY_ONLY ) {
+        $code .= qq{
+            # Only an empty list is failure
+            if ( not \@results ) { $die };
+        };
+    }
+    elsif ( $hints and $hints & autodie::hints->LIST_EMPTY_OR_FALSE ) {
+        $code .= qq{
+            # An empty list, or a single false value is failure
+            if ( ! \@results or ( \@results == 1 and ! \$results[0] ) ) {
+                $die;
+            }
+        };
+    }
+    else {
+        $code .= qq{
+            # An empty list, or a single undef is failure
             if (! \@results or (\@results == 1 and ! defined \$results[0])) {
                 $die;
-            };
+            }
+        }
+    }
+
+    # Tidy up the end of our wantarray call.
+
+    $code .= qq[
             return \@results;
         }
+    ];
+
+    return $code . qq{
 
         # Otherwise, we're in scalar context.
         # We're never in a void context, since we have to look
@@ -812,7 +856,7 @@ sub _make_fatal {
     $code .= "no warnings qw(exec);\n" if $call eq "CORE::exec";
 
     my @protos = fill_protos($proto);
-    $code .= $class->write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
+    $code .= $class->write_invocation($core, $call, $name, $void, $lexical, $sub, $sref, @protos);
     $code .= "}\n";
     warn $code if $Debug;
 

@@ -1,5 +1,22 @@
 Revision history for autodie
 
+        * FEATURE: autodie can now accept hints regarding how
+          user and module subroutines should be handled.  See
+          autodie::hints for more information.
+
+        * INTERFACE: The calls to the internal subroutines
+          one_invocation() and write_invocation() have changed.
+          An additional argument (the user subroutine reference) is
+          passed as the second-last argument.  This may break code
+          that previously tried to call these subroutines directly.
+
+        * BUGFIX: autodie was treating system() as a user-sub, not
+          a built-in.  This could tigger extra (unnecessary) work
+          inside autodie, but otherwise had no user impact.
+
+        * BUGFIX: Calls to subroutines to File::Copy should now
+          correctly throw exceptions when called in a list context.
+
         * TEST: Added test for correct caller output on
           autodie::exception objects.  Thanks to Piers Harding
           for spotting this bug at KiwiFoo.
@@ -8,9 +25,6 @@ Revision history for autodie
           changing behaviour depending upon context.  This was
           reported in http://perlmonks.org/?node_id=744246 .
 
-        * BUGFIX: autodie was treating system() as a user-sub, not
-          a built-in.  This could tigger extra (unnecessary) work
-          inside autodie, but otherwise had no user impact.
 
 1.998 Sat Jan  3 11:19:53 AUSEDT 2009
 
