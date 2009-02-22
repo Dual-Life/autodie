@@ -11,6 +11,7 @@ inc/Module/Install/WriteAll.pm
 lib/autodie.pm
 lib/autodie/exception.pm
 lib/autodie/exception/system.pm
+lib/autodie/hints.pm
 lib/Fatal.pm
 Makefile.PL
 MANIFEST			This list of files
@@ -37,6 +38,7 @@ t/filehandles.t
 t/fileno.t
 t/flock.t
 t/fork.t
+t/hints.t
 t/internal.t
 t/kwalitee.t
 t/lethal.t

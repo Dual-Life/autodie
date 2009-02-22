@@ -27,6 +27,37 @@ my %hints = (
     'File::Copy::move' => LIST_EMPTY_OR_FALSE,
 );
 
+sub get_hints_for {
+    my ($sub) = @_;
 
+
+}
+# Start by using Sub::Identify if it exists on this system.
+
+eval { require "Sub::Identify"; };
+
+# If it doesn't exist, we'll define our own.  This code is directly
+# taken from Rafael Garcia's Sub::Identify 0.04, used under the same
+# license as Perl itself.
+
+if ($@) {
+    require B;
+
+    *get_code_info = sub ($) {
+
+        my ($coderef) = @_;
+        ref $coderef or return;
+        my $cv = B::svref_2object($coderef);
+        $cv->isa('B::CV') or return;
+        # bail out if GV is undefined
+        $cv->GV->isa('B::SPECIAL') and return;
+
+        return ($cv->GV->STASH->NAME, $cv->GV->NAME);
+    };
+
+    *sub_fullname = sub ($) { join '::', get_code_info( $_[0] ) };
+
+}
 
 1;
+
