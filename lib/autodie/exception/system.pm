@@ -16,7 +16,7 @@ autodie::exception::system - Exceptions from autodying system().
 =head1 SYNOPSIS
 
     eval {
-        use autodie;
+        use autodie qw(system);
 
         system($cmd, @args);
 
