@@ -15,6 +15,8 @@ use constant LIST_EMPTY_OR_UNDEF => 0;  # Default
 use constant LIST_EMPTY_ONLY     => 2;
 use constant LIST_EMPTY_OR_FALSE => 4;
 
+use constant DEFAULT_HINTS => 0;
+
 # Only ( undef ) is a strange but possible situation for very
 # badly written code.  It's not supported yet.
 
@@ -27,11 +29,6 @@ my %hints = (
     'File::Copy::move' => LIST_EMPTY_OR_FALSE,
 );
 
-sub get_hints_for {
-    my ($sub) = @_;
-
-
-}
 # Start by using Sub::Identify if it exists on this system.
 
 eval { require "Sub::Identify"; };
@@ -42,6 +39,8 @@ eval { require "Sub::Identify"; };
 
 if ($@) {
     require B;
+
+    no warnings 'once';
 
     *get_code_info = sub ($) {
 
@@ -56,6 +55,15 @@ if ($@) {
     };
 
     *sub_fullname = sub ($) { join '::', get_code_info( $_[0] ) };
+
+}
+
+sub get_hints_for {
+    my ($sub) = @_;
+
+    my $hints = $hints{ sub_fullname( $sub ) };
+
+    return defined($hints) ? $hints : DEFAULT_HINTS;
 
 }
 
