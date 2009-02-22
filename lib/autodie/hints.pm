@@ -31,7 +31,7 @@ my %hints = (
 
 # Start by using Sub::Identify if it exists on this system.
 
-eval { require "Sub::Identify"; };
+eval { require "Sub::Identify"; Sub::Identify->import('get_code_info'); };
 
 # If it doesn't exist, we'll define our own.  This code is directly
 # taken from Rafael Garcia's Sub::Identify 0.04, used under the same
@@ -54,14 +54,16 @@ if ($@) {
         return ($cv->GV->STASH->NAME, $cv->GV->NAME);
     };
 
-    *sub_fullname = sub ($) { join '::', get_code_info( $_[0] ) };
+}
 
+sub sub_fullname {
+    return join( '::', get_code_info( $_[1] ) );
 }
 
 sub get_hints_for {
-    my ($sub) = @_;
+    my ($class, $sub) = @_;
 
-    my $hints = $hints{ sub_fullname( $sub ) };
+    my $hints = $hints{ $class->sub_fullname( $sub ) };
 
     return defined($hints) ? $hints : DEFAULT_HINTS;
 
