@@ -759,6 +759,7 @@ sub _make_fatal {
 
         $call = 'CORE::system';
         $name = 'system';
+        $core = 1;
 
     } elsif ($name eq 'exec') {
         # Exec doesn't have a prototype.  We don't care.  This
