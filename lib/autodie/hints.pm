@@ -17,6 +17,16 @@ use constant LIST_EMPTY_OR_FALSE => 4;
 
 use constant DEFAULT_HINTS => 0;
 
+use base qw(Exporter);
+
+our @EXPORT_OK = qw(
+    SCALAR_ANY_FALSE SCALAR_UNDEF_ONLY
+    LIST_EMPTY_OR_FALSE LIST_EMPTY_ONLY LIST_EMPTY_OR_UNDEF
+    DEFAULT_HINTS
+);
+
+our $DEBUG = 1;
+
 # Only ( undef ) is a strange but possible situation for very
 # badly written code.  It's not supported yet.
 
@@ -63,7 +73,13 @@ sub sub_fullname {
 sub get_hints_for {
     my ($class, $sub) = @_;
 
-    my $hints = $hints{ $class->sub_fullname( $sub ) };
+    my $subname = $class->sub_fullname( $sub );
+
+    my $hints = $hints{ $subname };
+
+    if ($DEBUG) {
+        warn "autodie::hints: Got hints for $subname: $hints\n";
+    }
 
     return defined($hints) ? $hints : DEFAULT_HINTS;
 
@@ -81,6 +97,10 @@ sub set_hints_for {
     }
 
     # TODO: Validate hints.
+
+    if ($DEBUG) {
+        warn "autodie::hints: Setting $sub to hints: $hints\n";
+    }
 
     $hints{ $sub } = $hints;
 

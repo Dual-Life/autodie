@@ -3,12 +3,21 @@ use strict;
 use warnings;
 use autodie::hints;
 
+use FindBin;
+use lib "$FindBin::Bin/lib";
+
 use File::Copy qw(copy move cp mv);
 
 use Test::More 'no_plan';
 
 use constant NO_SUCH_FILE  => "this_file_had_better_not_exist";
 use constant NO_SUCH_FILE2 => "this_file_had_better_not_exist_xyzzy";
+
+use Hints_test qw(
+    fail_on_empty fail_on_false fail_on_undef
+);
+
+use autodie qw(fail_on_empty fail_on_false fail_on_undef);
 
 diag("Sub::Identify ", exists( $INC{'Sub/Identify.pm'} ) ? "is" : "is not",
      " loaded");
@@ -47,5 +56,39 @@ eval {
 
 isnt("$@", "", "Copying in list context should throw an error.");
 isa_ok($@, "autodie::exception");
+
+# Tests on loaded funcs.
+
+my %tests = (
+
+    # Test code             # Exception expected?
+
+    'fail_on_empty()'       => 1,
+    'fail_on_empty(0)'      => 0,
+    'fail_on_empty(undef)'  => 0,
+    'fail_on_empty(1)'      => 0,
+
+    'fail_on_false()'       => 1,
+    'fail_on_false(0)'      => 1,
+    'fail_on_false(undef)'  => 1,
+    'fail_on_false(1)'      => 0,
+
+    'fail_on_undef()'       => 1,
+    'fail_on_undef(0)'      => 0,
+    'fail_on_undef(undef)'  => 1,
+    'fail_on_undef(1)'      => 0,
+
+);
+
+while (my ($test, $exception_expected) = each %tests) {
+    eval $test;
+
+    if ($exception_expected) {
+        isnt("$@", "", $test);
+    }
+    else {
+        is($@, "", $test);
+    }
+}
 
 1;
