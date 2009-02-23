@@ -69,5 +69,52 @@ sub get_hints_for {
 
 }
 
+sub set_hints_for {
+    my ($class, $sub, $hints) = @_;
+
+    if (ref $sub) {
+        $sub = $class->sub_fullname( $sub );
+
+        require Carp;
+
+        $sub or Carp::croak("Attempts to set_hints_for unidentifiable subroutine");
+    }
+
+    # TODO: Validate hints.
+
+    $hints{ $sub } = $hints;
+
+    return;
+}
+
 1;
 
+__END__
+
+=head1 Diagnostics
+
+=head2 Attempts to set_hints_for unidentifiable subroutine
+
+You've called C<autodie::hints->set_hints_for()> using a subroutine
+reference, but that reference could not be resolved back to a
+subroutine name.  It may be an anonymous subroutine (which can't
+be made autodying), or may lack a name for other reasons.
+
+If you receive this error with a subroutine that has a real name,
+then you may have found a bug in autodie.  See L<autodie/BUGS>
+for how to report this.
+
+=head1 AUTHOR
+
+Copyright 2009, Paul Fenwick E<lt>pjf@perltraining.com.auE<gt>
+
+=head1 LICENSE
+
+This module is free software.  You may distribute it under the
+same terms as Perl itself.
+
+=head1 SEE ALSO
+
+L<autodie>
+
+=cut
