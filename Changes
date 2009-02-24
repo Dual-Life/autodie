@@ -26,6 +26,10 @@ Revision history for autodie
           reported in http://perlmonks.org/?node_id=744246 .
 
 
+        * BUGFIX: Autodie now correctly propagates into string evals.
+
+        * TEST: Tests for autodie propagating into string eval.
+
         * DOCUMENTATION: The synopsis for autodie::exception::system
           previously implied system() was made autodying by default.
           This was not the case.  It must still be enabled with
