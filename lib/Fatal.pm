@@ -862,9 +862,19 @@ sub _make_fatal {
 
             sub$real_proto {
 
+                # If we're inside a string eval, we can end up with a
+                # whacky filename.  The following code allows autodie
+                # to propagate correctly into string evals.
+
+                my \$caller_level = 0;
+
+                while ( (caller \$caller_level)[1] =~ m{^\\(eval \\d+\\)\$} ) {
+                    \$caller_level++;
+                }
+
                 # If we're called from the correct file, then use the
                 # autodying code.
-                goto &\$code if ((caller)[1] eq \$filename);
+                goto &\$code if ((caller \$caller_level)[1] eq \$filename);
 
                 # Oh bother, we've leaked into another file.  Call the
                 # original code.  Note that \$sref may actually be a

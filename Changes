@@ -12,6 +12,10 @@ Revision history for autodie
           a built-in.  This could tigger extra (unnecessary) work
           inside autodie, but otherwise had no user impact.
 
+        * BUGFIX: Autodie now correctly propagates into string evals.
+
+        * TEST: Tests for autodie propagating into string eval.
+
         * DOCUMENTATION: The synopsis for autodie::exception::system
           previously implied system() was made autodying by default.
           This was not the case.  It must still be enabled with
