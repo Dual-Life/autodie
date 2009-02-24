@@ -307,6 +307,11 @@ See also L<Fatal/DIAGNOSTICS>.
 is used with package filehandles (eg, C<FILE>).  It's strongly recommended
 you use scalar filehandles instead.
 
+Under Perl 5.8 only, C<autodie> I<does not> propagate into string C<eval>
+statements, although it can be explicitly enabled inside a string
+C<eval>.  This bug does not affect block C<eval> statements in
+any version of Perl.
+
 When using C<autodie> or C<Fatal> with user subroutines, the
 declaration of those subroutines must appear before the first use of
 C<Fatal> or C<autodie>, or have been exported from a module.

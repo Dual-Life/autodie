@@ -26,7 +26,9 @@ Revision history for autodie
           reported in http://perlmonks.org/?node_id=744246 .
 
 
-        * BUGFIX: Autodie now correctly propagates into string evals.
+        * BUGFIX: Autodie now correctly propagates into string evals
+          under 5.10+.  Autodie completely fails to propagate into
+          string evals under 5.8.  No fix for 5.8 is known.
 
         * TEST: Tests for autodie propagating into string eval.
 
@@ -34,6 +36,9 @@ Revision history for autodie
           previously implied system() was made autodying by default.
           This was not the case.  It must still be enabled with
           use autodie qw(system).
+
+        * DOCUMENTATION: Noted the 5.8 string eval bug in
+          autodie/BUGS.
 
 1.998 Sat Jan  3 11:19:53 AUSEDT 2009
 

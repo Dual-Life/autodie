@@ -43,8 +43,13 @@ eval q{
     open(my $fh, '<', NO_SUCH_FILE);
 };
 
-ok($@, "Failing-open string eval should throw an exception");
-isa_ok($@, 'autodie::exception');
+TODO: {
+    local $TODO = "No known way of propagating into string eval in 5.8"
+        if $] <= 5.010;
+
+    ok($@, "Failing-open string eval should throw an exception");
+    isa_ok($@, 'autodie::exception');
+}
 
 eval q{
     no autodie;
