@@ -81,7 +81,10 @@ my %tests = (
 );
 
 while (my ($test, $exception_expected) = each %tests) {
-    eval $test;
+    eval "
+        my \@array = $test;
+    ";
+
 
     if ($exception_expected) {
         isnt("$@", "", $test);

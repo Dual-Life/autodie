@@ -25,7 +25,7 @@ our @EXPORT_OK = qw(
     DEFAULT_HINTS
 );
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 # Only ( undef ) is a strange but possible situation for very
 # badly written code.  It's not supported yet.
