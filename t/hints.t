@@ -80,8 +80,21 @@ my %tests = (
 
 );
 
+# On Perl 5.8, autodie doesn't correctly propagate into string evals.
+# The following snippet forces the use of autodie inside the eval if
+# we really really have to.  For 5.10+, we don't want to include this
+# fix, because the tests will act as a canary if we screw up string
+# eval propagation.
+
+my $perl58_fix = (
+    $] >= 5.010 ?
+    "" :
+    "use autodie qw(fail_on_empty fail_on_false fail_on_undef); "
+);
+
 while (my ($test, $exception_expected) = each %tests) {
     eval "
+        $perl58_fix
         my \@array = $test;
     ";
 
