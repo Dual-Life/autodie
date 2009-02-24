@@ -23,6 +23,7 @@ t/backcompat.t
 t/basic_exceptions.t
 t/binmode.t
 t/boilerplate.t
+t/caller.t
 t/context.t
 t/context_lexical.t
 t/crickey.t
@@ -59,6 +60,7 @@ t/sysopen.t
 t/system.t
 t/truncate.t
 t/unlink.t
+t/user-context.t
 t/usersub.t
 t/version.t
 t/version_tag.t
