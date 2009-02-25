@@ -32,6 +32,12 @@ Revision history for autodie
         * TEST: Expanded tests to ensure autodie::exception returns
           correct information when calling subroutines in external files.
 
+        * BUGFIX: The caller() method on autodie::exception objects
+          should now always report the correct caller.  While it
+          would always get the line, file, and package correct, previously
+          it would sometimes report less-than-helpful callers like
+          '__ANON__' or '(eval)'.
+
 1.998 Sat Jan  3 11:19:53 AUSEDT 2009
 
         * BUILD: Removed Module::AutoInstall, which previously
