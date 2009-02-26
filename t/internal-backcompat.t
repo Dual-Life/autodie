@@ -23,9 +23,8 @@ while (my ($proto, $code) = each %protos) {
     is_deeply( [ Fatal::fill_protos($proto) ], $code, $proto);
 }
 
+# TODO: write_invocation
 
-# write_invocation
+# TODO: one_invocation
 
-# one_invocation
-
-# _make_fatal
+# TODO: _make_fatal
