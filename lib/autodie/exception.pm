@@ -628,6 +628,28 @@ sub _init {
 
     }
 
+    # We now have everything correct, *except* for our subroutine
+    # name.  If it's __ANON__ or (eval), then we need to keep on
+    # digging deeper into our stack to find the real name.  However we
+    # don't update our other information, since that will be correct
+    # for our current exception.
+
+    my $first_guess_subroutine = $sub;
+
+    while (defined $sub and $sub =~ /^\(eval\)$|::__ANON__$/) {
+        $depth++;
+
+        $sub = (CORE::caller($depth))[3];
+    }
+
+    # If we end up falling out the bottom of our stack, then our
+    # __ANON__ guess is the best we can get.  This includes situations
+    # where we were called from thetop level of a program.
+
+    if (not defined $sub) {
+        $sub = $first_guess_subroutine;
+    }
+
     $this->{$PACKAGE}{package} = $package;
     $this->{$PACKAGE}{file}    = $file;
     $this->{$PACKAGE}{line}    = $line;

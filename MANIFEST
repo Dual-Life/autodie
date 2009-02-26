@@ -47,6 +47,7 @@ t/lib/autodie/test/au.pm
 t/lib/autodie/test/au/exception.pm
 t/lib/autodie/test/badname.pm
 t/lib/autodie/test/missing.pm
+t/lib/Caller_helper.pm
 t/lib/lethal.pm
 t/lib/pujHa/ghach.pm
 t/lib/pujHa/ghach/Dotlh.pm
