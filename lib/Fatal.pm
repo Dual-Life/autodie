@@ -420,6 +420,8 @@ sub unimport {
 }
 
 # This code is from the original Fatal.  It scares me.
+# It is 100% compatible with the 5.10.0 Fatal module, right down
+# to the scary 'XXXX' comment.  ;)
 
 sub fill_protos {
     my $proto = shift;
@@ -438,6 +440,7 @@ sub fill_protos {
 }
 
 # This generates the code that will become our fatalised subroutine.
+# TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
 
 sub write_invocation {
     my ($class, $core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
@@ -470,6 +473,7 @@ sub write_invocation {
     }
 }
 
+# TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
 sub one_invocation {
     my ($class, $core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
 
@@ -674,6 +678,8 @@ sub one_invocation {
 
 # TODO: Taking a huge list of arguments is awful.  Rewriting to
 #       take a hash would be lovely.
+
+# TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
 
 sub _make_fatal {
     my($class, $sub, $pkg, $void, $lexical, $filename) = @_;
