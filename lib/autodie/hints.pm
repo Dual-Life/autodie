@@ -3,6 +3,12 @@ package autodie::hints;
 use strict;
 use warnings;
 
+=head1 NAME
+
+autodie::hints - Provide hints about user subroutines to autodie
+
+=cut
+
 # This file contains hints on how user-defined subroutines should
 # be handled.  For scalar context, there are two options:
 
@@ -16,6 +22,9 @@ use constant LIST_EMPTY_ONLY     => 2;
 use constant LIST_EMPTY_OR_FALSE => 4;
 
 use constant DEFAULT_HINTS => 0;
+
+use constant MAX_HINT_VALUE =>
+    SCALAR_UNDEF_ONLY | LIST_EMPTY_ONLY | LIST_EMPTY_OR_FALSE;
 
 use base qw(Exporter);
 
@@ -96,7 +105,17 @@ sub set_hints_for {
         $sub or Carp::croak("Attempts to set_hints_for unidentifiable subroutine");
     }
 
-    # TODO: Validate hints.
+    # TODO - I'm unhappy with our hints processing.  The user feedback is
+    # awful (they're numeric), and people need to understand bitwise
+    # ops to set them.  We're *much* better off using human-friendly
+    # strings/tokens, and converting them to bitstrings internally if
+    # needed.
+
+    if ($hints < 0 or $hints > MAX_HINT_VALUE) {
+        require Carp;
+
+        Carp::croak("Invalid hint '$hints' passed to set_hints_for");
+    }
 
     if ($DEBUG) {
         warn "autodie::hints: Setting $sub to hints: $hints\n";
