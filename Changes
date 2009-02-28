@@ -1,22 +1,18 @@
 Revision history for autodie
 
-        * TEST: Added test for correct caller output on
-          autodie::exception objects.  Thanks to Piers Harding
-          for spotting this bug at KiwiFoo.
-
-        * TEST: Added tests for user-defined autodying functions
-          changing behaviour depending upon context.  This was
-          reported in http://perlmonks.org/?node_id=744246 .
-
-        * BUGFIX: autodie was treating system() as a user-sub, not
-          a built-in.  This could tigger extra (unnecessary) work
-          inside autodie, but otherwise had no user impact.
-
         * BUGFIX: Autodie now correctly propagates into string evals
           under 5.10+.  Autodie completely fails to propagate into
           string evals under 5.8.  No fix for 5.8 is known.
 
-        * TEST: Tests for autodie propagating into string eval.
+        * BUGFIX: The caller() method on autodie::exception objects
+          should now always report the correct caller.  While it
+          would always get the line, file, and package correct, previously
+          it would sometimes report less-than-helpful callers like
+          '__ANON__' or '(eval)'.
+
+        * BUGFIX: autodie was treating system() as a user-sub, not
+          a built-in.  This could tigger extra (unnecessary) work
+          inside autodie, but otherwise had no user impact.
 
         * DOCUMENTATION: The synopsis for autodie::exception::system
           previously implied system() was made autodying by default.
@@ -26,17 +22,21 @@ Revision history for autodie
         * DOCUMENTATION: Noted the 5.8 string eval bug in
           autodie/BUGS.
 
+        * TEST: Added test for correct caller output on
+          autodie::exception objects.  Thanks to Piers Harding
+          for spotting this bug at KiwiFoo.
+
+        * TEST: Added tests for user-defined autodying functions
+          changing behaviour depending upon context.  This was
+          reported in http://perlmonks.org/?node_id=744246 .
+
+        * TEST: Tests for autodie propagating into string eval.
+
         * TEST: Expanded tests to ensure autodie::exception returns
           the correct line number and caller.
 
         * TEST: Expanded tests to ensure autodie::exception returns
           correct information when calling subroutines in external files.
-
-        * BUGFIX: The caller() method on autodie::exception objects
-          should now always report the correct caller.  While it
-          would always get the line, file, and package correct, previously
-          it would sometimes report less-than-helpful callers like
-          '__ANON__' or '(eval)'.
 
 1.998 Sat Jan  3 11:19:53 AUSEDT 2009
 
