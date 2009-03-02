@@ -1,5 +1,7 @@
 Revision history for autodie
 
+1.999 Sat Feb 28 18:36:55 AUSEDT 2009
+
         * BUGFIX: Autodie now correctly propagates into string evals
           under 5.10+.  Autodie completely fails to propagate into
           string evals under 5.8.  No fix for 5.8 is known.
