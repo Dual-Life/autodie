@@ -644,7 +644,7 @@ sub _init {
 
     # If we end up falling out the bottom of our stack, then our
     # __ANON__ guess is the best we can get.  This includes situations
-    # where we were called from thetop level of a program.
+    # where we were called from the top level of a program.
 
     if (not defined $sub) {
         $sub = $first_guess_subroutine;
