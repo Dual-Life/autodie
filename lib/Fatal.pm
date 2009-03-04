@@ -483,7 +483,7 @@ sub _write_invocation {
         }
         push @out, qq[
             }
-            die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
+            die "Internal error: $name(\@_): Do not expect to get ", scalar(\@_), " arguments";
     ];
 
         return join '', @out;

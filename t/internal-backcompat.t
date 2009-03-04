@@ -6,6 +6,10 @@ use Test::More 'no_plan';
 
 # Tests to determine if Fatal's internal interfaces remain backwards
 # compatible.
+#
+# WARNING: This file contains a lot of very ugly code, hard-coded
+# strings, and nasty API calls.  It may frighten small children.
+# Viewer discretion is advised.
 
 # fill_protos.  This hasn't been changed since the original Fatal,
 # and so should always be the same.
@@ -27,6 +31,10 @@ while (my ($proto, $code) = each %protos) {
 # write_invocation tests
 no warnings 'qw';
 
+# Technically the outputted code varies from the classical Fatal.
+# However the changes are mostly whitespace.  Those that aren't are
+# improvements to error messages.
+
 my @write_invocation_calls = (
     [
         # Core  # Call          # Name  # Void  # Args
@@ -34,13 +42,13 @@ my @write_invocation_calls = (
                                                 [ 2, qw($_[0] $_[1]) ],
                                                 [ 3, qw($_[0] $_[1] @_[2..$#_])]
         ],
-        q{       if (@_ == 1) {
-return CORE::open($_[0]) || croak "Can't open(@_): $!"        } elsif (@_ == 2) {
-return CORE::open($_[0], $_[1]) || croak "Can't open(@_): $!" } elsif (@_ == 3) {
+        q{	if (@_ == 1) {
+return CORE::open($_[0]) || croak "Can't open(@_): $!"	} elsif (@_ == 2) {
+return CORE::open($_[0], $_[1]) || croak "Can't open(@_): $!"	} elsif (@_ == 3) {
 return CORE::open($_[0], $_[1], @_[2..$#_]) || croak "Can't open(@_): $!"
-        }
-        die "Internal error: open(@_): Do not expect to get ", scalar(@_), " arguments";
-}
+            }
+            die "Internal error: open(@_): Do not expect to get ", scalar(@_), " arguments";
+    }
     ]
 );
 
