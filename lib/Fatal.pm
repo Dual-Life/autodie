@@ -451,7 +451,7 @@ sub write_invocation {
         my @argv = @{$argvs[0]};
         shift @argv;
 
-        return $class->one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        return $class->_one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
 
     } else {
         my $else = "\t";
@@ -463,7 +463,7 @@ sub write_invocation {
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
-        push @out, $class->one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
+        push @out, $class->_one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
         }
         push @out, q[
             }
@@ -474,8 +474,30 @@ sub write_invocation {
     }
 }
 
+
 # TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
+
+# This is a slim interface to ensure backward compatibility with
+# anyone doing very foolish things with old versions of Fatal.
+
 sub one_invocation {
+    my ($core, $call, $name, $void, @argv) = @_;
+
+    return Fatal->_one_invocation(
+        $core, $call, $name, $void,
+        undef,   # Sub.  Unused in back-compat mode.
+        1,       # Back-compat flag
+        @argv
+    );
+
+}
+
+# This is the internal interface that generates code.
+# NOTE: This interface WILL change in the future.  Please do not
+# call this subroutine directly.
+
+sub _one_invocation {
+
     my ($class, $core, $call, $name, $void, $sub, $back_compat, @argv) = @_;
 
     # If someone is calling us directly (a child class perhaps?) then
@@ -496,11 +518,13 @@ sub one_invocation {
 
     if ($back_compat) {
 
-        # TODO - Use Fatal qw(system) is not yet supported.  It should be!
+        # Use Fatal qw(system) will never be supported.  It generated
+        # a compile-time error with legacy Fatal, and there's no reason
+        # to support it when autodie does a better job.
 
         if ($call eq 'CORE::system') {
             return q{
-                croak("UNIMPLEMENTED: use Fatal qw(system) not yet supported.");
+                croak("UNIMPLEMENTED: use Fatal qw(system) not supported.");
             };
         }
 
