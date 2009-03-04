@@ -1,5 +1,9 @@
 Revision history for autodie
 
+        * BUGFIX: An internal error where autodie could potentially
+          fail to correctly report a dying function's name has been
+          fixed.
+
         * INTERFACE: The internal interfaces for fill_protos(),
           one_invocation(), write_invocation() and _make_fatal()
           are now once again backward compatible with legacy
@@ -8,6 +12,7 @@ Revision history for autodie
 
         * TEST: Added internal-backcompat.t to test backwards
           compatibility of internal interfaces.
+
 
 1.999 Sat Feb 28 18:36:55 AUSEDT 2009
 
