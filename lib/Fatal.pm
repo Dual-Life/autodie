@@ -440,10 +440,26 @@ sub fill_protos {
     return @out1;
 }
 
-# This generates the code that will become our fatalised subroutine.
-# TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
+# This is a backwards compatible version of _write_invocation.  It's
+# recommended you don't use it.
 
 sub write_invocation {
+    my ($core, $call, $name, $void, @args) = @_;
+
+    return Fatal->_write_invocation(
+        $core, $call, $name, $void,
+        0,      # Lexical flag
+        undef,  # Sub, unused in legacy mode
+        @args
+    );
+}
+
+# This version of _write_invocation is used internally.  It's not
+# recommended you call it from external code, as the interface WILL
+# change in the future.
+
+sub _write_invocation {
+
     my ($class, $core, $call, $name, $void, $lexical, $sub, @argvs) = @_;
 
     if (@argvs == 1) {        # No optional arguments
@@ -843,7 +859,7 @@ sub _make_fatal {
     $code .= "no warnings qw(exec);\n" if $call eq "CORE::exec";
 
     my @protos = fill_protos($proto);
-    $code .= $class->write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
+    $code .= $class->_write_invocation($core, $call, $name, $void, $lexical, $sub, @protos);
     $code .= "}\n";
     warn $code if $Debug;
 
