@@ -5,10 +5,11 @@ Revision history for autodie
           fixed.
 
         * INTERFACE: The internal interfaces for fill_protos(),
-          one_invocation(), write_invocation() and _make_fatal()
-          are now once again backward compatible with legacy
-          versions of Fatal.  It is still strongly recommended these
-          interfaces are NOT called directly.
+          one_invocation(), write_invocation() are now once again
+          backward compatible with legacy versions of Fatal.  It is
+          still strongly recommended these interfaces are NOT called
+          directly.  The _make_fatal() subroutine is not backwards
+          compatible.
 
         * TEST: Added internal-backcompat.t to test backwards
           compatibility of internal interfaces.

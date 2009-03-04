@@ -76,3 +76,6 @@ foreach my $test (@one_invocation_calls) {
 }
 
 # TODO: _make_fatal
+# Since this subroutine has always started with an underscore,
+# I think it's pretty clear that it's internal-only.  I'm not
+# testing it here, and it doesn't yet have backcompat.
