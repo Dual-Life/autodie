@@ -10,27 +10,38 @@ Revision history for autodie
           passed as the second-last argument.  This may break code
           that previously tried to call these subroutines directly.
 
-        * BUGFIX: autodie was treating system() as a user-sub, not
-          a built-in.  This could tigger extra (unnecessary) work
-          inside autodie, but otherwise had no user impact.
-
         * BUGFIX: Calls to subroutines to File::Copy should now
           correctly throw exceptions when called in a list context.
 
-        * TEST: Added test for correct caller output on
-          autodie::exception objects.  Thanks to Piers Harding
-          for spotting this bug at KiwiFoo.
+        * BUGFIX: An internal error where autodie could potentially
+          fail to correctly report a dying function's name has been
+          fixed.
 
-        * TEST: Added tests for user-defined autodying functions
-          changing behaviour depending upon context.  This was
-          reported in http://perlmonks.org/?node_id=744246 .
+        * INTERFACE: The internal interfaces for fill_protos(),
+          one_invocation(), write_invocation() are now once again
+          backward compatible with legacy versions of Fatal.  It is
+          still strongly recommended these interfaces are NOT called
+          directly.  The _make_fatal() subroutine is not backwards
+          compatible.
 
+        * TEST: Added internal-backcompat.t to test backwards
+          compatibility of internal interfaces.
+
+1.999 Sat Feb 28 18:36:55 AUSEDT 2009
 
         * BUGFIX: Autodie now correctly propagates into string evals
           under 5.10+.  Autodie completely fails to propagate into
           string evals under 5.8.  No fix for 5.8 is known.
 
-        * TEST: Tests for autodie propagating into string eval.
+        * BUGFIX: The caller() method on autodie::exception objects
+          should now always report the correct caller.  While it
+          would always get the line, file, and package correct, previously
+          it would sometimes report less-than-helpful callers like
+          '__ANON__' or '(eval)'.
+
+        * BUGFIX: autodie was treating system() as a user-sub, not
+          a built-in.  This could tigger extra (unnecessary) work
+          inside autodie, but otherwise had no user impact.
 
         * DOCUMENTATION: The synopsis for autodie::exception::system
           previously implied system() was made autodying by default.
@@ -40,17 +51,21 @@ Revision history for autodie
         * DOCUMENTATION: Noted the 5.8 string eval bug in
           autodie/BUGS.
 
+        * TEST: Added test for correct caller output on
+          autodie::exception objects.  Thanks to Piers Harding
+          for spotting this bug at KiwiFoo.
+
+        * TEST: Added tests for user-defined autodying functions
+          changing behaviour depending upon context.  This was
+          reported in http://perlmonks.org/?node_id=744246 .
+
+        * TEST: Tests for autodie propagating into string eval.
+
         * TEST: Expanded tests to ensure autodie::exception returns
           the correct line number and caller.
 
         * TEST: Expanded tests to ensure autodie::exception returns
           correct information when calling subroutines in external files.
-
-        * BUGFIX: The caller() method on autodie::exception objects
-          should now always report the correct caller.  While it
-          would always get the line, file, and package correct, previously
-          it would sometimes report less-than-helpful callers like
-          '__ANON__' or '(eval)'.
 
 1.998 Sat Jan  3 11:19:53 AUSEDT 2009
 

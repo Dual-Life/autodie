@@ -31,7 +31,7 @@ use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 # All the Fatal/autodie modules share the same version number.
-our $VERSION = '1.998';
+our $VERSION = '1.999';
 
 our $Debug ||= 0;
 
@@ -84,6 +84,7 @@ my %TAGS = (
     ':1.996' => [qw(:default)],
     ':1.997' => [qw(:default)],
     ':1.998' => [qw(:default)],
+    ':1.999' => [qw(:default)],
 
 );
 
@@ -420,6 +421,8 @@ sub unimport {
 }
 
 # This code is from the original Fatal.  It scares me.
+# It is 100% compatible with the 5.10.0 Fatal module, right down
+# to the scary 'XXXX' comment.  ;)
 
 sub fill_protos {
     my $proto = shift;
@@ -437,9 +440,27 @@ sub fill_protos {
     return @out1;
 }
 
-# This generates the code that will become our fatalised subroutine.
+# This is a backwards compatible version of _write_invocation.  It's
+# recommended you don't use it.
 
 sub write_invocation {
+    my ($core, $call, $name, $void, @args) = @_;
+
+    return Fatal->_write_invocation(
+        $core, $call, $name, $void,
+        0,      # Lexical flag
+        undef,  # Sub, unused in legacy mode
+        undef,  # Subref, unused in legacy mode.
+        @args
+    );
+}
+
+# This version of _write_invocation is used internally.  It's not
+# recommended you call it from external code, as the interface WILL
+# change in the future.
+
+sub _write_invocation {
+
     my ($class, $core, $call, $name, $void, $lexical, $sub, $sref, @argvs) = @_;
 
     if (@argvs == 1) {        # No optional arguments
@@ -447,7 +468,7 @@ sub write_invocation {
         my @argv = @{$argvs[0]};
         shift @argv;
 
-        return $class->one_invocation($core,$call,$name,$void,$sub,! $lexical, $sref, @argv);
+        return $class->_one_invocation($core,$call,$name,$void,$sub,! $lexical, $sref, @argv);
 
     } else {
         my $else = "\t";
@@ -459,19 +480,41 @@ sub write_invocation {
             push @out, "${else}if (\@_ == $n) {\n";
             $else = "\t} els";
 
-        push @out, $class->one_invocation($core,$call,$name,$void,$sub,! $lexical, $sref, @argv);
+        push @out, $class->_one_invocation($core,$call,$name,$void,$sub,! $lexical, $sref, @argv);
         }
-        push @out, q[
+        push @out, qq[
             }
-            die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
+            die "Internal error: $name(\@_): Do not expect to get ", scalar(\@_), " arguments";
     ];
 
         return join '', @out;
     }
 }
 
+
+# This is a slim interface to ensure backward compatibility with
+# anyone doing very foolish things with old versions of Fatal.
+
 sub one_invocation {
+    my ($core, $call, $name, $void, @argv) = @_;
+
+    return Fatal->_one_invocation(
+        $core, $call, $name, $void,
+        undef,   # Sub.  Unused in back-compat mode.
+        1,       # Back-compat flag
+        undef,   # Subref, unused in back-compat mode.
+        @argv
+    );
+
+}
+
+# This is the internal interface that generates code.
+# NOTE: This interface WILL change in the future.  Please do not
+# call this subroutine directly.
+
+sub _one_invocation {
     my ($class, $core, $call, $name, $void, $sub, $back_compat, $sref, @argv) = @_;
+
 
     # If someone is calling us directly (a child class perhaps?) then
     # they could try to mix void without enabling backwards
@@ -491,11 +534,13 @@ sub one_invocation {
 
     if ($back_compat) {
 
-        # TODO - Use Fatal qw(system) is not yet supported.  It should be!
+        # Use Fatal qw(system) will never be supported.  It generated
+        # a compile-time error with legacy Fatal, and there's no reason
+        # to support it when autodie does a better job.
 
         if ($call eq 'CORE::system') {
             return q{
-                croak("UNIMPLEMENTED: use Fatal qw(system) not yet supported.");
+                croak("UNIMPLEMENTED: use Fatal qw(system) not supported.");
             };
         }
 
@@ -719,6 +764,8 @@ sub one_invocation {
 # TODO: Taking a huge list of arguments is awful.  Rewriting to
 #       take a hash would be lovely.
 
+# TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
+
 sub _make_fatal {
     my($class, $sub, $pkg, $void, $lexical, $filename) = @_;
     my($name, $code, $sref, $real_proto, $proto, $core, $call);
@@ -856,7 +903,7 @@ sub _make_fatal {
     $code .= "no warnings qw(exec);\n" if $call eq "CORE::exec";
 
     my @protos = fill_protos($proto);
-    $code .= $class->write_invocation($core, $call, $name, $void, $lexical, $sub, $sref, @protos);
+    $code .= $class->_write_invocation($core, $call, $name, $void, $lexical, $sub, $sref, @protos);
     $code .= "}\n";
     warn $code if $Debug;
 

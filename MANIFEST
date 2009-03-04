@@ -39,6 +39,7 @@ t/fileno.t
 t/flock.t
 t/fork.t
 t/hints.t
+t/internal-backcompat.t
 t/internal.t
 t/kwalitee.t
 t/lethal.t
