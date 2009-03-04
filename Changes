@@ -1,5 +1,10 @@
 Revision history for autodie
 
+        * BUGFIX: An internal error where autodie could potentially
+          fail to correctly report a dying function's name has been
+          fixed.
+
+
 1.999 Sat Feb 28 18:36:55 AUSEDT 2009
 
         * BUGFIX: Autodie now correctly propagates into string evals

@@ -462,7 +462,7 @@ sub write_invocation {
 
         push @out, $class->one_invocation($core,$call,$name,$void,$sub,! $lexical,@argv);
         }
-        push @out, q[
+        push @out, qq[
             }
             die "Internal error: $name(\@_): Do not expect to get ", scalar \@_, " arguments";
     ];
