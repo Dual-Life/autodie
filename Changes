@@ -14,6 +14,10 @@ Revision history for autodie
         * TEST: Added internal-backcompat.t to test backwards
           compatibility of internal interfaces.
 
+        * DOCUMENTATION: Expanded documentation regarding how
+          autodie changes calls to system(), and how this must be
+          explicitly enabled.
+
 
 1.999 Sat Feb 28 18:36:55 AUSEDT 2009
 
