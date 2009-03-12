@@ -56,3 +56,8 @@ Matt Kraai
 
 Darren Duncan
         - Spotting omissions in user documentation.
+
+Damian Conway
+        - Extremely detailed and inspirational input into how
+          autodie::hints should work, as opposed to my original
+          and rather stunted proposal.
