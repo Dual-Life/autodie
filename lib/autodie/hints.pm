@@ -84,13 +84,15 @@ sub get_hints_for {
 
     my $subname = $class->sub_fullname( $sub );
 
-    my $hints = $hints{ $subname };
+    my $hints =  exists $hints{ $subname } ?
+                        $hints{ $subname } :
+                        DEFAULT_HINTS;
 
     if ($DEBUG) {
         warn "autodie::hints: Got hints for $subname: $hints\n";
     }
 
-    return defined($hints) ? $hints : DEFAULT_HINTS;
+    return $hints;
 
 }
 
@@ -103,18 +105,6 @@ sub set_hints_for {
         require Carp;
 
         $sub or Carp::croak("Attempts to set_hints_for unidentifiable subroutine");
-    }
-
-    # TODO - I'm unhappy with our hints processing.  The user feedback is
-    # awful (they're numeric), and people need to understand bitwise
-    # ops to set them.  We're *much* better off using human-friendly
-    # strings/tokens, and converting them to bitstrings internally if
-    # needed.
-
-    if ($hints < 0 or $hints > MAX_HINT_VALUE) {
-        require Carp;
-
-        Carp::croak("Invalid hint '$hints' passed to set_hints_for");
     }
 
     if ($DEBUG) {
