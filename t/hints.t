@@ -32,8 +32,8 @@ is( $hints->sub_fullname(\&cp),   'File::Copy::copy' , "Id: cp"   );
 is( $hints->sub_fullname(\&move), 'File::Copy::move' , "Id: move" );
 is( $hints->sub_fullname(\&mv),   'File::Copy::move' , "Id: mv"   );
 
-is( $hints->get_hints_for(\&copy), $hints->LIST_EMPTY_OR_FALSE, "Copy hints");
-is( $hints->get_hints_for(\&move), $hints->LIST_EMPTY_OR_FALSE, "Move hints");
+# is( $hints->get_hints_for(\&copy), $hints->LIST_EMPTY_OR_FALSE, "Copy hints");
+# is( $hints->get_hints_for(\&move), $hints->LIST_EMPTY_OR_FALSE, "Move hints");
 
 # Scalar context test
 

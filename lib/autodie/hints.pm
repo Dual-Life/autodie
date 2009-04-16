@@ -9,30 +9,24 @@ autodie::hints - Provide hints about user subroutines to autodie
 
 =cut
 
-# This file contains hints on how user-defined subroutines should
-# be handled.  For scalar context, there are two options:
+use constant UNDEF_ONLY => undef;
+use constant EMPTY_OR_UNDEF   => sub {
+    ! @{$_[0]} ||
+    @{$_[0]}==1 && !defined $_[0][0]
+};
 
-use constant SCALAR_ANY_FALSE   => 0;   # Default
-use constant SCALAR_UNDEF_ONLY  => 1;
+use constant EMPTY_ONLY => [];
+use constant EMPTY_OR_FALSE => sub {
+    ! @{$_[0]} ||
+    @{$_[0]}==1 && !$_[0][0]
+};
 
-# For list context, there are more options:
-
-use constant LIST_EMPTY_OR_UNDEF => 0;  # Default
-use constant LIST_EMPTY_ONLY     => 2;
-use constant LIST_EMPTY_OR_FALSE => 4;
-
-use constant DEFAULT_HINTS => 0;
-
-use constant MAX_HINT_VALUE =>
-    SCALAR_UNDEF_ONLY | LIST_EMPTY_ONLY | LIST_EMPTY_OR_FALSE;
+use constant DEFAULT_HINTS => {
+    scalar => UNDEF_ONLY,
+    list   => EMPTY_OR_UNDEF,
+};
 
 use base qw(Exporter);
-
-our @EXPORT_OK = qw(
-    SCALAR_ANY_FALSE SCALAR_UNDEF_ONLY
-    LIST_EMPTY_OR_FALSE LIST_EMPTY_ONLY LIST_EMPTY_OR_UNDEF
-    DEFAULT_HINTS
-);
 
 our $DEBUG = 0;
 
@@ -43,9 +37,18 @@ our $DEBUG = 0;
 # would be useful for modules which have lots of subs which
 # express the same interface.
 
+# XXX: Ugh, those sub refs look awful!  Give them proper
+# names!
+
 my %hints = (
-    'File::Copy::copy' => LIST_EMPTY_OR_FALSE,
-    'File::Copy::move' => LIST_EMPTY_OR_FALSE,
+    'File::Copy::copy' => {
+        scalar => UNDEF_ONLY,
+        list   => sub { @{$_[0]} == 1 and $_[0][0] == 0 }
+    },
+    'File::Copy::copy' => {
+        scalar => UNDEF_ONLY,
+        list   => sub { @{$_[0]} == 1 and $_[0][0] == 0 }
+    },
 );
 
 # Start by using Sub::Identify if it exists on this system.

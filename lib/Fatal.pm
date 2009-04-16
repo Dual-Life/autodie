@@ -573,7 +573,7 @@ sub _one_invocation {
 
     my $use_defined_or;
 
-    my $hints = 0;      # All user-sub hints, including list hints.
+    my $hints;      # All user-sub hints, including list hints.
 
     if ( $core ) {
 
@@ -590,8 +590,6 @@ sub _one_invocation {
         require autodie::hints;
 
         $hints = autodie::hints->get_hints_for( $sref );
-
-        $use_defined_or = ( $hints & autodie::hints->SCALAR_UNDEF_ONLY );
     }
 
     # Checks for special core subs.
@@ -704,19 +702,19 @@ sub _one_invocation {
 
     ];
 
-    if ( $hints and $hints & autodie::hints->LIST_EMPTY_ONLY ) {
+    # TODO: Currently, this is an awful way of completing hints.
+    # We're looking them up *every time*.   We really want a way
+    # to be able to get the hints into the subroutine once, probably
+    # using a closure when it gets eval'ed.
+
+    if ( $hints ) {
         $code .= qq{
-            # Only an empty list is failure
-            if ( not \@results ) { $die };
+            if ( autodie::hints->get_hints_for(\$sref)->{list} ~~ \@results ) { $die };
         };
-    }
-    elsif ( $hints and $hints & autodie::hints->LIST_EMPTY_OR_FALSE ) {
-        $code .= qq{
-            # An empty list, or a single false value is failure
-            if ( ! \@results or ( \@results == 1 and ! \$results[0] ) ) {
-                $die;
-            }
-        };
+
+#        $code .= qq{
+#            if ( \$hints->{list} ~~ \@results ) { $die };
+#        };
     }
     else {
         $code .= qq{
@@ -733,6 +731,8 @@ sub _one_invocation {
             return \@results;
         }
     ];
+
+    # TODO HINTS - Use hints in scalar context
 
     return $code . qq{
 
