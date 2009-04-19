@@ -512,6 +512,9 @@ sub one_invocation {
 # NOTE: This interface WILL change in the future.  Please do not
 # call this subroutine directly.
 
+# TODO: Whatever's calling this code has already looked up hints.  Pass
+# them in, rather than look them up a second time.
+
 sub _one_invocation {
     my ($class, $core, $call, $name, $void, $sub, $back_compat, $sref, @argv) = @_;
 
@@ -702,19 +705,10 @@ sub _one_invocation {
 
     ];
 
-    # TODO: Currently, this is an awful way of completing hints.
-    # We're looking them up *every time*.   We really want a way
-    # to be able to get the hints into the subroutine once, probably
-    # using a closure when it gets eval'ed.
-
     if ( $hints ) {
         $code .= qq{
-            if ( autodie::hints->get_hints_for(\$sref)->{list} ~~ \@results ) { $die };
+            if ( \$hints->{list} ~~ \@results ) { $die };
         };
-
-#        $code .= qq{
-#            if ( \$hints->{list} ~~ \@results ) { $die };
-#        };
     }
     else {
         $code .= qq{
@@ -732,17 +726,25 @@ sub _one_invocation {
         }
     ];
 
-    # TODO HINTS - Use hints in scalar context
 
-    return $code . qq{
+    # Otherwise, we're in scalar context.
+    # We're never in a void context, since we have to look
+    # at the result.
 
-        # Otherwise, we're in scalar context.
-        # We're never in a void context, since we have to look
-        # at the result.
-
+    $code .= qq{
         my \$result = $call(@argv);
+    };
 
-    } . ( $use_defined_or ? qq{
+    if ($hints) {
+        return $code . qq{
+            if ( \$hints->{scalar} ~~ \$result ) { $die };
+
+            return \$result;
+        };
+    }
+
+    return $code .
+    ( $use_defined_or ? qq{
 
         $die if not defined \$result;
 
@@ -768,7 +770,7 @@ sub _one_invocation {
 
 sub _make_fatal {
     my($class, $sub, $pkg, $void, $lexical, $filename) = @_;
-    my($name, $code, $sref, $real_proto, $proto, $core, $call);
+    my($name, $code, $sref, $real_proto, $proto, $core, $call, $hints);
     my $ini = $sub;
 
     $sub = "${pkg}::$sub" unless $sub =~ /::/;
@@ -820,6 +822,8 @@ sub _make_fatal {
             $sref = \&$sub;
             $proto = prototype $sref;
             $call = '&$sref';
+            require autodie::hints;
+            $hints = autodie::hints->get_hints_for( $sref );
 
         }
 
