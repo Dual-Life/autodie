@@ -9,3 +9,4 @@ autodie-*.tar.gz
 autodie-[12].*
 MANIFEST.bak
 cover_db
+.prove
