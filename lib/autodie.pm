@@ -73,7 +73,9 @@ autodie - Replace functions with ones that succeed or die with lexical scope
 
 =head1 SYNOPSIS
 
-    use autodie;    # Recommended, implies 'use autodie qw(:default)'
+    use autodie;            # Recommended: implies 'use autodie qw(:default)'
+
+    use autodie qw(:all);   # Recommended more: defaults and system/exec.
 
     use autodie qw(open close);   # open/close succeed or die
 
@@ -252,6 +254,11 @@ provides the convenience of using the default methods, but the surity
 that no behavorial changes will occur if the C<autodie> module is
 upgraded.
 
+You can enable C<autodie> for all of Perl's built-ins, including
+C<system> and C<exec> with:
+
+    use autodie qw(:all);
+
 =head1 FUNCTION SPECIFIC NOTES
 
 =head2 flock
@@ -271,6 +278,36 @@ Autodying C<flock> will generate an exception if C<flock> returns
 false with any other error.
 
 =head2 system/exec
+
+The C<system> built-in is considered to have failed in the following
+circumstances:
+
+=over 4
+
+=item *
+
+The command does not start.
+
+=item *
+
+The command is killed by a signal.
+
+=item *
+
+The command returns a non-zero exit value (but see below).
+
+=back
+
+On success, the autodying form of C<system> returns the I<exit value>
+rather than the contents of C<$?>.
+
+Additional allowable exit values can be supplied as an optional first
+argument to autodying C<system>:
+
+    system( [ 0, 1, 2 ], $cmd, @args);  # 0,1,2 are good exit values
+
+C<autodie> uses the L<IPC::System::Simple> module to change C<system>.
+See its documentation for further information.
 
 Applying C<autodie> to C<system> or C<exec> causes the exotic
 forms C<system { $cmd } @args > or C<exec { $cmd } @args>
@@ -335,7 +372,7 @@ E<lt>pjf@perltraining.com.auE<gt>.
 
 =head1 AUTHOR
 
-Copyright 2008, Paul Fenwick E<lt>pjf@perltraining.com.auE<gt>
+Copyright 2008-2009, Paul Fenwick E<lt>pjf@perltraining.com.auE<gt>
 
 =head1 LICENSE
 
