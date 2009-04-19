@@ -53,7 +53,7 @@ my %hints = (
 
 # Start by using Sub::Identify if it exists on this system.
 
-eval { require "Sub::Identify"; Sub::Identify->import('get_code_info'); };
+eval { require Sub::Identify; Sub::Identify->import('get_code_info'); };
 
 # If it doesn't exist, we'll define our own.  This code is directly
 # taken from Rafael Garcia's Sub::Identify 0.04, used under the same
