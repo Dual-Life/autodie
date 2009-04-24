@@ -13,6 +13,8 @@ use Test::More 'no_plan';
 use constant NO_SUCH_FILE  => "this_file_had_better_not_exist";
 use constant NO_SUCH_FILE2 => "this_file_had_better_not_exist_xyzzy";
 
+use constant PERL510 => ( $] >= 5.010 );
+
 use Hints_test qw(
     fail_on_empty fail_on_false fail_on_undef
 );
@@ -32,8 +34,11 @@ is( $hints->sub_fullname(\&cp),   'File::Copy::copy' , "Id: cp"   );
 is( $hints->sub_fullname(\&move), 'File::Copy::move' , "Id: move" );
 is( $hints->sub_fullname(\&mv),   'File::Copy::move' , "Id: mv"   );
 
-# is( $hints->get_hints_for(\&copy), $hints->LIST_EMPTY_OR_FALSE, "Copy hints");
-# is( $hints->get_hints_for(\&move), $hints->LIST_EMPTY_OR_FALSE, "Move hints");
+if (PERL510) {
+    ok( $hints->get_hints_for(\&copy)->{scalar} ~~ 0 ,
+        "copy() hints should fail on 0 for scalars."
+    );
+}
 
 # Scalar context test
 

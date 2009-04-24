@@ -42,12 +42,12 @@ our $DEBUG = 0;
 
 my %hints = (
     'File::Copy::copy' => {
-        scalar => 0,
-        list   => sub { @{$_[0]} == 1 and $_[0][0] == 0 }
+        scalar => sub { not $_[0] },
+        list   => sub { @{$_[0]} == 1 and not $_[0][0] }
     },
-    'File::Copy::copy' => {
-        scalar => 0,
-        list   => sub { @{$_[0]} == 1 and $_[0][0] == 0 }
+    'File::Copy::move' => {
+        scalar => sub { not $_[0] },,
+        list   => sub { @{$_[0]} == 1 and not $_[0][0] }
     },
 );
 
