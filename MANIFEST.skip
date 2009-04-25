@@ -1,5 +1,7 @@
 .git
 .gitignore
+.prove
+.proverc
 pm_to_lib
 MANIFEST.bak
 MANIFEST.skip
@@ -9,6 +11,7 @@ Makefile$
 Makefile.old
 examples/
 autodie-.*.tar.gz
+autodie-.*.tar
 cover_db
 merge-core.pl
 doc/perl-tip.pod
