@@ -705,7 +705,15 @@ sub _one_invocation {
 
     ];
 
-    if ( $hints ) {
+    if ( $hints and ( ref($hints->{list} ) || "" ) eq 'CODE' ) {
+        # Subroutine hints are always called with the full
+        # list of return values.
+
+        $code .= qq{
+            if ( \$hints->{list}->(\\\@results) ) { $die };
+        };
+    }
+    elsif ( $hints ) {
         $code .= qq{
             if ( \$hints->{list} ~~ \@results ) { $die };
         };
