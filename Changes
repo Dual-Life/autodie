@@ -18,6 +18,7 @@ Revision history for autodie
           autodie changes calls to system(), and how this must be
           explicitly enabled.
 
+        * BUILD: Upgraded to Module::Install 0.87
 
 1.999 Sat Feb 28 18:36:55 AUSEDT 2009
 
