@@ -26,6 +26,8 @@ use constant DEFAULT_HINTS => {
     list   => EMPTY_OR_UNDEF,
 };
 
+use constant HINTS_PROVIDER => 'autodie::hints::provider';
+
 use base qw(Exporter);
 
 our $DEBUG = 0;
@@ -82,20 +84,48 @@ sub sub_fullname {
     return join( '::', get_code_info( $_[1] ) );
 }
 
+sub load_hints {
+    my ($class, $sub) = @_;
+
+    my ($package) = ( $sub =~ /(.*)::/ );
+
+    my $hints_available = 0;
+
+    if ($package->can('DOES') and $package->DOES(HINTS_PROVIDER) ) {
+        $hints_available = 1;
+    }
+    elsif ( $package->isa(HINTS_PROVIDER) ) {
+        $hints_available = 1;
+    }
+
+    return if not $hints_available;
+
+    my $hints = $package->AUTODIE_HINTS;
+
+    # XXX - TODO - Process hints.
+
+}
+
 sub get_hints_for {
     my ($class, $sub) = @_;
 
     my $subname = $class->sub_fullname( $sub );
 
-    my $hints =  exists $hints{ $subname } ?
-                        $hints{ $subname } :
-                        DEFAULT_HINTS;
-
-    if ($DEBUG) {
-        warn "autodie::hints: Got hints for $subname: $hints\n";
+    if ( exists $hints{ $subname } ) {
+        return $hints{ $subname };
     }
 
-    return $hints;
+    $class->load_hints( $sub );
+
+    # XXX - We return DEFAULT_HINTS, but then we have no idea
+    # to tell if we're using them because they're defaults, or
+    # because they've been specified by an external hint.
+
+    # We *should* return undef, or use some other marker so
+    # people asking for !subroutine can make sure they have a
+    # version with real hints, not default ones.
+
+    return DEFAULT_HINTS;
 
 }
 
