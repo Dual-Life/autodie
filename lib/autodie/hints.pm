@@ -39,10 +39,10 @@ our $DEBUG = 0;
 # would be useful for modules which have lots of subs which
 # express the same interface.
 
-# XXX: Ugh, those sub refs look awful!  Give them proper
+# TODO: Ugh, those sub refs look awful!  Give them proper
 # names!
 
-my %hints = (
+my %Hints = (
     'File::Copy::copy' => {
         scalar => sub { not $_[0] },
         list   => sub { @{$_[0]} == 1 and not $_[0][0] }
@@ -84,10 +84,18 @@ sub sub_fullname {
     return join( '::', get_code_info( $_[1] ) );
 }
 
+my %Hints_loaded = ();
+
 sub load_hints {
     my ($class, $sub) = @_;
 
     my ($package) = ( $sub =~ /(.*)::/ );
+
+    # TODO: What do we do if we can't find a package?
+
+    # Do nothing if we've already tried to load hints for
+    # this package.
+    return if $Hints_loaded{$package}++;
 
     my $hints_available = 0;
 
@@ -100,9 +108,14 @@ sub load_hints {
 
     return if not $hints_available;
 
-    my $hints = $package->AUTODIE_HINTS;
+    my %package_hints = $package->AUTODIE_HINTS;
 
-    # XXX - TODO - Process hints.
+    # Combine our package hints into our master hints table.
+    # TODO - Currently we don't check for conflicts, should we?
+
+    %Hints = ( %Hints, %package_hints);
+
+    return;
 
 }
 
@@ -111,11 +124,15 @@ sub get_hints_for {
 
     my $subname = $class->sub_fullname( $sub );
 
-    if ( exists $hints{ $subname } ) {
-        return $hints{ $subname };
+    # If we have hints loaded for a sub, then return them.
+
+    if ( exists $Hints{ $subname } ) {
+        return $Hints{ $subname };
     }
 
-    $class->load_hints( $sub );
+    # If not, we try to load them.
+
+    $class->load_hints( $subname );
 
     # XXX - We return DEFAULT_HINTS, but then we have no idea
     # to tell if we're using them because they're defaults, or
@@ -144,7 +161,7 @@ sub set_hints_for {
         warn "autodie::hints: Setting $sub to hints: $hints\n";
     }
 
-    $hints{ $sub } = $hints;
+    $Hints{ $sub } = $hints;
 
     return;
 }
