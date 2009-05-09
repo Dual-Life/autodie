@@ -108,12 +108,18 @@ sub load_hints {
 
     return if not $hints_available;
 
-    my %package_hints = $package->AUTODIE_HINTS;
+    my %package_hints = %{ $package->AUTODIE_HINTS };
 
-    # Combine our package hints into our master hints table.
-    # TODO - Currently we don't check for conflicts, should we?
+    foreach my $sub (keys %package_hints) {
 
-    %Hints = ( %Hints, %package_hints);
+        my $hint = $package_hints{$sub};
+
+        # Ensure we have a package name.
+        $sub = "${package}::$sub" if $sub !~ /::/;
+
+        # TODO - Currently we don't check for conflicts, should we?
+        $Hints{$sub} = $hint;
+    }
 
     return;
 
