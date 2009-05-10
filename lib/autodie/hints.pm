@@ -80,7 +80,7 @@ The most common context-specific hints are:
         # List failures return C<()> or C<(undef)> [default expectation]:
             {  list => sub { ! @_ || @_ == 1 && !defined $_[0] }  }
 
-        # List failures return C<()> or a single false value::
+        # List failures return C<()> or a single false value:
             {  list => sub { ! @_ || @_ == 1 && !$_[0]} }  }
 
         # List failures return (undef, "some string")
