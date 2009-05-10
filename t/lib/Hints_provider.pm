@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base qw(Exporter);
 
-our @EXPORT_OK = qw(always_fail always_pass);
+our @EXPORT_OK = qw(always_fail always_pass no_hints);
 
 sub DOES {
     my ($class, $arg) = @_;
@@ -24,5 +24,6 @@ sub AUTODIE_HINTS {
 
 sub always_fail { return "foo" };
 sub always_pass { return "foo" };
+sub no_hints    { return "foo" };
 
 1;

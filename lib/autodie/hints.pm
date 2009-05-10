@@ -321,19 +321,20 @@ sub get_hints_for {
         return $Hints{ $subname };
     }
 
-    # If not, we try to load them.
+    # If not, we try to load them...
 
     $class->load_hints( $subname );
 
-    # XXX - We return DEFAULT_HINTS, but then we have no idea
-    # to tell if we're using them because they're defaults, or
-    # because they've been specified by an external hint.
+    # ...and try again!
 
-    # We *should* return undef, or use some other marker so
-    # people asking for !subroutine can make sure they have a
-    # version with real hints, not default ones.
+    if ( exists $Hints{ $subname } ) {
+        return $Hints{ $subname };
+    }
 
-    return DEFAULT_HINTS;
+    # It's the caller's responsibility to use defaults if desired.
+    # This allows on autodie to insist on hints if needed.
+
+    return;
 
 }
 

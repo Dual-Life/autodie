@@ -33,6 +33,10 @@ Revision history for autodie
 
         * BUILD: Upgraded to Module::Install 0.87
 
+        * BUGFIX: A situation where certain compile-time diagnostics
+          and errors from autodie would not be displayed has been
+          fixed.
+
 1.999 Sat Feb 28 18:36:55 AUSEDT 2009
 
         * BUGFIX: Autodie now correctly propagates into string evals

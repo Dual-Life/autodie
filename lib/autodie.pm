@@ -334,6 +334,13 @@ end the end of the current block with C<no autodie>.
 To disable autodie for only a single function (eg, open)
 use or C<no autodie qw(open)>.
 
+=item No user hints defined for %s
+
+You've insisted on hints for user-subroutines, either by pre-pending
+a C<!> to the subroutine name itself, or earlier in the list of arguments
+to C<autodie>.  However the subroutine in question does not have
+any hints available.
+
 =back
 
 See also L<Fatal/DIAGNOSTICS>.

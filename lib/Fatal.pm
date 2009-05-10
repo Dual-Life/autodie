@@ -4,9 +4,11 @@ use 5.008;  # 5.8.x needed for autodie
 use Carp;
 use strict;
 use warnings;
+use Tie::RefHash;   # To cache subroutine refs
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
+use constant INSIST_TAG  => q{!};
 
 use constant ERROR_NOARGS    => 'Cannot use lexical %s with no arguments';
 use constant ERROR_VOID_LEX  => VOID_TAG.' cannot be used with lexical scope';
@@ -15,6 +17,8 @@ use constant ERROR_NO_LEX    => "no %s can only start with ".LEXICAL_TAG;
 use constant ERROR_BADNAME   => "Bad subroutine name for %s: %s";
 use constant ERROR_NOTSUB    => "%s is not a Perl subroutine";
 use constant ERROR_NOT_BUILT => "%s is neither a builtin, nor a Perl subroutine";
+use constant ERROR_NOHINTS   => "No user hints defined for %s";
+
 use constant ERROR_CANT_OVERRIDE => "Cannot make the non-overridable builtin %s fatal";
 
 use constant ERROR_NO_IPC_SYS_SIMPLE => "IPC::System::Simple required for Fatalised/autodying system()";
@@ -24,6 +28,7 @@ use constant ERROR_IPC_SYS_SIMPLE_OLD => "IPC::System::Simple version %f require
 use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while "use Fatal '%s'" is in effect};
 
 use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
+
 
 # Older versions of IPC::System::Simple don't support all the
 # features we need.
@@ -132,6 +137,13 @@ my %Package_Fatal = ();
 
 my %Original_user_sub = ();
 
+# Is_fatalised_sub simply records a big map of fatalised subroutine
+# refs.  It means we can avoid repeating work, or fatalising something
+# we've already processed.
+
+my  %Is_fatalised_sub = ();
+tie %Is_fatalised_sub, 'Tie::RefHash';
+
 # We use our package in a few hash-keys.  Having it in a scalar is
 # convenient.  The "guard $PACKAGE" string is used as a key when
 # setting up lexical guards.
@@ -144,9 +156,10 @@ my $NO_PACKAGE    = "no $PACKAGE";      # Used to detect 'no autodie'
 # or 'use autodie'.
 
 sub import {
-    my $class   = shift(@_);
-    my $void    = 0;
-    my $lexical = 0;
+    my $class        = shift(@_);
+    my $void         = 0;
+    my $lexical      = 0;
+    my $insist_hints = 0;
 
     my ($pkg, $filename) = caller();
 
@@ -195,6 +208,10 @@ sub import {
             # When we see :void, set the void flag.
             $void = 1;
 
+        } elsif ($func eq INSIST_TAG) {
+
+            $insist_hints = 1;
+
         } elsif (exists $TAGS{$func}) {
 
             # When it's a tag, expand it.
@@ -203,6 +220,17 @@ sub import {
         } else {
 
             # Otherwise, fatalise it.
+
+            # Check to see if there's an insist flag at the front.
+            # If so, remove it, and insist we have hints for this sub.
+            my $insist_this;
+
+            if ($func =~ s/^!//) {
+                $insist_this = 1;
+            }
+
+            # TODO: Even if we've already fatalised, we should
+            # check we've done it with hints (if $insist_hints).
 
             # If we've already made something fatal this call,
             # then don't do it twice.
@@ -233,7 +261,8 @@ sub import {
             # built-ins.
 
             my $sub_ref = $class->_make_fatal(
-                $func, $pkg, $void, $lexical, $filename
+                $func, $pkg, $void, $lexical, $filename,
+                ( $insist_this || $insist_hints )
             );
 
             $done_this{$func}++;
@@ -777,7 +806,7 @@ sub _one_invocation {
 # TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
 
 sub _make_fatal {
-    my($class, $sub, $pkg, $void, $lexical, $filename) = @_;
+    my($class, $sub, $pkg, $void, $lexical, $filename, $insist) = @_;
     my($name, $code, $sref, $real_proto, $proto, $core, $call, $hints);
     my $ini = $sub;
 
@@ -801,12 +830,15 @@ sub _make_fatal {
 
     if (defined(&$sub)) {   # user subroutine
 
+        # NOTE: Previously we would localise $@ at this point, so
+        # the following calls to eval {} wouldn't interfere with anything
+        # that's already in $@.  Unfortunately, it would also stop
+        # any of our croaks from triggering(!), which is even worse.
+
         # This could be something that we've fatalised that
         # was in core.
 
-        local $@; # Don't clobber anyone else's $@
-
-        if ( $Package_Fatal{$sub} and eval { prototype "CORE::$name" } ) {
+        if ( $Package_Fatal{$sub} and do { local $@; eval { prototype "CORE::$name" } } ) {
 
             # Something we previously made Fatal that was core.
             # This is safe to replace with an autodying to core
@@ -824,6 +856,12 @@ sub _make_fatal {
 
         } else {
 
+            # If this is something we've already fatalised or played with,
+            # then look-up the name of the original sub for the rest of
+            # our processing.
+
+            $sub = $Is_fatalised_sub{\&$sub} || $sub;
+
             # A regular user sub, or a user sub wrapping a
             # core sub.
 
@@ -831,7 +869,20 @@ sub _make_fatal {
             $proto = prototype $sref;
             $call = '&$sref';
             require autodie::hints;
+
             $hints = autodie::hints->get_hints_for( $sref );
+
+            # If we've insisted on hints, but don't have them, then
+            # bail out!
+
+            if ($insist and not $hints) {
+                croak(sprintf(ERROR_NOHINTS, $name));
+            }
+
+            # Otherwise, use the default hints if we don't have
+            # any.
+
+            $hints ||= autodie::hints::DEFAULT_HINTS();
 
         }
 
@@ -844,21 +895,31 @@ sub _make_fatal {
         # If we're fatalising system, then we need to load
         # helper code.
 
-        eval {
-            require IPC::System::Simple; # Only load it if we need it.
-            require autodie::exception::system;
-        };
+        # The business with $E is to avoid clobbering our caller's
+        # $@, and to avoid $@ being localised when we croak.
 
-        if ($@) { croak ERROR_NO_IPC_SYS_SIMPLE; }
+        my $E;
 
-            # Make sure we're using a recent version of ISS that actually
-            # support fatalised system.
-            if ($IPC::System::Simple::VERSION < MIN_IPC_SYS_SIMPLE_VER) {
-                croak sprintf(
-                ERROR_IPC_SYS_SIMPLE_OLD, MIN_IPC_SYS_SIMPLE_VER,
-                $IPC::System::Simple::VERSION
-                );
-            }
+        {
+            local $@;
+
+            eval {
+                require IPC::System::Simple; # Only load it if we need it.
+                require autodie::exception::system;
+            };
+            $E = $@;
+        }
+
+        if ($E) { croak ERROR_NO_IPC_SYS_SIMPLE; }
+
+        # Make sure we're using a recent version of ISS that actually
+        # support fatalised system.
+        if ($IPC::System::Simple::VERSION < MIN_IPC_SYS_SIMPLE_VER) {
+            croak sprintf(
+            ERROR_IPC_SYS_SIMPLE_OLD, MIN_IPC_SYS_SIMPLE_VER,
+            $IPC::System::Simple::VERSION
+            );
+        }
 
         $call = 'CORE::system';
         $name = 'system';
@@ -874,8 +935,13 @@ sub _make_fatal {
         $core = 1;
 
     } else {            # CORE subroutine
-        $proto = eval { prototype "CORE::$name" };
-        croak(sprintf(ERROR_NOT_BUILT,$name)) if $@;
+        my $E;
+        {
+            local $@;
+            $proto = eval { prototype "CORE::$name" };
+            $E = $@;
+        }
+        croak(sprintf(ERROR_NOT_BUILT,$name)) if $E;
         croak(sprintf(ERROR_CANT_OVERRIDE,$name)) if not defined $proto;
         $core = 1;
         $call = "CORE::$name";
@@ -929,18 +995,18 @@ sub _make_fatal {
     # and filehandles.
 
     {
-        local $@;
         no strict 'refs'; ## no critic # to avoid: Can't use string (...) as a symbol ref ...
-        $code = eval("package $pkg; use Carp; $code");  ## no critic
+
+        my $E;
+
+        {
+            local $@;
+            $code = eval("package $pkg; use Carp; $code");  ## no critic
+            $E = $@;
+        }
+
         if (not $code) {
-
-            # For some reason, using a die, croak, or confess in here
-            # results in the error being completely surpressed. As such,
-            # we need to do our own reporting.
-            #
-            # TODO: Fix the above.
-
-            _autocroak("Internal error in autodie/Fatal processing $true_name: $@");
+            croak("Internal error in autodie/Fatal processing $true_name: $E");
 
         }
     }
@@ -1008,16 +1074,28 @@ sub _make_fatal {
 
         # warn "$leak_guard\n";
 
-        local $@;
+        my $E;
+        {
+            local $@;
 
-        $leak_guard = eval $leak_guard;  ## no critic
+            $leak_guard = eval $leak_guard;  ## no critic
 
-        die "Internal error in $class: Leak-guard installation failure: $@" if $@;
+            $E = $@;
+        }
+
+        die "Internal error in $class: Leak-guard installation failure: $E" if $E;
     }
 
-    $class->_install_subs($pkg, { $name => $leak_guard || $code });
+    my $installed_sub = $leak_guard || $code;
 
-    $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical} = $leak_guard || $code;
+    $class->_install_subs($pkg, { $name => $installed_sub });
+
+    $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical} = $installed_sub;
+
+    # Cache that we've now overriddent this sub.  If we get called
+    # again, we may need to find that find subroutine again (eg, for hints).
+
+    $Is_fatalised_sub{$installed_sub} = $sref;
 
     return $sref;
 
