@@ -79,7 +79,7 @@ my %list_tests = (
     'empty_list(())',       => 1,
     'empty_list([])',       => 0,
     'empty_list(0)',        => 0,
-    'empty_list('')',       => 0,
+    'empty_list("")',       => 0,
     'empty_list(undef)',    => 0,
 
     'default_list()',       => 1,
@@ -148,12 +148,12 @@ my %list_tests = (
 
 my $perl58_fix = (
     PERL510 ?
-    "" :
-    "use autodie qw(
+    q{} :
+    q{use autodie qw(
 	undef_scalar false_scalar zero_scalar empty_list default_list
 	empty_or_false_list undef_n_error_list foo re_fail bar
 	think_positive my_system bizarro_system    
-    );";
+    );}
 );
 
 # Some of the tests provide different hints for scalar or list context
@@ -161,7 +161,7 @@ my $perl58_fix = (
 while (my ($test, $exception_expected) = each %scalar_tests) {
     eval "
         $perl58_fix
-        my $scalar = $test;
+        my \$scalar = $test;
     ";
 
     if ($exception_expected) {
