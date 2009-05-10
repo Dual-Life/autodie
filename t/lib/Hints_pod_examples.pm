@@ -4,6 +4,12 @@ use warnings;
 
 use base qw(Exporter);
 
+sub DOES {
+    my $class= shift;
+    return(1) if $_[0] eq 'autodie::hints::provider';
+    return $class->isa(@_);
+}
+
 our @EXPORT_OK = qw(
 	undef_scalar false_scalar zero_scalar empty_list default_list
 	empty_or_false_list undef_n_error_list foo re_fail bar
@@ -73,7 +79,8 @@ sub re_fail { return @_ };
 autodie::hints->set_hints_for(
     \&bar,
     {
-	fail => 0
+	scalar => 0,
+	list   => 0,
     }
 );
 sub bar { return @_ };
@@ -82,7 +89,8 @@ sub bar { return @_ };
 autodie::hints->set_hints_for(
     \&think_positive,
     {
-	fail => sub { $_[0] < 0 }
+	scalar => sub { $_[0] < 0 },
+	list   => sub { $_[0] < 0 },
     }
 );
 sub think_positive { return @_ };
@@ -91,7 +99,8 @@ sub think_positive { return @_ };
 autodie::hints->set_hints_for(
     \&my_system,
     {
-	fail => sub { $_[0] != 0 }
+	scalar => sub { $_[0] != 0 },
+	list   => sub { $_[0] != 0 },
     }
 );
 sub my_system { return @_ };
@@ -100,7 +109,8 @@ sub my_system { return @_ };
 autodie::hints->set_hints_for(
     \&bizarro_system,
     {
-	fail => sub { defined $? }
+	scalar => sub { defined $? },
+	list   => sub { defined $? },
     }
 );
 sub bizarro_system { ($?) = @_; return int rand (10);  };
