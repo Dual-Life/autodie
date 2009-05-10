@@ -81,10 +81,20 @@ The most common context-specific hints are:
             {  list => sub { ! @_ || @_ == 1 && !defined $_[0] }  }
 
         # List failures return C<()> or a single false value:
-            {  list => sub { ! @_ || @_ == 1 && !$_[0]} }  }
+            {  list => sub { ! @_ || @_ == 1 && !$_[0] }  }
 
         # List failures return (undef, "some string")
-            {  list => sub { @_ == 2 && !defined $_[0]} }  }
+            {  list => sub { @_ == 2 && !defined $_[0] }  }
+
+        # Unsuccessful foo() returns 'FAIL' or '_FAIL' in scalar context,
+        #                    returns (-1) in list context...
+        autodie::hints->set_hints_for(
+            \&foo,
+            {
+                scalar => qr/^ _? FAIL $/xms,
+                list   => [-1],
+            }
+        );
 
         # Unsuccessful foo() returns 0 in all contexts...
         autodie::hints->set_hints_for(
