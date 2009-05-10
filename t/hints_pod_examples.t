@@ -11,7 +11,7 @@ use Hints_pod_examples qw(
 	empty_or_false_list undef_n_error_list foo re_fail bar
 	think_positive my_system bizarro_system    
 );
-use autodie qw(
+use autodie qw( !
 	undef_scalar false_scalar zero_scalar empty_list default_list
 	empty_or_false_list undef_n_error_list foo re_fail bar
 	think_positive my_system bizarro_system    
@@ -165,10 +165,10 @@ while (my ($test, $exception_expected) = each %scalar_tests) {
     ";
 
     if ($exception_expected) {
-        isnt("$@", "", $test);
+        isnt("$@", "", "scalar test - $test");
     }
     else {
-        is($@, "", $test);
+        is($@, "", "scalar test - $test");
     }
 }
 
@@ -179,10 +179,10 @@ while (my ($test, $exception_expected) = each %list_tests) {
     ";
 
     if ($exception_expected) {
-        isnt("$@", "", $test);
+        isnt("$@", "", "array test - $test");
     }
     else {
-        is($@, "", $test);
+        is($@, "", "array test - $test");
     }
 }
 
