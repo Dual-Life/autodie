@@ -7,7 +7,192 @@ use warnings;
 
 autodie::hints - Provide hints about user subroutines to autodie
 
+=head1 SYNOPSIS
+
+   package Your::Module;
+
+   sub AUTODIE_HINTS {
+       return {
+           foo => { scalar => HINTS, list => SOME_HINTS },
+           bar => { scalar => HINTS, list => MORE_HINTS },
+       }
+   }
+
+
+   # later
+   use Your::Module qw(foo bar);
+   use autodie      qw(:default foo bar);
+
+   foo();         # succeeds or dies based on scalar hints
+   print foo();   # succeeds or dies based on list hints
+
+=head1 Hinting interface
+
+C<autodie::hints> allows you to tell C<autodie> what your subroutines
+return on failure.
+
+Without hints, C<autodie> only considers the following return values as
+evidence of failure:
+
+=over
+
+=item *
+
+A false value, in scalar context
+
+=item * 
+
+An empty list, in list context
+
+=item *
+
+A list containing a single undef, in list context
+
+=back
+
+All other return values (including the list of the single zero, and the
+list containing a single empty string) are considered true.  However,
+real-world code isn't always that easy.  Perhaps the code you're working
+with returns a string containing the word "FAIL" in it upon failure, or a
+two element list containing C<(undef, "human error message")>.  To make
+autodie work with these, we have the hinting interface.
+
+=head2 Example hints
+
+Hints may consist of scalars, array references, regular expression and
+subroutine references.  You can specify different hints for how failure should
+be identified in scalar and list contexts.
+
+The most common context-specific hints are:
+
+        # Scalar failures always return undef:
+            {  scalar => undef  }
+
+        # Scalar failures return any false value [default expectation]:
+            {  scalar => sub { ! $_[0] }  }
+
+        # Scalar failures always return zero explicitly:
+            {  scalar => '0'  }
+
+        # List failures always return empty list:
+            {  list => []  }
+
+        # List failures return C<()> or C<(undef)> [default expectation]:
+            {  list => sub { ! @_ || @_ == 1 && !defined $_[0] }  }
+
+        # List failures return C<()> or a single false value::
+            {  list => sub { ! @_ || @_ == 1 && !$_[0]} }  }
+
+        # List failures return (undef, "some string")
+            {  list => sub { @_ == 2 && !defined $_[0]} }  }
+
+        # Unsuccessful foo() returns 0 in all contexts...
+        autodie::hints->set_hints_for(
+            \&foo,
+            {
+                scalar => 0,
+                list   => [0],
+            }
+
+This "in all contexts" construction is very common, and can be
+abbreviated, using the 'fail' key. A C<< { fail => $val } >> hint is
+simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
+
+        # Unsuccessful foo() returns 0 in all contexts...
+        autodie::hints->set_hints_for(
+            \&foo,
+            {
+                fail => 0
+            }
+
+        # Unsuccessful think_positive() returns negative number on failure...
+        autodie::hints->set_hints_for(
+            \&think_positive,
+            {
+                fail => sub { $_[0] < 0 }
+            }
+
+        # Unsuccessful my_system() returns non-zero on failure...
+        autodie::hints->set_hints_for(
+            \&my_system,
+            {
+                fail => sub { $_[0] != 0 }
+            }
+
+        # Unsuccessful bizarro_system() returns random value and sets $?...
+        autodie::hints->set_hints_for(
+            \&bizarro_system,
+            {
+                fail => sub { defined $? }
+            }
+
+On Perl 5.8, only simple scalars, array references, regular expressions and
+subroutines are supported as hints, anything else is a compile-time error.
+
+=head1 Setting hints directly
+
+	package Your::Module;
+	use autodie::hints;
+
+	autodie::hints->set_hints_for(
+		\&foo,
+		{
+			scalar => SCALAR_HINT,
+			list   => LIST_HINT,
+		}
+	);
+
+It is possible to pass either a subroutine reference (recommended) or a fully
+qualified subroutine name as the first argument, so you can set hints on
+modules that I<might> get loaded, but haven't been loaded yet.
+
+The hints above are smart-matched against the return value from the
+subroutine; a true result indicates failure, and an appropriate exception is
+thrown.  Since one can smart-match against a subroutine, it's possible to do
+quite complex checks for failure if needed.
+
+The hint-setting interface is pretty verbose, and is designed as something
+which might be written into sub-classes (my::company::autodie), or modules
+(preferably next to the subroutines themselves). 
+
+=head1 Auto-finding hints
+
+	package Your::Module;
+
+	sub AUTODIE_HINTS {
+	    return {
+	        foo => { scalar => HINTS, list => SOME_HINTS },
+	        bar => { scalar => HINTS, list => MORE_HINTS },
+	    }
+	}
+
+This allows your code to set hints without relying on C<autodie> and
+C<autodie::hints>.  Thus if your end user chooses to use C<autodie> then hints
+declared in this way will be found and loaded for correct error handling.
+
+=head1 Insisting on hints
+
+	# foo() and bar() must have their hints defined
+	use autodie qw( !foo !bar baz );
+
+	# Everything must have hints.
+	use autodie qw( ! foo bar baz );
+
+	# bar() and baz() must have their hints defined
+	use autodie qw( foo ! bar baz );
+
+It is possible for a user to insist that hints have been defined.  This is
+done by prefixing each user-defined subroutine with a C<!> in the import
+list.  A C<!> on its own specifies that all user-defined subroutines after
+that point must have hints.
+
+If hints are not available for the specified subroutines, this will cause a
+compile-time error.
+
 =cut
+
+# TODO: implement fail.
+# TODO: implement regular expression hints
 
 use constant UNDEF_ONLY => undef;
 use constant EMPTY_OR_UNDEF   => sub {
@@ -176,6 +361,9 @@ sub set_hints_for {
 
 __END__
 
+
+
+
 =head1 Diagnostics
 
 =head2 Attempts to set_hints_for unidentifiable subroutine
@@ -188,6 +376,22 @@ be made autodying), or may lack a name for other reasons.
 If you receive this error with a subroutine that has a real name,
 then you may have found a bug in autodie.  See L<autodie/BUGS>
 for how to report this.
+
+=head1 ACKNOWLEDGEMENTS
+
+=over 
+
+=item *
+
+Dr Damian Conway for suggesting the hinting interface and providing the
+example usage.
+
+=item *
+
+Jacinta Richardson for translating much of my ideas into this
+documentation.
+
+=back
 
 =head1 AUTHOR
 
