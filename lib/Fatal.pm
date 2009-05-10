@@ -736,7 +736,8 @@ sub _one_invocation {
 
     if ( $hints and ( ref($hints->{list} ) || "" ) eq 'CODE' ) {
         # Subroutine hints are always called with the full
-        # list of return values.
+        # list of return values.  We pass in a *reference* to
+        # the array because that's what would happen in 5.10.0
 
         $code .= qq{
             if ( \$hints->{list}->(\\\@results) ) { $die };
