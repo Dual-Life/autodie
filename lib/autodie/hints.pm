@@ -93,6 +93,7 @@ The most common context-specific hints are:
                 scalar => 0,
                 list   => [0],
             }
+	);
 
 This "in all contexts" construction is very common, and can be
 abbreviated, using the 'fail' key. A C<< { fail => $val } >> hint is
@@ -104,6 +105,7 @@ simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
             {
                 fail => 0
             }
+	);
 
         # Unsuccessful think_positive() returns negative number on failure...
         autodie::hints->set_hints_for(
@@ -111,6 +113,7 @@ simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
             {
                 fail => sub { $_[0] < 0 }
             }
+	);
 
         # Unsuccessful my_system() returns non-zero on failure...
         autodie::hints->set_hints_for(
@@ -118,6 +121,7 @@ simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
             {
                 fail => sub { $_[0] != 0 }
             }
+	);
 
         # Unsuccessful bizarro_system() returns random value and sets $?...
         autodie::hints->set_hints_for(
@@ -125,6 +129,7 @@ simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
             {
                 fail => sub { defined $? }
             }
+	);
 
 On Perl 5.8, only simple scalars, array references, regular expressions and
 subroutines are supported as hints, anything else is a compile-time error.
