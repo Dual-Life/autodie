@@ -745,7 +745,7 @@ sub _one_invocation {
     }
     elsif ( $hints ) {
         $code .= qq{
-            if ( \$hints->{list} ~~ \@results ) { $die };
+            if ( \@results ~~ \$hints->{list} ) { $die };
         };
     }
     else {
@@ -775,7 +775,7 @@ sub _one_invocation {
 
     if ($hints) {
         return $code . qq{
-            if ( \$hints->{scalar} ~~ \$result ) { $die };
+            if ( \$result ~~ \$hints->{scalar} ) { $die };
 
             return \$result;
         };
