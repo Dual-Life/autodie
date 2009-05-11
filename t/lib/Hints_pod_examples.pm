@@ -2,13 +2,7 @@ package Hints_pod_examples;
 use strict;
 use warnings;
 
-use base qw(Exporter);
-
-sub DOES {
-    my $class= shift;
-    return(1) if $_[0] eq 'autodie::hints::provider';
-    return $class->isa(@_);
-}
+use base qw(Exporter autodie::hints::provider);
 
 our @EXPORT_OK = qw(
 	undef_scalar false_scalar zero_scalar empty_list default_list
@@ -23,7 +17,7 @@ sub AUTODIE_HINTS {
         # Scalar failures always return undef:
         undef_scalar =>    {  scalar => undef  },
 
-        # Scalar failures return any false value [default expectation]:
+        # Scalar failures return any false value [default behaviour]:
         false_scalar =>    {  scalar => sub { ! $_[0] }  },
 
         # Scalar failures always return zero explicitly:
