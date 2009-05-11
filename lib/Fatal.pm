@@ -773,8 +773,19 @@ sub _one_invocation {
         my \$result = $call(@argv);
     };
 
-    if ($hints) {
+    if ( $hints and ( ref($hints->{scalar} ) || "" ) eq 'CODE' ) {
+
+        # We always call code refs directly, since that always
+        # works in 5.8.x, and always works in 5.10.1
+
+        $code .= qq{
+            if ( \$hints->{scalar}->(\$result) ) { $die };
+        };
+
+    }
+    elsif ($hints) {
         return $code . qq{
+
             if ( \$result ~~ \$hints->{scalar} ) { $die };
 
             return \$result;
