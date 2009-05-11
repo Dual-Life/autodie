@@ -18,7 +18,7 @@ sub AUTODIE_HINTS {
         undef_scalar =>    {  scalar => undef  },
 
         # Scalar failures return any false value [default behaviour]:
-        false_scalar =>    {  scalar => sub { ! $_[0] }  },
+        false_scalar =>    {  scalar => sub { return ! $_[0] }  },
 
         # Scalar failures always return zero explicitly:
         zero_scalar =>     {  scalar => '0'  },
@@ -38,13 +38,13 @@ sub AUTODIE_HINTS {
 }	
 
 # Define some subs that all just return their arguments
-sub undef_scalar { return @_ };
-sub false_scalar { return @_ };
-sub zero_scalar  { return @_ };
-sub empty_list   { return @_ };
-sub default_list { return @_ };
-sub empty_or_false_list { return @_ };
-sub undef_n_error_list { return @_ };
+sub undef_scalar { return wantarray ? @_ : $_[0] };
+sub false_scalar { return wantarray ? @_ : $_[0] };
+sub zero_scalar  { return wantarray ? @_ : $_[0] };
+sub empty_list   { return wantarray ? @_ : $_[0] };
+sub default_list { return wantarray ? @_ : $_[0] };
+sub empty_or_false_list { return wantarray ? @_ : $_[0] };
+sub undef_n_error_list { return wantarray ? @_  : $_[0] };
 
 
 # Unsuccessful foo() returns 0 in all contexts...
