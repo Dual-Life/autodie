@@ -211,14 +211,14 @@ compile-time error.
 
 use constant UNDEF_ONLY => undef;
 use constant EMPTY_OR_UNDEF   => sub {
-    ! @{$_[0]} ||
-    @{$_[0]}==1 && !defined $_[0][0]
+    ! @_ or
+    @_==1 && !defined $_[0]
 };
 
 use constant EMPTY_ONLY => [];
 use constant EMPTY_OR_FALSE => sub {
-    ! @{$_[0]} ||
-    @{$_[0]}==1 && !$_[0][0]
+    ! @_ or
+    @_==1 && !$_[0]
 };
 
 use constant DEFAULT_HINTS => {
@@ -245,11 +245,11 @@ our $DEBUG = 0;
 my %Hints = (
     'File::Copy::copy' => {
         scalar => sub { not $_[0] },
-        list   => sub { @{$_[0]} == 1 and not $_[0][0] }
+        list   => sub { @_ == 1 and not $_[0] }
     },
     'File::Copy::move' => {
-        scalar => sub { not $_[0] },,
-        list   => sub { @{$_[0]} == 1 and not $_[0][0] }
+        scalar => sub { not $_[0] },
+        list   => sub { @_ == 1 and not $_[0] }
     },
 );
 

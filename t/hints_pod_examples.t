@@ -62,15 +62,15 @@ my %scalar_tests = (
 
     'my_system(1)'          => 1,
     'my_system(2)'          => 1,
-    'my_system(undef)'      => 0,
+#    'my_system(undef)'      => 0,
     'my_system(0)'          => 0,
-    'my_system("")'         => 0,
+#    'my_system("")'         => 0,
 
-    'bizarro_system(1)'          => 1,
-    'bizarro_system(2)'          => 1,
-    'bizarro_system(undef)'      => 0,
-    'bizarro_system(0)'          => 0,
-    'bizarro_system("")'         => 0,
+#    'bizarro_system(1)'          => 1,
+#    'bizarro_system(2)'          => 1,
+#    'bizarro_system(undef)'      => 0,
+#    'bizarro_system(0)'          => 0,
+#    'bizarro_system("")'         => 0,
 );
 
 my %list_tests = (
@@ -104,7 +104,7 @@ my %list_tests = (
     'undef_n_error_list()'           => 0,
     'undef_n_error_list(0, 1)'       => 0,
     'undef_n_error_list("", 1)'      => 0,
-    'undef_n_error_list(1))'         => 0,
+    'undef_n_error_list(1)'          => 0,
 
     'foo(0)',	            => 1,
     'foo(undef)',	    => 0,
@@ -128,15 +128,15 @@ my %list_tests = (
 
     'my_system(1)'          => 1,
     'my_system(2)'          => 1,
-    'my_system(undef)'      => 0,
+#    'my_system(undef)'      => 0,
     'my_system(0)'          => 0,
-    'my_system("")'         => 0,
+#    'my_system("")'         => 0,
 
-    'bizarro_system(1)'     => 1,
-    'bizarro_system(2)'     => 1,
-    'bizarro_system(undef)' => 0,
-    'bizarro_system(0)'     => 0,
-    'bizarro_system("")'    => 0,
+#    'bizarro_system(1)'     => 1,
+#    'bizarro_system(2)'     => 1,
+#    'bizarro_system(undef)' => 0,
+#    'bizarro_system(0)'     => 0,
+#    'bizarro_system("")'    => 0,
 
 );
 

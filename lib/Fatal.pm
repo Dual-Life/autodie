@@ -735,12 +735,14 @@ sub _one_invocation {
     ];
 
     if ( $hints and ( ref($hints->{list} ) || "" ) eq 'CODE' ) {
-        # Subroutine hints are always called with the full
-        # list of return values.  We pass in a *reference* to
-        # the array because that's what would happen in 5.10.0
+
+        # NB: Subroutine hints are passed as a full list.
+        # This differs from the 5.10.0 smart-match behaviour,
+        # but means that context unaware subroutines can use
+        # the same hints in both list and scalar context.
 
         $code .= qq{
-            if ( \$hints->{list}->(\\\@results) ) { $die };
+            if ( \$hints->{list}->(\@results) ) { $die };
         };
     }
     elsif ( $hints ) {

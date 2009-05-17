@@ -38,13 +38,13 @@ sub AUTODIE_HINTS {
 }	
 
 # Define some subs that all just return their arguments
-sub undef_scalar { return wantarray ? @_ : $_[0] };
-sub false_scalar { return wantarray ? @_ : $_[0] };
-sub zero_scalar  { return wantarray ? @_ : $_[0] };
-sub empty_list   { return wantarray ? @_ : $_[0] };
-sub default_list { return wantarray ? @_ : $_[0] };
-sub empty_or_false_list { return wantarray ? @_ : $_[0] };
-sub undef_n_error_list { return wantarray ? @_  : $_[0] };
+sub undef_scalar { return wantarray ? @_ : $_[0] }
+sub false_scalar { return wantarray ? @_ : $_[0] }
+sub zero_scalar  { return wantarray ? @_ : $_[0] }
+sub empty_list   { return wantarray ? @_ : $_[0] }
+sub default_list { return wantarray ? @_ : $_[0] }
+sub empty_or_false_list { return wantarray ? @_ : $_[0] }
+sub undef_n_error_list { return wantarray ? @_  : $_[0] }
 
 
 # Unsuccessful foo() returns 0 in all contexts...
@@ -56,7 +56,7 @@ autodie::hints->set_hints_for(
     }
 );
 
-sub foo { return @_ };
+sub foo { return wantarray ? @_ : $_[0] }
 
 # Unsuccessful re_fail() returns 'FAIL' or '_FAIL' in scalar context,
 #                    returns (-1) in list context...
@@ -67,7 +67,8 @@ autodie::hints->set_hints_for(
 	list   => [-1],
     }
 );
-sub re_fail { return @_ };
+
+sub re_fail { return wantarray ? @_ : $_[0] }
 
 # Unsuccessful bar() returns 0 in all contexts...
 autodie::hints->set_hints_for(
@@ -77,7 +78,8 @@ autodie::hints->set_hints_for(
 	list   => 0,
     }
 );
-sub bar { return @_ };
+
+sub bar { return wantarray ? @_ : $_[0] }
 
 # Unsuccessful think_positive() returns negative number on failure...
 autodie::hints->set_hints_for(
@@ -87,7 +89,8 @@ autodie::hints->set_hints_for(
 	list   => sub { $_[0] < 0 },
     }
 );
-sub think_positive { return @_ };
+
+sub think_positive { return wantarray ? @_ : $_[0] }
 
 # Unsuccessful my_system() returns non-zero on failure...
 autodie::hints->set_hints_for(
@@ -97,7 +100,7 @@ autodie::hints->set_hints_for(
 	list   => sub { $_[0] != 0 },
     }
 );
-sub my_system { return @_ };
+sub my_system { return wantarray ? @_ : $_[0] };
 
 # Unsuccessful bizarro_system() returns random value and sets $?...
 autodie::hints->set_hints_for(
