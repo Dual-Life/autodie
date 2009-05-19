@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Tie::RefHash;   # To cache subroutine refs
 
-use constant PERL510     => ( $] >= 5.010);
+use constant PERL510     => ( $] >= 5.010 );
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -791,17 +791,17 @@ sub _one_invocation {
         };
 
     }
-    elsif ( $hints ) {
-        # XXX - Turn into a proper diagnostic.
-        croak "Non-subroutine list hints for $sub are not supported under Perl 5.8.x";
-    }
-    elsif ($hints) {
+    elsif (PERL510 and $hints) {
         return $code . qq{
 
             if ( \$result ~~ \$hints->{scalar} ) { $die };
 
             return \$result;
         };
+    }
+    elsif ( $hints ) {
+        # XXX - Turn into a proper diagnostic.
+        croak "Non-subroutine list hints for $sub are not supported under Perl 5.8.x";
     }
 
     return $code .
