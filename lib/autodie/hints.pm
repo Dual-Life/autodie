@@ -209,13 +209,13 @@ compile-time error.
 # TODO: implement fail.
 # TODO: implement regular expression hints
 
-use constant UNDEF_ONLY => undef;
+use constant UNDEF_ONLY       => sub { not defined $_[0] };
 use constant EMPTY_OR_UNDEF   => sub {
     ! @_ or
     @_==1 && !defined $_[0]
 };
 
-use constant EMPTY_ONLY => [];
+use constant EMPTY_ONLY     => sub { @_ == 0 };
 use constant EMPTY_OR_FALSE => sub {
     ! @_ or
     @_==1 && !$_[0]

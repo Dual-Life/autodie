@@ -35,7 +35,7 @@ is( $hints->sub_fullname(\&move), 'File::Copy::move' , "Id: move" );
 is( $hints->sub_fullname(\&mv),   'File::Copy::move' , "Id: mv"   );
 
 if (PERL510) {
-    ok( $hints->get_hints_for(\&copy)->{scalar} ~~ 0 ,
+    ok( $hints->get_hints_for(\&copy)->{scalar}->(0) ,
         "copy() hints should fail on 0 for scalars."
     );
 }
