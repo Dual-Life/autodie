@@ -102,14 +102,4 @@ autodie::hints->set_hints_for(
 );
 sub my_system { return wantarray ? @_ : $_[0] };
 
-# Unsuccessful bizarro_system() returns random value and sets $?...
-autodie::hints->set_hints_for(
-    \&bizarro_system,
-    {
-	scalar => sub { defined $? },
-	list   => sub { defined $? },
-    }
-);
-sub bizarro_system { ($?) = @_; return int rand (10);  };
-
 1;

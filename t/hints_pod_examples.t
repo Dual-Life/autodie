@@ -128,15 +128,7 @@ my %list_tests = (
 
     'my_system(1)'          => 1,
     'my_system(2)'          => 1,
-#    'my_system(undef)'      => 0,
     'my_system(0)'          => 0,
-#    'my_system("")'         => 0,
-
-#    'bizarro_system(1)'     => 1,
-#    'bizarro_system(2)'     => 1,
-#    'bizarro_system(undef)' => 0,
-#    'bizarro_system(0)'     => 0,
-#    'bizarro_system("")'    => 0,
 
 );
 
