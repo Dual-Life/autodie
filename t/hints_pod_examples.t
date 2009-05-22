@@ -86,8 +86,8 @@ my %list_tests = (
     'empty_list(undef)',    => 0,
 
     'default_list()',       => 1,
-    'default_list(0)',      => 1,
-    'default_list("")',     => 1,
+    'default_list(0)',      => 0,
+    'default_list("")',     => 0,
     'default_list(undef)',  => 1,
     'default_list(1)',      => 0,
     'default_list("str")',  => 0,
