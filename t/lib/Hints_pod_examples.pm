@@ -15,25 +15,26 @@ use autodie::hints;
 sub AUTODIE_HINTS {
     return {
         # Scalar failures always return undef:
-        undef_scalar =>    {  scalar => undef  },
+        undef_scalar =>    {  fail => undef  },
 
         # Scalar failures return any false value [default behaviour]:
-        false_scalar =>    {  scalar => sub { return ! $_[0] }  },
+        false_scalar =>    {  fail => sub { return ! $_[0] }  },
 
         # Scalar failures always return zero explicitly:
-        zero_scalar =>     {  scalar => '0'  },
+        zero_scalar =>     {  fail => '0'  },
 
         # List failures always return empty list:
-        empty_list  =>     {  list => []  },
+        # We never want these called in a scalar context
+        empty_list  =>     {  scalar => sub { 1 }, list => []  },
 
         # List failures return C<()> or C<(undef)> [default expectation]:
-        default_list => {  list => sub { ! @_ || @_ == 1 && !defined $_[0] }  },
+        default_list => {  fail => sub { ! @_ || @_ == 1 && !defined $_[0] }  },
 
         # List failures return C<()> or a single false value:
-        empty_or_false_list => {  list => sub { ! @_ || @_ == 1 && !$_[0] }  },
+        empty_or_false_list => {  fail => sub { ! @_ || @_ == 1 && !$_[0] }  },
 
         # List failures return (undef, "some string")
-        undef_n_error_list => {  list => sub { @_ == 2 && !defined $_[0] }  },
+        undef_n_error_list => {  fail => sub { @_ == 2 && !defined $_[0] }  },
     };
 }	
 

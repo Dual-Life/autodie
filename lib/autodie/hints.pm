@@ -319,10 +319,49 @@ sub load_hints {
 
         # TODO - Currently we don't check for conflicts, should we?
         $Hints{$sub} = $hint;
+
+        $class->normalise_hints(\%Hints, $sub);
     }
 
     return;
 
+}
+
+sub normalise_hints {
+    my ($class, $hints, $sub) = @_;
+
+    if ( exists $hints->{$sub}->{fail} ) {
+
+        if ( exists $hints->{$sub}->{scalar} or
+             exists $hints->{$sub}->{list}
+        ) {
+            # TODO: Turn into a proper diagnostic.
+            require Carp;
+            local $Carp::CarpLevel = 1;
+            Carp::croak "fail hints cannot be provided with either scalar or list hints for $sub";
+        }
+
+        # Set our scalar and list hints.
+
+        $hints->{$sub}->{scalar} = 
+        $hints->{$sub}->{list} = delete $hints->{$sub}->{fail};
+
+        return;
+
+    }
+
+    # Check to make sure all our hints exist.
+
+    foreach my $hint (qw(scalar list)) {
+        if ( not exists $hints->{$sub}->{$hint} ) {
+            # TODO: Turn into a proper diagnostic.
+            require Carp;
+            local $Carp::CarpLevel = 1;
+            Carp::croak "$hint hint missing for $sub";
+        }
+    }
+
+    return;
 }
 
 sub get_hints_for {
@@ -369,6 +408,8 @@ sub set_hints_for {
     }
 
     $Hints{ $sub } = $hints;
+
+    $class->normalise_hints(\%Hints, $sub);
 
     return;
 }
