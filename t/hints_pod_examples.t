@@ -2,7 +2,18 @@
 use strict;
 use warnings;
 use autodie::hints;
-use Test::More 'no_plan';
+use Test::More;
+
+use constant PERL510 => ( $] >= 5.010 );
+
+BEGIN {
+    if (not PERL510) {
+        plan skip_all => "Only subroutine hints supported in 5.8.x";
+    }
+    else {
+        plan 'no_plan';
+    }
+}
 
 use FindBin;
 use lib "$FindBin::Bin/lib";
@@ -16,7 +27,6 @@ use autodie qw( !
 	empty_or_false_list undef_n_error_list foo re_fail bar
 	think_positive my_system bizarro_system    
 );
-use constant PERL510 => ( $] >= 5.010 );
 
 my %scalar_tests = (
 
@@ -62,15 +72,8 @@ my %scalar_tests = (
 
     'my_system(1)'          => 1,
     'my_system(2)'          => 1,
-#    'my_system(undef)'      => 0,
     'my_system(0)'          => 0,
-#    'my_system("")'         => 0,
 
-#    'bizarro_system(1)'          => 1,
-#    'bizarro_system(2)'          => 1,
-#    'bizarro_system(undef)'      => 0,
-#    'bizarro_system(0)'          => 0,
-#    'bizarro_system("")'         => 0,
 );
 
 my %list_tests = (
