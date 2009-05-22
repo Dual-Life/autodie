@@ -1,5 +1,7 @@
 Revision history for autodie
 
+1.999_01 Fri May 22 16:08:31 AUSEST 2009
+
         * FEATURE: autodie can now accept hints regarding how
           user and module subroutines should be handled.  See
           autodie::hints for more information.

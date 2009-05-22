@@ -3,6 +3,8 @@ package autodie::hints;
 use strict;
 use warnings;
 
+our $VERSION = '1.999_01';
+
 =head1 NAME
 
 autodie::hints - Provide hints about user subroutines to autodie

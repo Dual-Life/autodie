@@ -1,4 +1,8 @@
 package autodie::hints::provider;
+use strict;
+use warnings;
+
+our $VERSION = '1.999_01';
 
 sub AUTODIE_HINTS {
     my ($class) = @_;
