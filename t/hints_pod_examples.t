@@ -20,12 +20,12 @@ use lib "$FindBin::Bin/lib";
 use Hints_pod_examples qw(
 	undef_scalar false_scalar zero_scalar empty_list default_list
 	empty_or_false_list undef_n_error_list foo re_fail bar
-	think_positive my_system bizarro_system    
+	think_positive my_system
 );
 use autodie qw( !
 	undef_scalar false_scalar zero_scalar empty_list default_list
 	empty_or_false_list undef_n_error_list foo re_fail bar
-	think_positive my_system bizarro_system    
+	think_positive my_system
 );
 
 my %scalar_tests = (

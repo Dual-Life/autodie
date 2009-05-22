@@ -333,7 +333,7 @@ sub normalise_hints {
             # TODO: Turn into a proper diagnostic.
             require Carp;
             local $Carp::CarpLevel = 1;
-            Carp::croak "fail hints cannot be provided with either scalar or list hints for $sub";
+            Carp::croak("fail hints cannot be provided with either scalar or list hints for $sub");
         }
 
         # Set our scalar and list hints.
@@ -352,7 +352,7 @@ sub normalise_hints {
             # TODO: Turn into a proper diagnostic.
             require Carp;
             local $Carp::CarpLevel = 1;
-            Carp::croak "$hint hint missing for $sub";
+            Carp::croak("$hint hint missing for $sub");
         }
     }
 
