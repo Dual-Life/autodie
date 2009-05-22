@@ -206,7 +206,6 @@ compile-time error.
 
 =cut
 
-# TODO: implement fail.
 # TODO: implement regular expression hints
 
 use constant UNDEF_ONLY       => sub { not defined $_[0] };
@@ -234,10 +233,6 @@ our $DEBUG = 0;
 
 # Only ( undef ) is a strange but possible situation for very
 # badly written code.  It's not supported yet.
-
-# TODO: Should we allow 'File::Copy::*' as a hash key?  This
-# would be useful for modules which have lots of subs which
-# express the same interface.
 
 # TODO: Ugh, those sub refs look awful!  Give them proper
 # names!
