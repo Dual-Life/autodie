@@ -786,8 +786,9 @@ sub _one_invocation {
         # We always call code refs directly, since that always
         # works in 5.8.x, and always works in 5.10.1
 
-        $code .= qq{
+        return $code .= qq{
             if ( \$hints->{scalar}->(\$result) ) { $die };
+            return \$result;
         };
 
     }
