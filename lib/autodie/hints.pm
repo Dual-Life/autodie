@@ -13,6 +13,8 @@ autodie::hints - Provide hints about user subroutines to autodie
 
    package Your::Module;
 
+   use base qw(autodie::hints::provider);
+
    sub AUTODIE_HINTS {
        return {
            foo => { scalar => HINTS, list => SOME_HINTS },
@@ -174,7 +176,18 @@ which might be written into sub-classes (my::company::autodie), or modules
 
 =head1 Auto-finding hints
 
+Your module can be written so that C<autodie> can discover hints
+for the subroutines contained therein.  To do this, your module
+must either inherit or C<DOES> the C<autodie::hints::provider>
+role.
+
 	package Your::Module;
+
+        sub DOES {
+            my ($class, $role) = @_;
+            return 1 if $role eq "autodie::hints::provider";
+            return $class->SUPER::DOES($role);
+        }
 
 	sub AUTODIE_HINTS {
 	    return {
