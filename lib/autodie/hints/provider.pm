@@ -13,3 +13,34 @@ sub AUTODIE_HINTS {
 # Dummy package for inheritance.
 
 1;
+
+__END__
+
+=head1 NAME
+
+autodie::hints::provider - Abstract class for autodie hints
+
+=head1 SYNOPSIS
+
+    use base qw(autodie::hints::provider);
+
+    sub AUTODIE_HINTS {
+        ...
+    }
+
+=head1 DESCRIPTION
+
+This is an abstract class to indicate that a given class
+provides hints for autodie by implementing the C<AUTODIE_HINTS>
+method.
+
+If you are using Perl 5.10.0 or above, or otherwise have an
+implementation of C<UNIVERSAL::DOES>, then it is recommended that
+your class I<DOES> C<autodie::hints::provider>, rather than
+inheriting it.
+
+=head1 AUTHOR
+
+Paul Fenwick
+
+=cut
