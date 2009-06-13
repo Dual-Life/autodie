@@ -11,32 +11,54 @@ autodie::hints - Provide hints about user subroutines to autodie
 
 =head1 SYNOPSIS
 
-   package Your::Module;
+    package Your::Module;
 
-   use base qw(autodie::hints::provider);
+    use base qw(autodie::hints::provider);
 
-   sub AUTODIE_HINTS {
-       return {
-           foo => { scalar => HINTS, list => SOME_HINTS },
-           bar => { scalar => HINTS, list => MORE_HINTS },
-       }
-   }
+    sub AUTODIE_HINTS {
+        return {
+            foo => { scalar => HINTS, list => SOME_HINTS },
+            bar => { scalar => HINTS, list => MORE_HINTS },
+        }
+    }
+
+    # later
+    use Your::Module qw(foo bar);
+    use autodie      qw(:default foo bar);
+
+    foo();         # succeeds or dies based on scalar hints
+
+    #### Alternatively...
+
+    use autodie::hints;
+
+    BEGIN {
+        autodie::hints->set_hints_for(
+            \&think_positive,
+            {
+                fail => sub { $_[0] <= 0 }
+            }
+        )
+    }
+
+    # later
+    use autodie qw(think_positive);
+
+    think_positive(...);    # Returns positive or dies.
 
 
-   # later
-   use Your::Module qw(foo bar);
-   use autodie      qw(:default foo bar);
 
-   foo();         # succeeds or dies based on scalar hints
-   print foo();   # succeeds or dies based on list hints
+=head1 DESCRIPTION
 
-=head1 Hinting interface
+=head2 Introduction
 
-C<autodie::hints> allows you to tell C<autodie> what your subroutines
-return on failure.
+The L<autodie> pragma is very smart when it comes to working with
+Perl's built-ins.  The behaviour for these functions are fixed, and
+C<autodie> knows exactly how they try to signal failure.
 
-Without hints, C<autodie> only considers the following return values as
-evidence of failure:
+But what about user-defined subroutines from modules?  If you use
+C<autodie> on a user-defined subroutine then it assumes the following
+behaviour to demonstrate failure:
 
 =over
 
@@ -59,13 +81,38 @@ list containing a single empty string) are considered true.  However,
 real-world code isn't always that easy.  Perhaps the code you're working
 with returns a string containing the word "FAIL" in it upon failure, or a
 two element list containing C<(undef, "human error message")>.  To make
-autodie work with these, we have the hinting interface.
+autodie work with these, we have the <hinting interface>.
+
+The hinting interface allows I<hints> to be provided to C<autodie>
+on how it should detect failure from user-defined subroutines.  While
+these I<can> be provided by the end-user of C<autodie>, they are ideally
+written into the module itself.
+
+=head2 What are hints?
+
+A I<hint> is a subroutine or value that is checked against the
+return value of an autodying subroutine.  If the match returns true,
+C<autodie> considers the subroutine have failed.
+
+If the hint provided is a subroutine, then C<autodie> will pass
+the complete retrun value to that subroutine.  If the hint is
+any other value, then C<autodie> will smart-match against the
+value provided.  In versions of Perl prior to 5.10.0, there is
+no smart-match operator, and as such only subroutine hints are
+supported.
+
+Hints can be provided for both scalar context and list context.  Note
+that an autodying subroutine will never see a void context, as
+C<autodie> always needs to capture the return value for examination.
+Autodying subroutines called in void context act as if they're called
+in a scalar context, but their return value is discarded after it
+has been checked.
 
 =head2 Example hints
 
 Hints may consist of scalars, array references, regular expression and
-subroutine references.  You can specify different hints for how failure should
-be identified in scalar and list contexts.
+subroutine references.  You can specify different hints for how
+failure should be identified in scalar and list contexts.
 
 The most common context-specific hints are:
 
