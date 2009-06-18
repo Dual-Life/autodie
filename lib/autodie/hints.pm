@@ -13,7 +13,9 @@ autodie::hints - Provide hints about user subroutines to autodie
 
     package Your::Module;
 
-    use base qw(autodie::hints::provider);
+    { package autodie::hints::provider; }
+
+    push(@ISA, 'autodie::hints::provider');
 
     sub AUTODIE_HINTS {
         return {

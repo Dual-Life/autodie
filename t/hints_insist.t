@@ -8,7 +8,7 @@ use Test::More tests => 5;
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 
-use Hints_provider qw(always_pass always_fail no_hints);
+use Hints_provider_does qw(always_pass always_fail no_hints);
 
 eval "use autodie qw( ! always_pass always_fail); ";
 is("$@", "", "Insisting on good hints (distributed insist)");

@@ -1,4 +1,4 @@
-package Hints_provider;
+package Hints_provider_does;
 use strict;
 use warnings;
 use base qw(Exporter);

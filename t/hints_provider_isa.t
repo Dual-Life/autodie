@@ -8,7 +8,7 @@ use Test::More 'no_plan';
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 
-use Hints_provider qw(always_pass always_fail);
+use Hints_provider_isa qw(always_pass always_fail);
 use autodie qw(always_pass always_fail);
 
 eval { my $x = always_pass() };
