@@ -31,6 +31,7 @@ use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while 
 
 use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
 
+use constant ERROR_58_HINTS => q{Non-subroutine %s hints for %s are not supported under Perl 5.8.x};
 
 # Older versions of IPC::System::Simple don't support all the
 # features we need.
@@ -70,7 +71,7 @@ my %TAGS = (
     ':system'  => [qw(system exec)],
 
     # Can we use qw(getpeername getsockname)? What do they do on failure?
-    # XXX - Can socket return false?
+    # TODO - Can socket return false?
     ':socket'  => [qw(accept bind connect getsockopt listen recv send
                    setsockopt shutdown socketpair)],
 
@@ -659,7 +660,7 @@ sub _one_invocation {
 
             if (\$E) {
 
-                # XXX - TODO - This can't be overridden in child
+                # TODO - This can't be overridden in child
                 # classes!
 
                 die autodie::exception::system->new(
@@ -754,8 +755,7 @@ sub _one_invocation {
         };
     }
     elsif ( $hints ) {
-        # XXX - Turn into a proper diagnostic.
-        croak "Non-subroutine list hints for $sub are not supported under Perl 5.8.x";
+        croak sprintf(ERROR_58_HINTS, 'list', $sub);
     }
     else {
         $code .= qq{
@@ -802,8 +802,7 @@ sub _one_invocation {
         };
     }
     elsif ( $hints ) {
-        # XXX - Turn into a proper diagnostic.
-        croak "Non-subroutine list hints for $sub are not supported under Perl 5.8.x";
+        croak sprintf(ERROR_58_HINTS, 'scalar', $sub);
     }
 
     return $code .

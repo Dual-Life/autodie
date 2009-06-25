@@ -16,3 +16,4 @@ cover_db
 merge-core.pl
 doc/perl-tip.pod
 .*\.swp$
+doc/tpr.pod
