@@ -350,7 +350,12 @@ sub load_hints {
 
     my ($package) = ( $sub =~ /(.*)::/ );
 
-    # TODO: What do we do if we can't find a package?
+    if (not defined $package) {
+        require Carp;
+        Carp::croak(
+            "Internal error in autodie::hints::load_hints - no package found.
+        ");
+    }
 
     # Do nothing if we've already tried to load hints for
     # this package.
