@@ -70,7 +70,7 @@ my %TAGS = (
     ':system'  => [qw(system exec)],
 
     # Can we use qw(getpeername getsockname)? What do they do on failure?
-    # XXX - Can socket return false?
+    # TODO - Can socket return false?
     ':socket'  => [qw(accept bind connect getsockopt listen recv send
                    setsockopt shutdown socketpair)],
 
@@ -659,7 +659,7 @@ sub _one_invocation {
 
             if (\$E) {
 
-                # XXX - TODO - This can't be overridden in child
+                # TODO - This can't be overridden in child
                 # classes!
 
                 die autodie::exception::system->new(

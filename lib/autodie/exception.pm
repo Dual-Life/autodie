@@ -185,7 +185,7 @@ See L<autodie/CATEGORIES> for futher information.
     sub matches {
         my ($this, $that) = @_;
 
-        # XXX - Handle references
+        # TODO - Handle references
         croak "UNIMPLEMENTED" if ref $that;
 
         my $sub = $this->function;
