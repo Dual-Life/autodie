@@ -13,9 +13,7 @@ autodie::hints - Provide hints about user subroutines to autodie
 
     package Your::Module;
 
-    { package autodie::hints::provider; }
-
-    push(@ISA, 'autodie::hints::provider');
+    our %DOES = ( 'autodie::hints::provider' => 1 );
 
     sub AUTODIE_HINTS {
         return {
@@ -232,11 +230,7 @@ role.
 
 	package Your::Module;
 
-        sub DOES {
-            my ($class, $role) = @_;
-            return 1 if $role eq "autodie::hints::provider";
-            return $class->SUPER::DOES($role);
-        }
+        our %DOES = ( 'autodie::hints::provider' => 1 );
 
 	sub AUTODIE_HINTS {
 	    return {
@@ -363,11 +357,15 @@ sub load_hints {
 
     my $hints_available = 0;
 
-    if ($package->can('DOES') and $package->DOES(HINTS_PROVIDER) ) {
-        $hints_available = 1;
-    }
-    elsif ( $package->isa(HINTS_PROVIDER) ) {
-        $hints_available = 1;
+    {
+        no strict 'refs';
+
+        if ($package->can('DOES') and $package->DOES(HINTS_PROVIDER) ) {
+            $hints_available = 1;
+        }
+        elsif ( ${"${package}::DOES"}{HINTS_PROVIDER.""} ) {
+            $hints_available = 1;
+        }
     }
 
     return if not $hints_available;
