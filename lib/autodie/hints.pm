@@ -224,13 +224,30 @@ which might be written into sub-classes (my::company::autodie), or modules
 =head1 Auto-finding hints
 
 Your module can be written so that C<autodie> can discover hints
-for the subroutines contained therein.  To do this, your module
-must either inherit or C<DOES> the C<autodie::hints::provider>
-role.
+for the subroutines contained therein.  To do this, your module needs
+to declare that it I<does> the C<autodie::hints::provider> role.
+This can be done by writing your own C<DOES> method, using a system
+such as C<Class::DOES> to handle the heavy-lifting for you, or
+declaring a C<%DOES> package variable with a C<autodie::hints::provider>
+key and a corresponding true value.
+
+In addition, you must define a C<AUTODIE_HINTS> subroutine that returns
+a hash-reference containing the hints for your subroutines.
 
 	package Your::Module;
 
+        # We can use the Class::DOES from the CPAN to declare adherence
+        # to a role.
+
+        use Class::DOES 'autodie::hints::provider' => 1;
+
+        # Alternatively, we can declare the role in %DOES.  Note that
+        # this is an autodie specific optimisation, although Class::DOES
+        # can be used to promote this to a true role declaration.
+
         our %DOES = ( 'autodie::hints::provider' => 1 );
+
+        # Finally, we must define the hints themselves.
 
 	sub AUTODIE_HINTS {
 	    return {
@@ -240,8 +257,9 @@ role.
 	}
 
 This allows your code to set hints without relying on C<autodie> and
-C<autodie::hints>.  Thus if your end user chooses to use C<autodie> then hints
-declared in this way will be found and loaded for correct error handling.
+C<autodie::hints> being loaded, or even installed.  In this way your
+code can do the right thing when C<autodie> is installed, but does not
+need to depend upon it to function.
 
 =head1 Insisting on hints
 
@@ -254,13 +272,21 @@ declared in this way will be found and loaded for correct error handling.
 	# bar() and baz() must have their hints defined
 	use autodie qw( foo ! bar baz );
 
+        # Enable autodie for all of Perl's supported built-ins,
+        # as well as for foo(), bar() and baz().  Everything must
+        # have hints.
+        use autodie qw( ! :all foo bar baz );
+
 It is possible for a user to insist that hints have been defined.  This is
 done by prefixing each user-defined subroutine with a C<!> in the import
 list.  A C<!> on its own specifies that all user-defined subroutines after
 that point must have hints.
 
 If hints are not available for the specified subroutines, this will cause a
-compile-time error.
+compile-time error.  Insisting on hints for Perl's built-in functions
+(eg, C<open> and C<close>) is always successful.
+
+Insisting on hints is I<strongly> recommended.
 
 =cut
 
