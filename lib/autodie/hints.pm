@@ -22,15 +22,17 @@ autodie::hints - Provide hints about user subroutines to autodie
         }
     }
 
-    # later
+    #### Later, in your program...
     use Your::Module qw(foo bar);
     use autodie      qw(:default foo bar);
 
     foo();         # succeeds or dies based on scalar hints
 
-    #### Alternatively...
+    #### Alternatively... if it isn't your module
+    #### you can specify your hints in your program...
 
     use autodie::hints;
+    use Some::Module qw(think_positive);
 
     BEGIN {
         autodie::hints->set_hints_for(
@@ -40,8 +42,6 @@ autodie::hints - Provide hints about user subroutines to autodie
             }
         )
     }
-
-    # later
     use autodie qw(think_positive);
 
     think_positive(...);    # Returns positive or dies.
@@ -110,9 +110,12 @@ has been checked.
 
 =head2 Example hints
 
-Hints may consist of scalars, array references, regular expression and
+Hints may consist of scalars, array references, regular expressions and
 subroutine references.  You can specify different hints for how
 failure should be identified in scalar and list contexts.
+
+These examples apply for use in the C<AUTODIE_HINTS> subroutine and when
+calling C<autodie::hints->set_hints_for()>.
 
 The most common context-specific hints are:
 
@@ -184,20 +187,18 @@ simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
             }
 	);
 
-        # Unsuccessful bizarro_system() returns random value and sets $?...
-        autodie::hints->set_hints_for(
-            \&bizarro_system,
-            {
-                fail => sub { defined $? }
-            }
-	);
-
 On Perl 5.8, only simple scalars, array references, regular expressions and
 subroutines are supported as hints, anything else is a compile-time error.
 
-=head1 Setting hints directly
+=head1 Manually setting hints from within your program
 
-	package Your::Module;
+If you are using a module which returns something special on failure, then
+you can manually create hints for each of the desired subroutines.  Once
+the hints are specified, they are available for all files and modules loaded
+thereafter, thus you can move this work into a module and it will still
+work.
+
+	package Some::Module qw(foo bar);
 	use autodie::hints;
 
 	autodie::hints->set_hints_for(
@@ -207,29 +208,39 @@ subroutines are supported as hints, anything else is a compile-time error.
 			list   => LIST_HINT,
 		}
 	);
+	autodie::hints->set_hints_for(
+		\&bar, { fail => SCALAR_HINT, }
+	);
+	use autodie qw(foo bar);
 
 It is possible to pass either a subroutine reference (recommended) or a fully
 qualified subroutine name as the first argument, so you can set hints on
-modules that I<might> get loaded, but haven't been loaded yet.
+modules that I<might> get loaded, but haven't been loaded yet.  For
+example:
 
-The hints above are smart-matched against the return value from the
+	use autodie::hints;
+	autodie::hints->set_hints_for(
+		Some::Module:bar:, { fail => SCALAR_HINT, }
+	);
+
+The hints are smart-matched against the return value from the
 subroutine; a true result indicates failure, and an appropriate exception is
 thrown.  Since one can smart-match against a subroutine, it's possible to do
 quite complex checks for failure if needed.
 
 The hint-setting interface is pretty verbose, and is designed as something
-which might be written into sub-classes (my::company::autodie), or modules
-(preferably next to the subroutines themselves). 
+which might be written into sub-classes (my::company::autodie).
 
-=head1 Auto-finding hints
+=head1 Adding hints to your module
 
-Your module can be written so that C<autodie> can discover hints
-for the subroutines contained therein.  To do this, your module needs
-to declare that it I<does> the C<autodie::hints::provider> role.
-This can be done by writing your own C<DOES> method, using a system
-such as C<Class::DOES> to handle the heavy-lifting for you, or
-declaring a C<%DOES> package variable with a C<autodie::hints::provider>
-key and a corresponding true value.
+C<autodie> provides a passive interface to allow you to declare hints for
+your module which will be found and used by code which uses C<autodie> but
+does not cause your module to rely upon it.  To do this, your module needs
+to declare that it I<does> the C<autodie::hints::provider> role.  This can
+be done by writing your own C<DOES> method, using a system such as
+C<Class::DOES> to handle the heavy-lifting for you, or declaring a C<%DOES>
+package variable with a C<autodie::hints::provider> key and a corresponding
+true value.
 
 In addition, you must define a C<AUTODIE_HINTS> subroutine that returns
 a hash-reference containing the hints for your subroutines.
@@ -253,6 +264,7 @@ a hash-reference containing the hints for your subroutines.
 	    return {
 	        foo => { scalar => HINTS, list => SOME_HINTS },
 	        bar => { scalar => HINTS, list => MORE_HINTS },
+	        baz => { fail => HINTS },
 	    }
 	}
 
