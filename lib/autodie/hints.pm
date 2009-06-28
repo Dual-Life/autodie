@@ -22,15 +22,15 @@ autodie::hints - Provide hints about user subroutines to autodie
         }
     }
 
-    #### Later, in your main program...
+    # Later, in your main program...
 
     use Your::Module qw(foo bar);
     use autodie      qw(:default foo bar);
 
     foo();         # succeeds or dies based on scalar hints
 
-    #### Alternatively, hints can be set on subroutines we've
-    #### imported.
+    # Alternatively, hints can be set on subroutines we've
+    # imported.
 
     use autodie::hints;
     use Some::Module qw(think_positive);
@@ -99,9 +99,8 @@ C<autodie> considers the subroutine have failed.
 If the hint provided is a subroutine, then C<autodie> will pass
 the complete return value to that subroutine.  If the hint is
 any other value, then C<autodie> will smart-match against the
-value provided.  In versions of Perl prior to 5.10.0, there is
-no smart-match operator, and as such only subroutine hints are
-supported.
+value provided.  In Perl 5.8.x, there is no smart-match operator, and as such
+only subroutine hints are supported in these versions.
 
 Hints can be provided for both scalar context and list context.  Note
 that an autodying subroutine will never see a void context, as
@@ -162,14 +161,14 @@ The most common context-specific hints are:
 	);
 
 This "in all contexts" construction is very common, and can be
-abbreviated, using the 'fail' key. A C<< { fail => $val } >> hint is
-simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
+abbreviated, using the 'fail' key.  This sets both the C<scalar>
+and C<list> hints to the same value:
 
         # Unsuccessful foo() returns 0 in all contexts...
         autodie::hints->set_hints_for(
             \&foo,
             {
-                fail => 0
+                fail => sub { @_ == 1 and defined $_[0] and $_[0] == 0 }
             }
 	);
 
@@ -189,9 +188,6 @@ simply a shortcut for C<< { scalar => $val, list => [ $val ] } >>:
             }
 	);
 
-On Perl 5.8, only simple scalars, array references, regular expressions and
-subroutines are supported as hints, anything else is a compile-time error.
-
 =head1 Manually setting hints from within your program
 
 If you are using a module which returns something special on failure, then
@@ -200,7 +196,7 @@ the hints are specified, they are available for all files and modules loaded
 thereafter, thus you can move this work into a module and it will still
 work.
 
-	package Some::Module qw(foo bar);
+	use Some::Module qw(foo bar);
 	use autodie::hints;
 
 	autodie::hints->set_hints_for(
@@ -211,41 +207,54 @@ work.
 		}
 	);
 	autodie::hints->set_hints_for(
-		\&bar, { fail => SCALAR_HINT, }
+		\&bar,
+                { fail => SOME_HINT, }
 	);
-	use autodie qw(foo bar);
 
 It is possible to pass either a subroutine reference (recommended) or a fully
-qualified subroutine name as the first argument, so you can set hints on
-modules that I<might> get loaded, but haven't been loaded yet.  For
-example:
+qualified subroutine name as the first argument.  This means you can set hints
+on modules that I<might> get loaded:
 
 	use autodie::hints;
 	autodie::hints->set_hints_for(
-		Some::Module:bar:, { fail => SCALAR_HINT, }
+		'Some::Module:bar', { fail => SCALAR_HINT, }
 	);
 
-The hints are smart-matched against the return value from the
-subroutine; a true result indicates failure, and an appropriate exception is
-thrown.  Since one can smart-match against a subroutine, it's possible to do
-quite complex checks for failure if needed.
+This technique is most useful when you have a project that uses a
+lot of third-party modules.  You can define all your possible hints
+in one-place.  This can even be in a sub-class of autodie.  For
+example:
 
-The hint-setting interface is pretty verbose, and is designed as something
-which might be written into sub-classes (my::company::autodie).
+        package my::autodie;
+
+        use parent qw(autodie);
+        use autodie::hints;
+
+        autodie::hints->set_hints_for(...);
+
+        1;
+
+You can now C<use my::autodie>, which will work just like the standard
+C<autodie>, but is now aware of any hints that you've set.
 
 =head1 Adding hints to your module
 
 C<autodie> provides a passive interface to allow you to declare hints for
-your module which will be found and used by code which uses C<autodie> but
-does not cause your module to rely upon it.  To do this, your module needs
-to declare that it I<does> the C<autodie::hints::provider> role.  This can
-be done by writing your own C<DOES> method, using a system such as
-C<Class::DOES> to handle the heavy-lifting for you, or declaring a C<%DOES>
-package variable with a C<autodie::hints::provider> key and a corresponding
-true value.
+your module.  These hints will be found and used by C<autodie> if it
+is loaded, but otherwise have no effect (or dependencies) without autodie.
+To set these, your module needs to declare that it I<does> the
+C<autodie::hints::provider> role.  This can be done by writing your
+own C<DOES> method, using a system such as C<Class::DOES> to handle
+the heavy-lifting for you, or declaring a C<%DOES> package variable
+with a C<autodie::hints::provider> key and a corresponding true value.
+
+Note that checking for a C<%DOES> hash is an C<autodie>-only
+short-cut.  Other modules do not use this mechanism for checking
+roles, although you can use the C<Class::DOES> module from the
+CPAN to allow it.
 
 In addition, you must define a C<AUTODIE_HINTS> subroutine that returns
-a hash-reference containing the hints for your subroutines.
+a hash-reference containing the hints for your subroutines:
 
 	package Your::Module;
 
@@ -277,10 +286,21 @@ need to depend upon it to function.
 
 =head1 Insisting on hints
 
+When a user-defined subroutine is wrapped by C<autodie>, it will
+use hints if they are available, and otherwise reverts to the
+I<default behaviour> described in the introduction of this document.
+This can be problematic if we expect a hint to exist, but (for
+whatever reason) it has not been loaded.
+
+We can ask autodie to I<insist> that a hint be used by prefixing
+an exclamation mark to the start of the subroutine name.  A lone
+exclamation mark indicates that I<all> subroutines after it must
+have hints declared.
+
 	# foo() and bar() must have their hints defined
 	use autodie qw( !foo !bar baz );
 
-	# Everything must have hints.
+	# Everything must have hints (recommended).
 	use autodie qw( ! foo bar baz );
 
 	# bar() and baz() must have their hints defined
@@ -290,11 +310,6 @@ need to depend upon it to function.
         # as well as for foo(), bar() and baz().  Everything must
         # have hints.
         use autodie qw( ! :all foo bar baz );
-
-It is possible for a user to insist that hints have been defined.  This is
-done by prefixing each user-defined subroutine with a C<!> in the import
-list.  A C<!> on its own specifies that all user-defined subroutines after
-that point must have hints.
 
 If hints are not available for the specified subroutines, this will cause a
 compile-time error.  Insisting on hints for Perl's built-in functions
@@ -523,7 +538,9 @@ __END__
 
 =head1 Diagnostics
 
-=head2 Attempts to set_hints_for unidentifiable subroutine
+=over 4
+
+=item Attempts to set_hints_for unidentifiable subroutine
 
 You've called C<< autodie::hints->set_hints_for() >> using a subroutine
 reference, but that reference could not be resolved back to a
@@ -533,6 +550,20 @@ be made autodying), or may lack a name for other reasons.
 If you receive this error with a subroutine that has a real name,
 then you may have found a bug in autodie.  See L<autodie/BUGS>
 for how to report this.
+
+=item fail hints cannot be provided with either scalar or list hints for %s
+
+When defining hints, you can either supply both C<list> and
+C<scalar> keywords, I<or> you can provide a single C<fail> keyword.
+You can't mix and match them.
+
+=item %s hint missing for %s
+
+You've provided either a C<scalar> hint without supplying
+a C<list> hint, or vice-versa.  You I<must> supply both C<scalar>
+and C<list> hints, I<or> a single C<fail> hint.
+
+=back
 
 =head1 ACKNOWLEDGEMENTS
 
