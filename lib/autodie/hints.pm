@@ -22,14 +22,15 @@ autodie::hints - Provide hints about user subroutines to autodie
         }
     }
 
-    #### Later, in your program...
+    #### Later, in your main program...
+
     use Your::Module qw(foo bar);
     use autodie      qw(:default foo bar);
 
     foo();         # succeeds or dies based on scalar hints
 
-    #### Alternatively... if it isn't your module
-    #### you can specify your hints in your program...
+    #### Alternatively, hints can be set on subroutines we've
+    #### imported.
 
     use autodie::hints;
     use Some::Module qw(think_positive);
@@ -47,14 +48,13 @@ autodie::hints - Provide hints about user subroutines to autodie
     think_positive(...);    # Returns positive or dies.
 
 
-
 =head1 DESCRIPTION
 
 =head2 Introduction
 
 The L<autodie> pragma is very smart when it comes to working with
-Perl's built-ins.  The behaviour for these functions are fixed, and
-C<autodie> knows exactly how they try to signal failure.
+Perl's built-in functions.  The behaviour for these functions are
+fixed, and C<autodie> knows exactly how they try to signal failure.
 
 But what about user-defined subroutines from modules?  If you use
 C<autodie> on a user-defined subroutine then it assumes the following
@@ -77,16 +77,18 @@ A list containing a single undef, in list context
 =back
 
 All other return values (including the list of the single zero, and the
-list containing a single empty string) are considered true.  However,
+list containing a single empty string) are considered successful.  However,
 real-world code isn't always that easy.  Perhaps the code you're working
 with returns a string containing the word "FAIL" in it upon failure, or a
 two element list containing C<(undef, "human error message")>.  To make
-autodie work with these, we have the <hinting interface>.
+autodie work with these sorts of subroutines, we have
+the <hinting interface>.
 
 The hinting interface allows I<hints> to be provided to C<autodie>
 on how it should detect failure from user-defined subroutines.  While
 these I<can> be provided by the end-user of C<autodie>, they are ideally
-written into the module itself.
+written into the module itself, or into a helper module or sub-class
+of C<autodie> itself.
 
 =head2 What are hints?
 
