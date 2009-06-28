@@ -391,7 +391,7 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<Fatal>, L<autodie::exception>, L<IPC::System::Simple>
+L<Fatal>, L<autodie::exception>, L<autodie::hints>, L<IPC::System::Simple>
 
 I<Perl tips, autodie> at
 L<http://perltraining.com.au/tips/2008-08-20.html>
