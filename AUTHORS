@@ -61,3 +61,18 @@ Damian Conway
         - Extremely detailed and inspirational input into how
           autodie::hints should work, as opposed to my original
           and rather stunted proposal.
+
+Jacinta Richardson
+        - Documentation, proof-reading, code review, and a huge
+          amount of sound-boarding.  In particular most of the
+          autodie::hints documentation would not exist without
+          Jacinta's efforts.
+
+Ben Morrow
+        - Providing an excellent and compelling argument as to
+          how roles should be handled.
+        - Spotting that autodie can clobber package scalars when
+          formats are copied between blogs.
+
+Glenn Fowler
+        - Documentation review.
