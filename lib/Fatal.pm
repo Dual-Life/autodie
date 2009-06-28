@@ -334,9 +334,12 @@ sub _install_subs {
         # Nuke the old glob.
         { no strict; delete $pkg_sym->{$sub_name}; }    ## no critic
 
-        # Copy innocent bystanders back.
+        # Copy innocent bystanders back.  Note that we lose
+        # formats; it seems that Perl versions up to 5.10.0
+        # have a bug which causes copying formats to end up in
+        # the scalar slot.  Thanks to Ben Morrow for spotting this.
 
-        foreach my $slot (qw( SCALAR ARRAY HASH IO FORMAT ) ) {
+        foreach my $slot (qw( SCALAR ARRAY HASH IO ) ) {
             next unless defined *__tmp{ $slot };
             *{ $full_path } = *__tmp{ $slot };
         }

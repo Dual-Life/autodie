@@ -39,11 +39,13 @@ t/filehandles.t
 t/fileno.t
 t/flock.t
 t/fork.t
+t/format-clobber.t
 t/hints.t
 t/hints_insist.t
 t/hints_pod_examples.t
 t/hints_provider.t
 t/hints_provider_does.t
+t/hints_provider_easy_does_it.t
 t/hints_provider_isa.t
 t/internal-backcompat.t
 t/internal.t
@@ -58,9 +60,11 @@ t/lib/Caller_helper.pm
 t/lib/Hints_pod_examples.pm
 t/lib/Hints_provider.pm
 t/lib/Hints_provider_does.pm
+t/lib/Hints_provider_easy_does_it.pm
 t/lib/Hints_provider_isa.pm
 t/lib/Hints_test.pm
 t/lib/lethal.pm
+t/lib/OtherTypes.pm
 t/lib/pujHa/ghach.pm
 t/lib/pujHa/ghach/Dotlh.pm
 t/mkdir.t

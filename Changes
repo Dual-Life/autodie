@@ -19,6 +19,10 @@ Revision history for autodie
           fail to correctly report a dying function's name has been
           fixed.
 
+        * BUGFIX: autodie will no longer clobber package scalars when
+          a format has the same name as an autodying function.
+          (Thanks to Ben Morrow)
+
         * INTERFACE: The internal interfaces for fill_protos(),
           one_invocation(), write_invocation() are now once again
           backward compatible with legacy versions of Fatal.  It is

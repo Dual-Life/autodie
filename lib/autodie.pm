@@ -362,6 +362,9 @@ C<Fatal> or C<autodie>, or have been exported from a module.
 Attempting to ue C<Fatal> or C<autodie> on other user subroutines will
 result in a compile-time error.
 
+Due to a bug in Perl, C<autodie> may "lose" any format which has the
+same name as an autodying built-in or function.
+
 =head2 REPORTING BUGS
 
 Please report bugs via the CPAN Request Tracker at
