@@ -1260,7 +1260,7 @@ values are ignored.  For example
     use Fatal qw/:void open close/;
 
     # properly checked, so no exception raised on error
-    if (not open(my $fh, '<' '/bogotic') {
+    if (not open(my $fh, '<', '/bogotic') {
         warn "Can't open /bogotic: $!";
     }
 
