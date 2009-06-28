@@ -1,4 +1,5 @@
 package OtherTypes;
+no warnings;
 
 our $foo = 23;
 our @foo = "bar";
