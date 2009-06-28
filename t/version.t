@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 5;
+use Test::More tests => 4;
 
 # For the moment, we'd like all our versions to be the same.
 # In order to play nicely with some code scanners, they need to be
