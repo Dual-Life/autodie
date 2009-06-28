@@ -3,7 +3,7 @@ package autodie::hints;
 use strict;
 use warnings;
 
-our $VERSION = '1.999_01';
+our $VERSION = '2.00';
 
 =head1 NAME
 

@@ -39,7 +39,7 @@ use constant ERROR_58_HINTS => q{Non-subroutine %s hints for %s are not supporte
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 # All the Fatal/autodie modules share the same version number.
-our $VERSION = '1.999_01';
+our $VERSION = '2.00';
 
 our $Debug ||= 0;
 
