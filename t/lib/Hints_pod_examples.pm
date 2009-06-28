@@ -2,7 +2,9 @@ package Hints_pod_examples;
 use strict;
 use warnings;
 
-use base qw(Exporter autodie::hints::provider);
+use base qw(Exporter);
+
+our %DOES = ( 'autodie::hints::provider' => 1 );
 
 our @EXPORT_OK = qw(
 	undef_scalar false_scalar zero_scalar empty_list default_list
