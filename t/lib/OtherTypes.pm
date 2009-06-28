@@ -14,8 +14,8 @@ BEGIN {
     $main::pvfm = *foo{FORMAT};
 }
 
-use namespace::clean "foo";
-
 sub foo { 1 }
+
+use autodie 'foo';
 
 1;

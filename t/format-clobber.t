@@ -43,8 +43,12 @@ eval q{
         "HASH slot intact at run time" );
     ok( defined *OtherTypes::foo{IO},
         "IO slot intact at run time" );
-    ok( defined *OtherTypes::foo{FORMAT},
-        "FORMAT slot intact at run time" );
+
+    TODO: {
+        local $TODO = "Copying formats fails due to a bug in Perl.";
+        ok( defined *OtherTypes::foo{FORMAT},
+            "FORMAT slot intact at run time" );
+    }
 
     is( $OtherTypes::foo, 23,
         "SCALAR slot correct at run time" );
@@ -54,6 +58,10 @@ eval q{
         "HASH slot correct at run time" );
     is( *OtherTypes::foo{IO}, $pvio,
         "IO slot correct at run time" );
-    is( *OtherTypes::foo{FORMAT}, $pvfm,
-        "FORMAT slot correct at run time" );
+
+    TODO: {
+        local $TODO = "Copying formats fails due to a bug in Perl.";
+        is( *OtherTypes::foo{FORMAT}, $pvfm,
+            "FORMAT slot correct at run time" );
+    }
 };
