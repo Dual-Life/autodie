@@ -507,8 +507,6 @@ sub set_hints_for {
 __END__
 
 
-
-
 =head1 Diagnostics
 
 =head2 Attempts to set_hints_for unidentifiable subroutine
@@ -549,6 +547,6 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<autodie>
+L<autodie>, L<Class::DOES>
 
 =cut
