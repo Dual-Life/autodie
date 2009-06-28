@@ -82,7 +82,7 @@ real-world code isn't always that easy.  Perhaps the code you're working
 with returns a string containing the word "FAIL" in it upon failure, or a
 two element list containing C<(undef, "human error message")>.  To make
 autodie work with these sorts of subroutines, we have
-the <hinting interface>.
+the I<hinting interface>.
 
 The hinting interface allows I<hints> to be provided to C<autodie>
 on how it should detect failure from user-defined subroutines.  While
@@ -97,7 +97,7 @@ return value of an autodying subroutine.  If the match returns true,
 C<autodie> considers the subroutine have failed.
 
 If the hint provided is a subroutine, then C<autodie> will pass
-the complete retrun value to that subroutine.  If the hint is
+the complete return value to that subroutine.  If the hint is
 any other value, then C<autodie> will smart-match against the
 value provided.  In versions of Perl prior to 5.10.0, there is
 no smart-match operator, and as such only subroutine hints are
@@ -133,10 +133,10 @@ The most common context-specific hints are:
         # List failures always return empty list:
             {  list => []  }
 
-        # List failures return C<()> or C<(undef)> [default expectation]:
+        # List failures return () or (undef) [default expectation]:
             {  list => sub { ! @_ || @_ == 1 && !defined $_[0] }  }
 
-        # List failures return C<()> or a single false value:
+        # List failures return () or a single false value:
             {  list => sub { ! @_ || @_ == 1 && !$_[0] }  }
 
         # List failures return (undef, "some string")
@@ -525,7 +525,7 @@ __END__
 
 =head2 Attempts to set_hints_for unidentifiable subroutine
 
-You've called C<autodie::hints->set_hints_for()> using a subroutine
+You've called C<< autodie::hints->set_hints_for() >> using a subroutine
 reference, but that reference could not be resolved back to a
 subroutine name.  It may be an anonymous subroutine (which can't
 be made autodying), or may lack a name for other reasons.
