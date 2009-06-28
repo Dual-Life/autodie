@@ -384,7 +384,7 @@ sub load_hints {
     my $hints_available = 0;
 
     {
-        no strict 'refs';
+        no strict 'refs';   ## no critic
 
         if ($package->can('DOES') and $package->DOES(HINTS_PROVIDER) ) {
             $hints_available = 1;
