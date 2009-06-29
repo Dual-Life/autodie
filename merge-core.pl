@@ -6,6 +6,7 @@ use autodie qw(:default :system copy);
 
 my @corefiles = qw(
     Fatal.pm autodie.pm autodie/exception.pm autodie/exception/system.pm
+    autodie/hints.pm
 );
 
 eval {
