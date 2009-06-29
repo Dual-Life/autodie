@@ -21,7 +21,7 @@ foreach my $file (@corefiles) {
     print "../perl/lib/$file\n";
 }
 
-system(qw(cp -v -r), glob("t/*"), qw(../perl/t/lib/autodie/));
+system(qw(cp -v -r), glob("t/*"), qw(../perl/lib/autodie/t/));
 
 my @non_core_tests = qw(
     boilerplate.t
@@ -37,5 +37,5 @@ my @non_core_tests = qw(
 
 foreach my $test (@non_core_tests) {
     print "X $test\n";
-    unlink("../perl/t/lib/autodie/$test");
+    unlink("../perl/lib/autodie/t/$test");
 }
