@@ -34,6 +34,7 @@ all_pod_coverage_ok({
                 |load_hints
                 |normalise_hints
                 |sub_fullname
+                |get_code_info
             )$
         }x ],
 });

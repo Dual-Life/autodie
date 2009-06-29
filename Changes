@@ -11,6 +11,10 @@ Revision history for autodie
 
         * TEST: hints.t no longer throws failures under Perl 5.10.1.
 
+        * TEST: pod-coverage.t (author test) no longer fails if
+          Sub::Identify is not installed.  Thanks to Jonathan Yu.
+          (RT #47437)
+
 2.00  Mon Jun 29 01:24:49 AUSEST 2009
 
         * FEATURE: autodie can now accept hints regarding how
