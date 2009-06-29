@@ -735,7 +735,7 @@ sub _one_invocation {
     # then report the wrong line number.
 
     my $code = qq[
-        no warnings qw(unopened);
+        no warnings qw(unopened uninitialized);
 
         if (wantarray) {
             my \@results = $call(@argv);

@@ -3,6 +3,14 @@ Revision history for autodie
         * DOCUMENTATION: General copyediting and tidy-up
           (Thanks to Toby Corkindale)
 
+        * BUGFIX: Warnings are no longer emitted when undefined values
+          are compared by hinting routines.
+
+        * BUGFIX: Hints for File::Copy now operate correctly under
+          Perl 5.10.1.
+
+        * TEST: hints.t no longer throws failures under Perl 5.10.1.
+
 2.00  Mon Jun 29 01:24:49 AUSEST 2009
 
         * FEATURE: autodie can now accept hints regarding how

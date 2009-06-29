@@ -333,10 +333,13 @@ use constant EMPTY_OR_FALSE => sub {
     @_==1 && !$_[0]
 };
 
+use constant SINGLE_TRUE => sub { @_ == 1 and not $_[0] };
+
 use constant DEFAULT_HINTS => {
     scalar => UNDEF_ONLY,
     list   => EMPTY_OR_UNDEF,
 };
+
 
 use constant HINTS_PROVIDER => 'autodie::hints::provider';
 
@@ -347,18 +350,11 @@ our $DEBUG = 0;
 # Only ( undef ) is a strange but possible situation for very
 # badly written code.  It's not supported yet.
 
-# TODO: Ugh, those sub refs look awful!  Give them proper
-# names!
-
 my %Hints = (
-    'File::Copy::copy' => {
-        scalar => sub { not $_[0] },
-        list   => sub { @_ == 1 and not $_[0] }
-    },
-    'File::Copy::move' => {
-        scalar => sub { not $_[0] },
-        list   => sub { @_ == 1 and not $_[0] }
-    },
+    'File::Copy::copy' => { scalar => SINGLE_TRUE, list => SINGLE_TRUE },
+    'File::Copy::move' => { scalar => SINGLE_TRUE, list => SINGLE_TRUE },
+    'File::Copy::cp'   => { scalar => SINGLE_TRUE, list => SINGLE_TRUE },
+    'File::Copy::mv'   => { scalar => SINGLE_TRUE, list => SINGLE_TRUE },
 );
 
 # Start by using Sub::Identify if it exists on this system.
