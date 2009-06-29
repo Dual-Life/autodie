@@ -1,5 +1,8 @@
 Revision history for autodie
 
+        * DOCUMENTATION: General copyediting and tidy-up
+          (Thanks to Toby Corkindale)
+
 2.00  Mon Jun 29 01:24:49 AUSEST 2009
 
         * FEATURE: autodie can now accept hints regarding how
