@@ -734,8 +734,11 @@ sub _one_invocation {
     # the 'unopened' warning class here.  Especially since they
     # then report the wrong line number.
 
+    # Other warnings are disabled because they produce excessive
+    # complaints from smart-match hints under 5.10.1.
+
     my $code = qq[
-        no warnings qw(unopened uninitialized);
+        no warnings qw(unopened uninitialized numeric);
 
         if (wantarray) {
             my \@results = $call(@argv);
