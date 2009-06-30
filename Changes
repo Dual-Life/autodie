@@ -1,5 +1,7 @@
 Revision history for autodie
 
+2.01  Wed Jul  1 01:31:24 AUSEST 2009
+
         * DOCUMENTATION: General copyediting and tidy-up
           (Thanks to Toby Corkindale)
 
@@ -16,8 +18,8 @@ Revision history for autodie
         * TEST: hints.t no longer throws failures under Perl 5.10.1.
 
         * TEST: pod-coverage.t (author test) no longer fails if
-          Sub::Identify is not installed.  Thanks to Jonathan Yu.
-          (RT #47437)
+          Sub::Identify is not installed.
+          (Thanks to Jonathan Yu. RT #47437)
 
 2.00  Mon Jun 29 01:24:49 AUSEST 2009
 
