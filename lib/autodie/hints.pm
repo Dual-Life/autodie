@@ -3,6 +3,8 @@ package autodie::hints;
 use strict;
 use warnings;
 
+use constant PERL58 => ( $] < 5.009 );
+
 our $VERSION = '2.00';
 
 =head1 NAME
@@ -412,6 +414,9 @@ sub load_hints {
         no strict 'refs';   ## no critic
 
         if ($package->can('DOES') and $package->DOES(HINTS_PROVIDER) ) {
+            $hints_available = 1;
+        }
+        elsif ( PERL58 and $package->isa(HINTS_PROVIDER) ) {
             $hints_available = 1;
         }
         elsif ( ${"${package}::DOES"}{HINTS_PROVIDER.""} ) {

@@ -9,6 +9,10 @@ Revision history for autodie
         * BUGFIX: Hints for File::Copy now operate correctly under
           Perl 5.10.1.
 
+        * BUGFIX: Inheritance is now considered sufficient to declare
+          allegiance to the hints provider role under Perl 5.8.x.
+          (Thanks to Glenn Fowler)
+
         * TEST: hints.t no longer throws failures under Perl 5.10.1.
 
         * TEST: pod-coverage.t (author test) no longer fails if
