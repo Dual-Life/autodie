@@ -1,7 +1,7 @@
 package Some::Module;
 use strict;
 use warnings;
-use parent qw(Exporter);
+use base qw(Exporter);
 
 our @EXPORT_OK = qw(some_sub);
 

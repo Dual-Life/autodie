@@ -1,5 +1,10 @@
 Revision history for autodie
 
+2.03
+
+        * BUGFIX: Stopped blog_hints.t from booching under Perl
+          5.8.x. because parent.pm is not installed.
+
 2.02  Wed Jul  1 15:06:21 AUSEST 2009
 
         * FEATURE: autodie::exception now supports ->context() to
