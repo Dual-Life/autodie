@@ -631,6 +631,13 @@ sub _one_invocation {
         require autodie::hints;
 
         $hints = autodie::hints->get_hints_for( $sref );
+
+        # We'll look up the sub's fullname.  This means we
+        # get better reports of where it came from in our
+        # error messages, rather than what imported it.
+
+        $human_sub_name = autodie::hints->sub_fullname( $sref );
+
     }
 
     # Checks for special core subs.
@@ -686,6 +693,7 @@ sub _one_invocation {
         die $class->throw(
             function => q{$human_sub_name}, args => [ @argv ],
             pragma => q{$class}, errno => \$!,
+            context => \$context, return => \$retval,
         )
     };
 
@@ -710,6 +718,8 @@ sub _one_invocation {
         require Fcntl;      # For Fcntl::LOCK_NB
 
         return qq{
+
+            my \$context = wantarray() ? "list" : "scalar";
 
             # Try to flock.  If successful, return it immediately.
 
@@ -743,6 +753,8 @@ sub _one_invocation {
 
         if (wantarray) {
             my \@results = $call(@argv);
+            my \$retval  = \\\@results;
+            my \$context = "list";
 
     ];
 
@@ -787,7 +799,8 @@ sub _one_invocation {
     # at the result.
 
     $code .= qq{
-        my \$result = $call(@argv);
+        my \$retval  = $call(@argv);
+        my \$context = "scalar";
     };
 
     if ( $hints and ( ref($hints->{scalar} ) || "" ) eq 'CODE' ) {
@@ -796,17 +809,17 @@ sub _one_invocation {
         # works in 5.8.x, and always works in 5.10.1
 
         return $code .= qq{
-            if ( \$hints->{scalar}->(\$result) ) { $die };
-            return \$result;
+            if ( \$hints->{scalar}->(\$retval) ) { $die };
+            return \$retval;
         };
 
     }
     elsif (PERL510 and $hints) {
         return $code . qq{
 
-            if ( \$result ~~ \$hints->{scalar} ) { $die };
+            if ( \$retval ~~ \$hints->{scalar} ) { $die };
 
-            return \$result;
+            return \$retval;
         };
     }
     elsif ( $hints ) {
@@ -816,13 +829,13 @@ sub _one_invocation {
     return $code .
     ( $use_defined_or ? qq{
 
-        $die if not defined \$result;
+        $die if not defined \$retval;
 
-        return \$result;
+        return \$retval;
 
     } : qq{
 
-        return \$result || $die;
+        return \$retval || $die;
 
     } ) ;
 

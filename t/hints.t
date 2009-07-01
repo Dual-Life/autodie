@@ -60,6 +60,10 @@ eval {
 isnt("$@", "", "Copying in scalar context should throw an error.");
 isa_ok($@, "autodie::exception");
 
+is($@->function, "File::Copy::copy", "Function should be original name");
+is($@->return, 0, "File::Copy returns zero on failure");
+is($@->context, "scalar", "File::Copy called in scalar context");
+
 # List context test.
 
 eval {
@@ -70,6 +74,10 @@ eval {
 
 isnt("$@", "", "Copying in list context should throw an error.");
 isa_ok($@, "autodie::exception");
+
+is($@->function, "File::Copy::copy", "Function should be original name");
+is_deeply($@->return, [0], "File::Copy returns zero on failure");
+is($@->context, "list", "File::Copy called in list context");
 
 # Tests on loaded funcs.
 

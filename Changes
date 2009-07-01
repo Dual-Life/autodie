@@ -1,5 +1,14 @@
 Revision history for autodie
 
+        * FEATURE: autodie::exception now supports ->context() to
+          discover the context of the failing subroutine, and
+          ->return() to get a list of what it returned.
+
+        * BUGFIX: ->function from autodie::exception now returns
+          the original name of the dying sub, rather than its imported
+          name.  For example, 'File::Copy::copy' rather than 'main::copy'.
+          Core functions continue to always return 'CORE::whatever'.
+
 2.01  Wed Jul  1 01:31:24 AUSEST 2009
 
         * DOCUMENTATION: General copyediting and tidy-up
