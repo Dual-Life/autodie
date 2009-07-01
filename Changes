@@ -1,5 +1,7 @@
 Revision history for autodie
 
+2.02  Wed Jul  1 15:06:21 AUSEST 2009
+
         * FEATURE: autodie::exception now supports ->context() to
           discover the context of the failing subroutine, and
           ->return() to get a list of what it returned.
