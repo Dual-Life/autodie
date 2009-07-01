@@ -28,5 +28,3 @@ isnt("$@","");
 is($@->return->[0], undef);
 is($@->return->[1], 'Insufficient credit');
 like("$@", qr/Insufficient credit/);
-
-warn $@;
