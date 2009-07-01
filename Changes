@@ -9,6 +9,9 @@ Revision history for autodie
           name.  For example, 'File::Copy::copy' rather than 'main::copy'.
           Core functions continue to always return 'CORE::whatever'.
 
+        * TEST: blog_hints.t tests new hinting features against
+          examples in my blog at http://pjf.id.au/blog/
+
 2.01  Wed Jul  1 01:31:24 AUSEST 2009
 
         * DOCUMENTATION: General copyediting and tidy-up

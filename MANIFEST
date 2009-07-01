@@ -23,6 +23,7 @@ t/autodie_test_module.pm
 t/backcompat.t
 t/basic_exceptions.t
 t/binmode.t
+t/blog_hints.t
 t/boilerplate.t
 t/caller.t
 t/context.t
@@ -61,9 +62,11 @@ t/lib/Hints_provider_easy_does_it.pm
 t/lib/Hints_provider_isa.pm
 t/lib/Hints_test.pm
 t/lib/lethal.pm
+t/lib/my/autodie.pm
 t/lib/OtherTypes.pm
 t/lib/pujHa/ghach.pm
 t/lib/pujHa/ghach/Dotlh.pm
+t/lib/Some/Module.pm
 t/mkdir.t
 t/open.t
 t/pod-coverage.t
