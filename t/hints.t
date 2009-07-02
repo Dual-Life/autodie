@@ -23,7 +23,7 @@ use Hints_test qw(
 use autodie qw(fail_on_empty fail_on_false fail_on_undef);
 
 diag("Sub::Identify ", exists( $INC{'Sub/Identify.pm'} ) ? "is" : "is not",
-     " loaded");
+     " loaded") if (! $ENV{PERL_CORE});
 
 my $hints = "autodie::hints";
 
