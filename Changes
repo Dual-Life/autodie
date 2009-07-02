@@ -1,5 +1,7 @@
 Revision history for autodie
 
+2.04  Thu Jul  2 18:56:57 AUSEST 2009
+
         * TEST: Removed spurious warning about insufficient credit.
 
         * TEST: hints.t produces less debugging output when testing
