@@ -5,6 +5,10 @@ Revision history for autodie
         * TEST: hints.t produces less debugging output when testing
           the Perl core.  (Thanks to Jerry D. Hedden)
 
+        * TEST: hints.t no longer spuriously fails when checking
+          the return values from File::Copy under Windows before
+          Perl 5.10.1.  (Thanks to Curtis Jewell)
+
 2.03  Wed Jul  1 15:39:16 AUSEST 2009
 
         * BUGFIX: Stopped blog_hints.t from booching under Perl
