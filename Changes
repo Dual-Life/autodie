@@ -1,5 +1,16 @@
 Revision history for autodie
 
+        * BUGFIX: format_default() in autodie::exception no longer
+          returns a string with file and line attached.  This would
+          cause the file and line information to appear twice when
+          format handlers would choose to fall back to the defaults.
+          The file and line information is now always added by
+          stringify().  (RT #47520, thanks to Michael Schwern)
+
+        * BUGFIX: Exceptions thrown by 2-argument open() are more likely
+          to specify the mode as 'for reading' when no explicit
+          mode was given.  (RT #47520, thanks to Michael Schwern)
+
 2.04  Thu Jul  2 18:56:57 AUSEST 2009
 
         * TEST: Removed spurious warning about insufficient credit.
