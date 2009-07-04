@@ -1,5 +1,7 @@
 Revision history for autodie
 
+2.05  Sat Jul  4 16:33:01 AUSEST 2009
+
         * BUGFIX: format_default() in autodie::exception no longer
           returns a string with file and line attached.  This would
           cause the file and line information to appear twice when
