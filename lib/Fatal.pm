@@ -297,13 +297,38 @@ sub import {
 
         $^H |= 0x020000;
 
-        # Our package guard gets invoked when we leave our lexical
-        # scope.
+        # Under Perl 5.10.x, the presenence of a string eval
+        # can cause %^H to be copied, which prevents destruction
+        # of our guard objects at the end of block.  This work-around
+        # was provided by Vincent Pit, who is a legend.
 
-        push(@ { $^H{$PACKAGE_GUARD} }, autodie::Scope::Guard->new(sub {
-            $class->_install_subs($pkg, \%unload_later);
-        }));
+        if (PERL510) {
 
+            BEGIN { require Variable::Magic; }
+
+            my $wiz = Variable::Magic::wizard(
+                data => sub { [$_[1]] },
+                free => sub { $_->() foreach @{ $_[1] }; () },
+            );
+
+            my $scope_guard = sub {
+                $class->_install_subs($pkg, \%unload_later);
+            };
+
+            if ( my $stack = Variable::Magic::getdata(%^H, $wiz) ) {
+                push( @{ $stack }, $scope_guard );
+            }
+            else {
+                Variable::Magic::cast( %^H, $wiz, $scope_guard );
+            }
+
+        }
+        else {
+            my $scope_guard = autodie::Scope::Guard->new(sub {
+                $class->_install_subs($pkg, \%unload_later);
+            });
+            push( @{ $^H{$PACKAGE_GUARD} }, $scope_guard );
+        }
     }
 
     return;
