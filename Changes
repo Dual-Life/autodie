@@ -1,7 +1,9 @@
 Revision history for autodie
 
         * TEST: Check for autodie leaking out of scope in the
-          presence of string evals.
+          presence of string evals.  (string-eval-leak.t)
+          Thanks to Florian Ragwitz and Vincent Pit for identifying
+          this.
 
 2.05  Sat Jul  4 16:33:01 AUSEST 2009
 
