@@ -1,5 +1,8 @@
 Revision history for autodie
 
+        * TEST: Check for autodie leaking out of scope in the
+          presence of string evals.
+
 2.05  Sat Jul  4 16:33:01 AUSEST 2009
 
         * BUGFIX: format_default() in autodie::exception no longer
