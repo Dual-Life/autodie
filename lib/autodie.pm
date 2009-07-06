@@ -360,6 +360,9 @@ result in a compile-time error.
 Due to a bug in Perl, C<autodie> may "lose" any format which has the
 same name as an autodying built-in or function.
 
+C<autodie> may not work correctly if used inside a file with a
+name that looks like a string eval, such as F<eval (3)>.
+
 =head2 autodie and string eval
 
 Due to the current implementation of C<autodie>, unexpected results
