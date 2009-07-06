@@ -10,7 +10,8 @@ Revision history for autodie
           this.
 
         * BUGFIX: autodie once again correctly works when used
-          inside a string eval on Perl 5.8.x.
+          inside a string eval.  (This was accidently broken
+          somewhere around 1.997-1.998).
 
 2.05  Sat Jul  4 16:33:01 AUSEST 2009
 
