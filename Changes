@@ -9,6 +9,9 @@ Revision history for autodie
           Thanks to Florian Ragwitz and Vincent Pit for identifying
           this.
 
+        * BUGFIX: autodie once again correctly works when used
+          inside a string eval on Perl 5.8.x.
+
 2.05  Sat Jul  4 16:33:01 AUSEST 2009
 
         * BUGFIX: format_default() in autodie::exception no longer

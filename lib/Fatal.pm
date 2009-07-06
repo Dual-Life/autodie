@@ -1086,9 +1086,18 @@ sub _make_fatal {
 
                 my \$caller_level = 0;
 
-                while ( (caller \$caller_level)[1] =~ m{^\\(eval \\d+\\)\$} ) {
+                my \$caller;
+
+                while ( (\$caller = (caller \$caller_level)[1]) =~ m{^\\(eval \\d+\\)\$} ) {
+
+                    # If our filename is actually an eval, and we
+                    # reach it, then go to our autodying code immediatately.
+
+                    goto &\$code if (\$caller eq \$filename);
                     \$caller_level++;
                 }
+
+                # We're now out of the eval stack.
 
                 # If we're called from the correct file, then use the
                 # autodying code.
