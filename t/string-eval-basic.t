@@ -19,6 +19,14 @@ my $result = eval q{
     1;
 };
 
-ok( ! $result, "Eval should fail with autodie/no such file");
-ok($@, "enabling autodie in string eval should throw an exception");
-isa_ok($@, 'autodie::exception');
+TODO: {
+    local $TODO;
+
+    if ($] >= 5.010) {
+        $TODO = "autodie doesn't work inside string evals on 5.10.x";
+    }
+
+    ok( ! $result, "Eval should fail with autodie/no such file");
+    ok($@, "enabling autodie in string eval should throw an exception");
+    isa_ok($@, 'autodie::exception');
+}
