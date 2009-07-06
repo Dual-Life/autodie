@@ -1,5 +1,7 @@
 Revision history for autodie
 
+2.06  Tue Jul  7 00:01:37 AUSEST 2009
+
         * BUG: Explicitly documented that autodie does NOT play
           nicely with string evals, especially under Perl 5.10.x.
           Please avoid using string evals while autodie is in scope.
