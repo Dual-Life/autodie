@@ -78,3 +78,13 @@ Glenn Fowler
 
 Toby Corkindale
         - Documentation copyediting and improvements.
+
+Vincent Pit
+        - Additional test cases.
+        - Help in tracking down string eval weirdness.
+        - Code review and sanity support.
+
+Florian Ragwitz
+        - Help in tracking down string eval weirdness.
+        - Letting me cargo-cult code from B::Hooks::EndOfScope.
+
