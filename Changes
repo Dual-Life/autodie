@@ -15,6 +15,11 @@ Revision history for autodie
           inside a string eval.  (This was accidently broken
           somewhere around 1.997-1.998).
 
+        * TEST: Checking for flock() support no longer causes
+          test failures on older VMS sysstems. (RT #47812)
+          Thanks to Craig A. Berry for supplying a patch.
+
+
 2.05  Sat Jul  4 16:33:01 AUSEST 2009
 
         * BUGFIX: format_default() in autodie::exception no longer
