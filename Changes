@@ -1,5 +1,7 @@
 Revision history for autodie
 
+2.06_01 Thu Jul 23 18:46:47 PDT 2009
+
         * FEATURE: Added ->eval_error to autodie::exception, which
           stores the contents of $@ at the time autodie throws its
           own exception.  This is useful when dealing with modules
