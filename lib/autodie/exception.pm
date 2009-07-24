@@ -170,6 +170,18 @@ set on failure.
 
 sub errno       { return $_[0]->{$PACKAGE}{errno}; }
 
+=head3 eval_error
+
+    my $old_eval_error = $E->eval_error;
+
+The contents of C<$@> immediately after autodie triggered an
+exception.  This may be useful when dealing with modules such
+as L<Text::Balanced> that set (but do not throw) C<$@> on error.
+
+=cut
+
+sub eval_error { return $_[0]->{$PACKAGE}{eval_error}; }
+
 =head3 matches
 
     if ( $e->matches('open') ) { ... }
@@ -698,6 +710,7 @@ sub _init {
 
     $this->{$PACKAGE}{context} = $args{context};
     $this->{$PACKAGE}{return}  = $args{return};
+    $this->{$PACKAGE}{eval_error}  = $args{eval_error};
 
     $this->{$PACKAGE}{args}    = $args{args} || [];
     $this->{$PACKAGE}{function}= $args{function} or

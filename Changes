@@ -1,5 +1,11 @@
 Revision history for autodie
 
+        * FEATURE: Added ->eval_error to autodie::exception, which
+          stores the contents of $@ at the time autodie throws its
+          own exception.  This is useful when dealing with modules
+          such as Text::Balanced which set (but do not throw)
+          $@ on error.
+
 2.06  Tue Jul  7 00:01:37 AUSEST 2009
 
         * BUG: Explicitly documented that autodie does NOT play

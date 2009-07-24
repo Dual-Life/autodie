@@ -698,6 +698,7 @@ sub _one_invocation {
             function => q{$human_sub_name}, args => [ @argv ],
             pragma => q{$class}, errno => \$!,
             context => \$context, return => \$retval,
+            eval_error => \$@
         )
     };
 
