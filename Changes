@@ -1,12 +1,20 @@
 Revision history for autodie
 
-2.06_01 Thu Jul 23 18:46:47 PDT 2009
+2.07  Fri Jul 31 16:35:40 BST 2009
 
         * FEATURE: Added ->eval_error to autodie::exception, which
           stores the contents of $@ at the time autodie throws its
           own exception.  This is useful when dealing with modules
           such as Text::Balanced which set (but do not throw)
           $@ on error.
+
+        * TEST: Checking for flock() support no longer causes
+          test failures on older VMS sysstems. (RT #47812)
+          Thanks to Craig A. Berry for supplying a patch.
+
+        * TEST: hints.t tests should no longer cause bogus
+          failures relating to File::Copy on VMS and Windows
+          systems prior to Perl 5.10.2.
 
 2.06  Tue Jul  7 00:01:37 AUSEST 2009
 
@@ -22,11 +30,6 @@ Revision history for autodie
         * BUGFIX: autodie once again correctly works when used
           inside a string eval.  (This was accidently broken
           somewhere around 1.997-1.998).
-
-        * TEST: Checking for flock() support no longer causes
-          test failures on older VMS sysstems. (RT #47812)
-          Thanks to Craig A. Berry for supplying a patch.
-
 
 2.05  Sat Jul  4 16:33:01 AUSEST 2009
 
