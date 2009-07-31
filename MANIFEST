@@ -31,6 +31,7 @@ t/context_lexical.t
 t/crickey.t
 t/critic.t
 t/dbmopen.t
+t/eval_error.t
 t/exception_class.t
 t/exceptions.t
 t/exec.t
