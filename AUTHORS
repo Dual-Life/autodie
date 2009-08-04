@@ -88,3 +88,5 @@ Florian Ragwitz
         - Help in tracking down string eval weirdness.
         - Letting me cargo-cult code from B::Hooks::EndOfScope.
 
+Elliot Shank
+        - Integration into Perl::Critic
