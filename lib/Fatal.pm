@@ -5,6 +5,7 @@ use Carp;
 use strict;
 use warnings;
 use Tie::RefHash;   # To cache subroutine refs
+use Config;
 
 use constant PERL510     => ( $] >= 5.010 );
 
@@ -51,6 +52,10 @@ our $Debug ||= 0;
 our %_EWOULDBLOCK = (
     MSWin32 => 33,
 );
+
+# the linux parisc port has separate EAGAIN and EWOULDBLOCK,
+# and the kernel returns EAGAIN
+my $try_EAGAIN = ($^O eq 'linux' and $Config{archname} =~ /hppa|parisc/) ? 1 : 0;
 
 # We have some tags that can be passed in for use with import.
 # These are all assumed to be CORE::
@@ -732,6 +737,11 @@ sub _one_invocation {
         my $EWOULDBLOCK = eval { POSIX::EWOULDBLOCK(); }
                           || $_EWOULDBLOCK{$^O}
                           || _autocroak("Internal error - can't overload flock - EWOULDBLOCK not defined on this system.");
+        my $EAGAIN = $EWOULDBLOCK;
+        if ($try_EAGAIN) {
+            $EAGAIN = eval { POSIX::EAGAIN(); }
+                          || _autocroak("Internal error - can't overload flock - EAGAIN not defined on this system.");
+        }
 
         require Fcntl;      # For Fcntl::LOCK_NB
 
@@ -747,7 +757,9 @@ sub _one_invocation {
             # If we failed, but we're using LOCK_NB and
             # returned EWOULDBLOCK, it's not a real error.
 
-            if (\$_[1] & Fcntl::LOCK_NB() and \$! == $EWOULDBLOCK ) {
+            if (\$_[1] & Fcntl::LOCK_NB() and
+                (\$! == $EWOULDBLOCK or
+                ($try_EAGAIN and \$! == $EAGAIN ))) {
                 return \$retval;
             }
 
