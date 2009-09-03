@@ -169,6 +169,7 @@ my $NO_PACKAGE    = "no $PACKAGE";      # Used to detect 'no autodie'
 
 sub import {
     my $class        = shift(@_);
+    my @original_args = @_;
     my $void         = 0;
     my $lexical      = 0;
     my $insist_hints = 0;
@@ -306,6 +307,16 @@ sub import {
         push(@ { $^H{$PACKAGE_GUARD} }, autodie::Scope::Guard->new(sub {
             $class->_install_subs($pkg, \%unload_later);
         }));
+
+        # To allow others to determine when autodie was in scope,
+        # and with what arguments, we also set a %^H hint which
+        # is how we were called.
+
+        # This feature should be considered EXPERIMENTAL, and
+        # may change without notice.  Please e-mail pjf@cpan.org
+        # if you're actually using it.
+
+        $^H{autodie} = "$PACKAGE @original_args";
 
     }
 
