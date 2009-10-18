@@ -10,3 +10,4 @@ autodie-[12].*
 MANIFEST.bak
 cover_db
 .prove
+*.patch
