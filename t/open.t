@@ -50,14 +50,27 @@ unlike($@, qr/at \S+ line \d+\s+at \S+ line \d+/, "...but not too mentions");
 
 # RT 52427.  Piped open can have any many args.
 
+# Sniff to see if we can run 'true' on this system.  Changes we can't
+# on non-Unix systems.
+
 eval {
     use autodie;
 
-    my $fh;
-    open $fh, "-|", "true";
-    open $fh, "-|", "true", "foo";
-    open $fh, "-|", "true", "foo", "bar";
-    open $fh, "-|", "true", "foo", "bar", "baz";
+    open(my $fh, '-|', "true");
 };
 
-is $@, '', "multi arg piped open does not fail";
+SKIP: {
+    skip('true command not on this system', 1) if $@;
+
+    eval {
+        use autodie;
+
+        my $fh;
+        open $fh, "-|", "true";
+        open $fh, "-|", "true", "foo";
+        open $fh, "-|", "true", "foo", "bar";
+        open $fh, "-|", "true", "foo", "bar", "baz";
+    };
+
+    is $@, '', "multi arg piped open does not fail";
+}
