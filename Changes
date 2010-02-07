@@ -4,6 +4,10 @@ Revision history for autodie
         * BUGFIX: Addeds support for chmod.  Many thanks to
           Jonathan Yu for reporting this (RT #50423).
 
+        * BUGFIX: Multi-arg open is now supported by open.
+          Many thanks to Nick Ncleaton for finding and fix this
+          bug.  (RT #52427)
+
 2.07  Fri Jul 31 16:35:40 BST 2009
 
         * FEATURE: Added ->eval_error to autodie::exception, which
