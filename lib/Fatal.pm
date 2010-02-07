@@ -547,7 +547,17 @@ sub _write_invocation {
             @argv = @{shift @argvs};
             $n = shift @argv;
 
-            push @out, "${else}if (\@_ == $n) {\n";
+            my $condition = "\@_ == $n";
+
+            if (@argv and $argv[-1] =~ /#_/) {
+                # This argv ends with '@' in the prototype, so it matches
+                # any number of args >= the number of expressions in the
+                # argv.
+                $condition = "\@_ >= $n";
+            }
+
+            push @out, "${else}if ($condition) {\n";
+
             $else = "\t} els";
 
         push @out, $class->_one_invocation($core,$call,$name,$void,$sub,! $lexical, $sref, @argv);
