@@ -40,7 +40,7 @@ use constant ERROR_58_HINTS => q{Non-subroutine %s hints for %s are not supporte
 use constant MIN_IPC_SYS_SIMPLE_VER => 0.12;
 
 # All the Fatal/autodie modules share the same version number.
-our $VERSION = '2.07';
+our $VERSION = '2.08';
 
 our $Debug ||= 0;
 
@@ -65,7 +65,7 @@ my %TAGS = (
                        read seek sysread syswrite sysseek )],
     ':dbm'     => [qw(dbmopen dbmclose)],
     ':file'    => [qw(open close flock sysopen fcntl fileno binmode
-                     ioctl truncate)],
+                     ioctl truncate chmod)],
     ':filesys' => [qw(opendir closedir chdir link unlink rename mkdir
                       symlink rmdir readlink umask)],
     ':ipc'     => [qw(:msg :semaphore :shm pipe)],
@@ -89,26 +89,34 @@ my %TAGS = (
 
     ':default' => [qw(:io :threads)],
 
+    # Everything in v2.07 and brefore. This was :default less chmod.
+    ':v207'    => [qw(:threads :dbm :filesys :ipc :socket read seek sysread
+                   syswrite sysseek open close flock sysopen fcntl fileno
+                   binmode ioctl truncate)],
+
     # Version specific tags.  These allow someone to specify
     # use autodie qw(:1.994) and know exactly what they'll get.
 
-    ':1.994' => [qw(:default)],
-    ':1.995' => [qw(:default)],
-    ':1.996' => [qw(:default)],
-    ':1.997' => [qw(:default)],
-    ':1.998' => [qw(:default)],
-    ':1.999' => [qw(:default)],
-    ':1.999_01' => [qw(:default)],
-    ':2.00'  => [qw(:default)],
-    ':2.01'  => [qw(:default)],
-    ':2.02'  => [qw(:default)],
-    ':2.03'  => [qw(:default)],
-    ':2.04'  => [qw(:default)],
-    ':2.05'  => [qw(:default)],
-    ':2.06'  => [qw(:default)],
-    ':2.06_01' => [qw(:default)],
-    ':2.07'  => [qw(:default)],
+    ':1.994' => [qw(:v207)],
+    ':1.995' => [qw(:v207)],
+    ':1.996' => [qw(:v207)],
+    ':1.997' => [qw(:v207)],
+    ':1.998' => [qw(:v207)],
+    ':1.999' => [qw(:v207)],
+    ':1.999_01' => [qw(:v207)],
+    ':2.00'  => [qw(:v207)],
+    ':2.01'  => [qw(:v207)],
+    ':2.02'  => [qw(:v207)],
+    ':2.03'  => [qw(:v207)],
+    ':2.04'  => [qw(:v207)],
+    ':2.05'  => [qw(:v207)],
+    ':2.06'  => [qw(:v207)],
+    ':2.06_01' => [qw(:v207)],
+    ':2.07'  => [qw(:v207)],     # Last release without chmod
+    ':2.08'  => [qw(:default)],
 );
+
+# chmod was only introduced in 2.07
 
 $TAGS{':all'}  = [ keys %TAGS ];
 
@@ -466,8 +474,10 @@ sub unimport {
 
         while (my $item = shift @to_process) {
             if ($item =~ /^:/) {
+                # Expand :tags
                 push(@to_process, @{$TAGS{$item}} );
-            } else {
+            }
+            else {
                 push(@taglist, "CORE::$item");
             }
         }

@@ -1,5 +1,9 @@
 Revision history for autodie
 
+2.08
+        * BUGFIX: Addeds support for chmod.  Many thanks to
+          Jonathan Yu for reporting this (RT #50423).
+
 2.07  Fri Jul 31 16:35:40 BST 2009
 
         * FEATURE: Added ->eval_error to autodie::exception, which
