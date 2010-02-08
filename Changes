@@ -1,5 +1,8 @@
 Revision history for autodie
 
+        * DOCS: Fixed documentation typo.  RT #48575
+          Thanks to David Taylor.
+
 2.08  Mon Feb  8 14:24:26 AUSEST 2010
         * BUGFIX: Addeds support for chmod.  Many thanks to
           Jonathan Yu for reporting this (RT #50423).
