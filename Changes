@@ -8,6 +8,8 @@ Revision history for autodie
           Many thanks to Nick Ncleaton for finding and fix this
           bug.  (RT #52427)
 
+        * BUILD: Updated to Module::Install 0.93
+
 2.07  Fri Jul 31 16:35:40 BST 2009
 
         * FEATURE: Added ->eval_error to autodie::exception, which
