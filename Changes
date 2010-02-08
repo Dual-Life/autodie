@@ -1,6 +1,6 @@
 Revision history for autodie
 
-2.08
+2.08  Mon Feb  8 14:24:26 AUSEST 2010
         * BUGFIX: Addeds support for chmod.  Many thanks to
           Jonathan Yu for reporting this (RT #50423).
 
