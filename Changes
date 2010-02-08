@@ -5,7 +5,7 @@ Revision history for autodie
           Jonathan Yu for reporting this (RT #50423).
 
         * BUGFIX: Multi-arg open is now supported by open.
-          Many thanks to Nick Ncleaton for finding and fix this
+          Many thanks to Nick Cleaton for finding and fix this
           bug.  (RT #52427)
 
         * BUILD: Updated to Module::Install 0.93
