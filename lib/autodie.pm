@@ -264,7 +264,7 @@ C<system> and C<exec> with:
 =head2 flock
 
 It is not considered an error for C<flock> to return false if it fails
-to an C<EWOULDBLOCK> (or equivalent) condition.  This means one can
+due to an C<EWOULDBLOCK> (or equivalent) condition.  This means one can
 still use the common convention of testing the return value of
 C<flock> when called with the C<LOCK_NB> option:
 
