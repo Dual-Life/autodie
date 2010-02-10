@@ -56,11 +56,13 @@ unlike($@, qr/at \S+ line \d+\s+at \S+ line \d+/, "...but not too mentions");
 eval {
     use autodie;
 
+    die "Windows does not support multi-arg pipe" if $^O eq "Win32";
+
     open(my $fh, '-|', "true");
 };
 
 SKIP: {
-    skip('true command not on this system', 1) if $@;
+    skip('true command or list pipe not available on this system', 1) if $@;
 
     eval {
         use autodie;
