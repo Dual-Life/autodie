@@ -632,11 +632,11 @@ sub _one_invocation {
 
         if ($void) {
             return qq/return (defined wantarray)?$call(@argv):
-                   $call(@argv) || croak "Can't $name(\@_)/ .
-                   ($core ? ': $!' : ', \$! is \"$!\"') . '"'
+                   $call(@argv) || Carp::croak("Can't $name(\@_)/ .
+                   ($core ? ': $!' : ', \$! is \"$!\"') . '")'
         } else {
-            return qq{return $call(@argv) || croak "Can't $name(\@_)} .
-                   ($core ? ': $!' : ', \$! is \"$!\"') . '"';
+            return qq{return $call(@argv) || Carp::croak("Can't $name(\@_)} .
+                   ($core ? ': $!' : ', \$! is \"$!\"') . '")';
         }
     }
 
@@ -1098,7 +1098,7 @@ sub _make_fatal {
 
         {
             local $@;
-            $code = eval("package $pkg; use Carp; $code");  ## no critic
+            $code = eval("package $pkg; require Carp; $code");  ## no critic
             $E = $@;
         }
 
@@ -1176,7 +1176,7 @@ sub _make_fatal {
             >;
         }
 
-        $leak_guard .= qq< croak "Internal error in Fatal/autodie.  Leak-guard failure"; } >;
+        $leak_guard .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
 
         # warn "$leak_guard\n";
 
