@@ -1,12 +1,16 @@
 Revision history for autodie
 
+2.10  Sat Feb 27 14:01:18 AUSEST 2010
         * BUGFIX: Fatal and autodie no longer leak Carp functions
           into the caller's namespace.  Thanks to Schwern.
 
         * TEST: Multi-arg open tests are really really skipped
           under Windows now.
 
-2.09  Tue Feb 23 00:33:09 EST 2010
+        * DOCUMENTATION: Many more people are properly attributed
+          in the 'AUTHORS' file.
+
+2.09  Tue Feb 23 00:33:09 AUSEST 2010
         * DOCS: Fixed documentation typo.  RT #48575
           Thanks to David Taylor.
 

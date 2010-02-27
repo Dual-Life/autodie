@@ -49,7 +49,7 @@ ikegami
 	  of how it's been dressed.
 
 Matt Kraai
-        - Formatting fixess in diagnostics.
+        - Formatting fixes in diagnostics.
 
 Darren Duncan
         - Spotting omissions in user documentation.
@@ -90,3 +90,28 @@ Florian Ragwitz
 
 Elliot Shank
         - Integration into Perl::Critic
+
+Michael Schwern
+        - Finding a more-than-a-decade old bug in Fatal that caused
+          it to leak carp functions.
+        - Improvements to generated error messages.
+
+David Taylor
+        - Documentation fixes.
+
+Nick Cleaton
+        - Support for multi-arg open.
+
+Craig A. Berry
+        - VMS support.
+
+Jonathan Yu
+        - chmod support.
+        - Prevention of author tests failing if Sub::Identify not installed.
+
+Jerry D. Hedden
+        - Better test output, particularly when running as part of the
+          Perl core.
+
+Curtis Jewell
+        - Improvements to File::Copy tests under Windows.
