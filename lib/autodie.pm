@@ -334,6 +334,10 @@ the end of the current block with C<no autodie>.
 To disable autodie for only a single function (eg, open)
 use C<no autodie qw(open)>.
 
+C<autodie> performs no checking of called context to determine whether to throw
+an exception; the explicitness of error handling with C<autodie> is a deliberate
+feature.
+
 =item No user hints defined for %s
 
 You've insisted on hints for user-subroutines, either by pre-pending
