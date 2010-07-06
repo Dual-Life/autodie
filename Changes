@@ -3,6 +3,9 @@ Revision history for autodie
         * DOCS: Explicitly documented that autodie is context
           unaware.  (Thanks to chromatic.)
 
+        * TEST: Multi-arg open tests are skipped on VMS.
+          (Thanks to Craig A. Berry.)
+
 2.10  Sat Feb 27 14:01:18 AUSEST 2010
         * BUGFIX: Fatal and autodie no longer leak Carp functions
           into the caller's namespace.  Thanks to Schwern.
