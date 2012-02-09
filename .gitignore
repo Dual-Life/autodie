@@ -11,3 +11,5 @@ MANIFEST.bak
 cover_db
 .prove
 *.patch
+MYMETA.json
+MYMETA.yml
