@@ -115,3 +115,6 @@ Jerry D. Hedden
 
 Curtis Jewell
         - Improvements to File::Copy tests under Windows.
+
+Olivier Mengué
+        - Compatibility fixes with Carp.
