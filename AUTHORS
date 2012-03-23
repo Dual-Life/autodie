@@ -118,3 +118,6 @@ Curtis Jewell
 
 Olivier Mengué
         - Compatibility fixes with Carp.
+
+Todd Rinaldo
+        - Avoided possible test failures when STDIN was a socket.
