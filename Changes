@@ -5,6 +5,8 @@ Revision history for autodie
 
         * TEST: Multi-arg open tests are skipped on VMS.
           (Thanks to Craig A. Berry.)
+2.11
+        * TEST BUGFIX recv.t shouldn't assume STDIN is a file handle.
 
         * TEST: Fixed compatibility with Carp 1.25.
           (Thanks to Olivier Mengué.)
