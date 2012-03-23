@@ -13,6 +13,9 @@ Revision history for autodie
         * TEST: Fixed compatibility with Carp 1.25.
           (Thanks to Olivier Mengué.)
 
+        * INTERNAL: Exception classes are loaded more safely.
+          (Thanks to Schwern)
+
 2.10  Sat Feb 27 14:01:18 AUSEST 2010
         * BUGFIX: Fatal and autodie no longer leak Carp functions
           into the caller's namespace.  Thanks to Schwern.
