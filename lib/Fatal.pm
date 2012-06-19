@@ -145,6 +145,34 @@ my %Use_defined_or;
     CORE::umask
 )} = ();
 
+
+# A snippet of code to apply the open pragma to a handle
+my $Apply_open_pragma = q{
+
+    # apply the open pragma from our caller
+    if( defined $retval ) {
+        # Get the caller's hint hash
+        my $hints = (caller 0)[10];
+
+        # Decide if we're reading or writing and apply the appropriate encoding
+        # These keys are undocumented.
+        my $encoding = $_[1] =~ /^>/ ? $hints->{"open>"} : $hints->{"open<"};
+
+        # Apply the encoding, if any.
+        if( $encoding ) {
+            binmode $_[0], $encoding;
+        }
+    }
+
+};
+
+
+# Optional actions to take on the return value before returning it.
+
+my %Retval_action = (
+    "CORE::open" => $Apply_open_pragma,
+);
+
 # Cached_fatalised_sub caches the various versions of our
 # fatalised subs as they're produced.  This means we don't
 # have to build our own replacement of CORE::open and friends
@@ -811,6 +839,8 @@ sub _one_invocation {
 
     ];
 
+    my $retval_action = $Retval_action{$call} || '';
+
     if ( $hints and ( ref($hints->{list} ) || "" ) eq 'CODE' ) {
 
         # NB: Subroutine hints are passed as a full list.
@@ -863,6 +893,7 @@ sub _one_invocation {
 
         return $code .= qq{
             if ( \$hints->{scalar}->(\$retval) ) { $die };
+            $retval_action
             return \$retval;
         };
 
@@ -871,7 +902,7 @@ sub _one_invocation {
         return $code . qq{
 
             if ( \$retval ~~ \$hints->{scalar} ) { $die };
-
+            $retval_action
             return \$retval;
         };
     }
@@ -883,11 +914,12 @@ sub _one_invocation {
     ( $use_defined_or ? qq{
 
         $die if not defined \$retval;
-
+        $retval_action
         return \$retval;
 
     } : qq{
 
+        $retval_action
         return \$retval || $die;
 
     } ) ;
