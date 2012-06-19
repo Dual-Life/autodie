@@ -145,6 +145,58 @@ my %Use_defined_or;
     CORE::umask
 )} = ();
 
+
+# A snippet of code to apply the open pragma to a handle
+
+
+
+# Optional actions to take on the return value before returning it.
+
+my %Retval_action = (
+    "CORE::open"        => q{
+
+    # apply the open pragma from our caller
+    if( defined $retval ) {
+        # Get the caller's hint hash
+        my $hints = (caller 0)[10];
+
+        # Decide if we're reading or writing and apply the appropriate encoding
+        # These keys are undocumented.
+        # Match what PerlIO_context_layers() does.  Read gets the read layer,
+        # everything else gets the write layer.
+        my $encoding = $_[1] =~ /^\+?>/ ? $hints->{"open>"} : $hints->{"open<"};
+
+        # Apply the encoding, if any.
+        if( $encoding ) {
+            binmode $_[0], $encoding;
+        }
+    }
+
+},
+    "CORE::sysopen"     => q{
+
+    # apply the open pragma from our caller
+    if( defined $retval ) {
+        # Get the caller's hint hash
+        my $hints = (caller 0)[10];
+
+        require Fcntl;
+
+        # Decide if we're reading or writing and apply the appropriate encoding.
+        # Match what PerlIO_context_layers() does.  Read gets the read layer,
+        # everything else gets the write layer.
+        my $open_read_only = !($_[2] ^ Fcntl::O_RDONLY());
+        my $encoding = $open_read_only ? $hints->{"open<"} : $hints->{"open>"};
+
+        # Apply the encoding, if any.
+        if( $encoding ) {
+            binmode $_[0], $encoding;
+        }
+    }
+
+},
+);
+
 # Cached_fatalised_sub caches the various versions of our
 # fatalised subs as they're produced.  This means we don't
 # have to build our own replacement of CORE::open and friends
@@ -811,6 +863,8 @@ sub _one_invocation {
 
     ];
 
+    my $retval_action = $Retval_action{$call} || '';
+
     if ( $hints and ( ref($hints->{list} ) || "" ) eq 'CODE' ) {
 
         # NB: Subroutine hints are passed as a full list.
@@ -863,6 +917,7 @@ sub _one_invocation {
 
         return $code .= qq{
             if ( \$hints->{scalar}->(\$retval) ) { $die };
+            $retval_action
             return \$retval;
         };
 
@@ -871,7 +926,7 @@ sub _one_invocation {
         return $code . qq{
 
             if ( \$retval ~~ \$hints->{scalar} ) { $die };
-
+            $retval_action
             return \$retval;
         };
     }
@@ -883,11 +938,12 @@ sub _one_invocation {
     ( $use_defined_or ? qq{
 
         $die if not defined \$retval;
-
+        $retval_action
         return \$retval;
 
     } : qq{
 
+        $retval_action
         return \$retval || $die;
 
     } ) ;
