@@ -147,7 +147,13 @@ my %Use_defined_or;
 
 
 # A snippet of code to apply the open pragma to a handle
-my $Apply_open_pragma = q{
+
+
+
+# Optional actions to take on the return value before returning it.
+
+my %Retval_action = (
+    "CORE::open"        => q{
 
     # apply the open pragma from our caller
     if( defined $retval ) {
@@ -156,7 +162,9 @@ my $Apply_open_pragma = q{
 
         # Decide if we're reading or writing and apply the appropriate encoding
         # These keys are undocumented.
-        my $encoding = $_[1] =~ /^>/ ? $hints->{"open>"} : $hints->{"open<"};
+        # Match what PerlIO_context_layers() does.  Read gets the read layer,
+        # everything else gets the write layer.
+        my $encoding = $_[1] =~ /^\+?>/ ? $hints->{"open>"} : $hints->{"open<"};
 
         # Apply the encoding, if any.
         if( $encoding ) {
@@ -164,13 +172,29 @@ my $Apply_open_pragma = q{
         }
     }
 
-};
+},
+    "CORE::sysopen"     => q{
 
+    # apply the open pragma from our caller
+    if( defined $retval ) {
+        # Get the caller's hint hash
+        my $hints = (caller 0)[10];
 
-# Optional actions to take on the return value before returning it.
+        require Fcntl;
 
-my %Retval_action = (
-    "CORE::open" => $Apply_open_pragma,
+        # Decide if we're reading or writing and apply the appropriate encoding.
+        # Match what PerlIO_context_layers() does.  Read gets the read layer,
+        # everything else gets the write layer.
+        my $open_read_only = !($_[2] ^ Fcntl::O_RDONLY());
+        my $encoding = $open_read_only ? $hints->{"open<"} : $hints->{"open>"};
+
+        # Apply the encoding, if any.
+        if( $encoding ) {
+            binmode $_[0], $encoding;
+        }
+    }
+
+},
 );
 
 # Cached_fatalised_sub caches the various versions of our

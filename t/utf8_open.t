@@ -7,6 +7,7 @@ use warnings;
 
 use autodie;
 
+use Fcntl;
 use File::Temp;
 
 use Test::More;
@@ -20,7 +21,7 @@ else {
 
 # Test with an open pragma on
 {
-    use open ':utf8';
+    use open IN => ':encoding(utf8)', OUT => ':utf8';
 
     # Test the standard handles and all newly opened handles are utf8
     my $file = File::Temp->new;
@@ -31,7 +32,7 @@ else {
         open my $fh, ">", $file;
 
         my @layers = PerlIO::get_layers($fh);
-        ok( grep(/utf8/, @layers), "open write honors open pragma" ) or diag join ", ", @layers;
+        ok( (grep { $_ eq 'utf8' } @layers), "open write honors open pragma" ) or diag join ", ", @layers;
 
         print $fh $txt;
         close $fh;
@@ -42,7 +43,7 @@ else {
         open my $fh, "<", $file;
 
         my @layers = PerlIO::get_layers($fh);
-        ok( grep(/utf8/, @layers), "open read honors open pragma" ) or diag join ", ", @layers;
+        ok( (grep { $_ eq 'encoding(utf8)' } @layers), "open read honors open pragma" ) or diag join ", ", @layers;
 
         is join("\n", <$fh>), $txt;
     }
@@ -52,9 +53,25 @@ else {
         open my($fh), $file;
 
         my @layers = PerlIO::get_layers($fh);
-        ok( grep(/utf8/, @layers), "open implicit read honors open pragma" ) or diag join ", ", @layers;
+        ok( (grep { $_ eq 'encoding(utf8)' } @layers), "open implicit read honors open pragma" ) or diag join ", ", @layers;
 
         is join("\n", <$fh>), $txt;
+    }
+
+    # open for read/write
+    {
+        open my $fh, "+>", $file;
+
+        my @layers = PerlIO::get_layers($fh);
+        ok( (grep { $_ eq 'utf8' } @layers), "open implicit read honors open pragma" ) or diag join ", ", @layers;
+    }
+
+    # open for append
+    {
+        open my $fh, ">>", $file;
+
+        my @layers = PerlIO::get_layers($fh);
+        ok( (grep { $_ eq 'utf8' } @layers), "open implicit read honors open pragma" ) or diag join ", ", @layers;
     }
 }
 
@@ -66,4 +83,45 @@ else {
 
     my @layers = PerlIO::get_layers($fh);
     ok( grep(!/utf8/, @layers), "open pragma remains lexical" ) or diag join ", ", @layers;
+}
+
+
+# sysopen
+{
+    use open IN => ':encoding(utf8)', OUT => ':utf8';
+
+    # Test the standard handles and all newly opened handles are utf8
+    my $file = File::Temp->new;
+    my $txt = "autodie is MËTÁŁ";
+
+    # open for writing only
+    {
+        sysopen my $fh, $file, O_CREAT|O_WRONLY;
+
+        my @layers = PerlIO::get_layers($fh);
+        ok( (grep { $_ eq 'utf8' } @layers), "open write honors open pragma" ) or diag join ", ", @layers;
+
+        print $fh $txt;
+        close $fh;
+    }
+
+    # open for reading only
+    {
+        sysopen my $fh, $file, O_RDONLY;
+
+        my @layers = PerlIO::get_layers($fh);
+        ok( (grep { $_ eq 'encoding(utf8)' } @layers), "open read honors open pragma" ) or diag join ", ", @layers;
+
+        is join("\n", <$fh>), $txt;
+    }
+
+    # open for reading and writing
+    {
+        sysopen my $fh, $file, O_RDWR;
+
+        my @layers = PerlIO::get_layers($fh);
+        ok( (grep { $_ eq 'utf8' } @layers), "open read/write honors open write pragma" ) or diag join ", ", @layers;
+
+        is join("\n", <$fh>), $txt;
+    }
 }
