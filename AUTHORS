@@ -96,6 +96,7 @@ Michael Schwern
           it to leak carp functions.
         - Improvements to generated error messages.
         - Safer loading of exception classes.
+        - Support for working with the open pragma.
 
 David Taylor
         - Documentation fixes.
