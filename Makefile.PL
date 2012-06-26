@@ -6,7 +6,6 @@ name(		'autodie');
 
 all_from(	'lib/autodie.pm');
 
-version_from(   'lib/autodie/exception.pm');
 test_requires(	'Test::More');
 author(         'Paul Fenwick <pjf@cpan.org>');
 

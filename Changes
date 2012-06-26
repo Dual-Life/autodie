@@ -6,6 +6,8 @@ Revision history for autodie
 
         * BUILD: Updated to Module::Install 1.06
 
+        * BUILD: Makefile.PL is less redundant.
+
 2.11 Sat Mar 24 01:50:56 AUSEST 2012
         * DOCS: Explicitly documented that autodie is context
           unaware.  (Thanks to chromatic.)
