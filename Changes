@@ -1,5 +1,11 @@
 Revision history for autodie
 
+2.12
+        * BUGFIX: autodie now plays nicely with the 'open' pragma
+        (RT #54777, thanks to Schwern).
+
+        * BUILD: Updated to Module::Install 1.06
+
 2.11
         * DOCS: Explicitly documented that autodie is context
           unaware.  (Thanks to chromatic.)
