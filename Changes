@@ -1,6 +1,6 @@
 Revision history for autodie
 
-2.12
+2.12  Tue Jun 26 14:55:04 PDT 2012
         * BUGFIX: autodie now plays nicely with the 'open' pragma
         (RT #54777, thanks to Schwern).
 
@@ -11,7 +11,7 @@ Revision history for autodie
         * TEST: t/pod-coverage.t no longer thinks LEXICAL_TAG is
           a user-visible subroutine.
 
-2.11 Sat Mar 24 01:50:56 AUSEST 2012
+2.11  Sat Mar 24 01:50:56 AUSEST 2012
         * DOCS: Explicitly documented that autodie is context
           unaware.  (Thanks to chromatic.)
 
