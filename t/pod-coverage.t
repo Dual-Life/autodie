@@ -30,6 +30,7 @@ all_pod_coverage_ok({
                 |throw
                 |exception_class
                 |AUTODIE_HINTS
+                |LEXICAL_TAG
                 |get_hints_for
                 |load_hints
                 |normalise_hints

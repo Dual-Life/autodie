@@ -8,6 +8,9 @@ Revision history for autodie
 
         * BUILD: Makefile.PL is less redundant.
 
+        * TEST: t/pod-coverage.t no longer thinks LEXICAL_TAG is
+          a user-visible subroutine.
+
 2.11 Sat Mar 24 01:50:56 AUSEST 2012
         * DOCS: Explicitly documented that autodie is context
           unaware.  (Thanks to chromatic.)
