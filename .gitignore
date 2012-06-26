@@ -13,3 +13,4 @@ cover_db
 *.patch
 MYMETA.json
 MYMETA.yml
+Debian_CPANTS.txt
