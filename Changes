@@ -1,5 +1,12 @@
 Revision history for autodie
 
+2.13  Thu Nov  8 14:22:03 EST 2012
+        * TEST: Deterministic tests in hints_pod_examples.t .
+          (RT #80412, thanks to demerphq)
+
+        * INTERNAL: subroutine installs are now done in a
+          deterministic order. (RT #80414, thanks to demerphq)
+
 2.12  Tue Jun 26 14:55:04 PDT 2012
         * BUGFIX: autodie now plays nicely with the 'open' pragma
         (RT #54777, thanks to Schwern).
