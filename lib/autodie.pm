@@ -8,7 +8,7 @@ our @ISA = qw(Fatal);
 our $VERSION;
 
 BEGIN {
-    $VERSION = '2.13';
+    $VERSION = '2.14';
 }
 
 use constant ERROR_WRONG_FATAL => q{
