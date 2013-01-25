@@ -65,7 +65,7 @@ my %TAGS = (
                        read seek sysread syswrite sysseek )],
     ':dbm'     => [qw(dbmopen dbmclose)],
     ':file'    => [qw(open close flock sysopen fcntl fileno binmode
-                     ioctl truncate chmod)],
+                     ioctl truncate chmod chown)],
     ':filesys' => [qw(opendir closedir chdir link unlink rename mkdir
                       symlink rmdir readlink umask)],
     ':ipc'     => [qw(:msg :semaphore :shm pipe)],
@@ -94,6 +94,9 @@ my %TAGS = (
                    syswrite sysseek open close flock sysopen fcntl fileno
                    binmode ioctl truncate)],
 
+    # Everything in v2.13 and brefore. This was :default less chown.
+    ':v213'    => [qw(:v207 chmod)],
+
     # Version specific tags.  These allow someone to specify
     # use autodie qw(:1.994) and know exactly what they'll get.
 
@@ -113,15 +116,17 @@ my %TAGS = (
     ':2.06'  => [qw(:v207)],
     ':2.06_01' => [qw(:v207)],
     ':2.07'  => [qw(:v207)],     # Last release without chmod
-    ':2.08'  => [qw(:default)],
-    ':2.09'  => [qw(:default)],
-    ':2.10'  => [qw(:default)],
-    ':2.11'  => [qw(:default)],
-    ':2.12'  => [qw(:default)],
-    ':2.13'  => [qw(:default)],
+    ':2.08'  => [qw(:v213)],
+    ':2.09'  => [qw(:v213)],
+    ':2.10'  => [qw(:v213)],
+    ':2.11'  => [qw(:v213)],
+    ':2.12'  => [qw(:v213)],
+    ':2.13'  => [qw(:v213)],
+    ':2.14'  => [qw(:default)],
 );
 
 # chmod was only introduced in 2.07
+# chown was only introduced in 2.14
 
 $TAGS{':all'}  = [ keys %TAGS ];
 
