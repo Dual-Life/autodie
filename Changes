@@ -1,5 +1,7 @@
 Revision history for autodie
 
+{{$NEXT}}
+
 2.13  Thu Nov  8 14:22:03 EST 2012
         * TEST: Deterministic tests in hints_pod_examples.t .
           (RT #80412, thanks to demerphq)
