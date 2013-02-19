@@ -120,6 +120,7 @@ my %TAGS = (
     ':2.11'  => [qw(:default)],
     ':2.12'  => [qw(:default)],
     ':2.13'  => [qw(:default)],
+    ':2.14'  => [qw(:default)],
 );
 
 # chmod was only introduced in 2.07
