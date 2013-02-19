@@ -132,11 +132,20 @@ sub line        { return $_[0]->{$PACKAGE}{line};  }
 
     my $context = $E->context;
 
-The context in which the subroutine was called.  This can be
-'list', 'scalar', or undefined (unknown).  It will never be 'void', as
-C<autodie> always captures the return value in one way or another.
+The context in which the subroutine was called by autodie; usually
+the same as the context in which you called the autodying subroutine.
+This can be 'list', 'scalar', or undefined (unknown).  It will never
+be 'void', as C<autodie> always captures the return value in one way
+or another.
+
+For some core functions that always return a scalar value regardless
+of their context (eg, C<chown>), this may be 'scalar', even if you
+used a list context.
 
 =cut
+
+# TODO: The comments above say this can be undefined. Is that actually
+# the case? (With 'system', perhaps?)
 
 sub context     { return $_[0]->{$PACKAGE}{context} }
 

@@ -6,6 +6,8 @@ Revision history for autodie
           overlooked. Mad props to RsrchBoy for spotting this.
           (GH Pull #13)
 
+        * BUGFIX: Removed executable bits from some bundled text files.
+
         * BUILD: We now use dzil to manage autodie.
 
         * TEST: Author tests now look for the AUTHOR_TESTING env

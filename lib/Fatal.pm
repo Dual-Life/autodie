@@ -855,6 +855,32 @@ sub _one_invocation {
         };
     }
 
+    if ($call eq 'CORE::chown') {
+        # Chown returns the number of files chowned, which may be
+        # different from the number we asked to chown.  Consequently,
+        # we need to manually check that everything worked.
+
+        my $handler = qq{
+            my \$num_files = \@_ - 2;   # Less two for UID + GID
+            my \$retval = $call(@argv);
+
+            if (\$retval != \$num_files) {
+
+                # We need \$context to throw an exception.
+                # It's *always* set to scalar, because that's how
+                # autodie calls chown() above.
+
+                my \$context = "scalar";
+                $die;
+            }
+
+            return \$retval;
+        };
+
+        return $handler;
+
+    }
+
     # AFAIK everything that can be given an unopned filehandle
     # will fail if it tries to use it, so we don't really need
     # the 'unopened' warning class here.  Especially since they
