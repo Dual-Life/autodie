@@ -2,6 +2,10 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * BUGFIX: Added support for 'chown', that was previously
+          overlooked. Mad props to RsrchBoy for spotting this.
+          (GH Pull #13)
+
         * BUILD: We now use dzil to manage autodie.
 
         * TEST: Author tests now look for the AUTHOR_TESTING env
