@@ -153,10 +153,17 @@ my %Use_defined_or;
     CORE::umask
 )} = ();
 
+# Some functions can return true because they changed *some* things, but
+# not all of them.  This is a list of offending functions, and how many
+# items to subtract from @_ to determine the "success" value they return.
 
-# A snippet of code to apply the open pragma to a handle
-
-
+my %Returns_num_things_changed = (
+    'CORE::chmod'  => 1,
+    'CORE::chown'  => 2,
+    'CORE::kill'   => 1,  # TODO: Could this return anything on negative args?
+    'CORE::unlink' => 0,
+    'CORE::utime'  => 2,
+);
 
 # Optional actions to take on the return value before returning it.
 
@@ -855,16 +862,17 @@ sub _one_invocation {
         };
     }
 
-    if ($call eq 'CORE::chown') {
-        # Chown returns the number of files chowned, which may be
-        # different from the number we asked to chown.  Consequently,
-        # we need to manually check that everything worked.
+    if (exists $Returns_num_things_changed{$call}) {
 
-        my $handler = qq{
-            my \$num_files = \@_ - 2;   # Less two for UID + GID
+        # Some things return the number of things changed (like
+        # chown, kill, chmod, etc). We only consider these successful
+        # if *all* the things are changed.
+
+        return qq[
+            my \$num_things = \@_ - $Returns_num_things_changed{$call};
             my \$retval = $call(@argv);
 
-            if (\$retval != \$num_files) {
+            if (\$retval != \$num_things) {
 
                 # We need \$context to throw an exception.
                 # It's *always* set to scalar, because that's how
@@ -875,10 +883,7 @@ sub _one_invocation {
             }
 
             return \$retval;
-        };
-
-        return $handler;
-
+        ];
     }
 
     # AFAIK everything that can be given an unopned filehandle
