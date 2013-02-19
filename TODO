@@ -1,14 +1,5 @@
 This is not an exhaustive list of TODO items.
 
-* chmod is not currently in our default list of things to make
-  autodying.  It should be, but probably needs its own special
-  handler, since it can return true even when some permissions
-  have not been changed.
-
-* Almost everything that applies to chmod() applies to kill().
-
-* Ditto for utime().
-
 * Can we overload readline()?  Will that change <>?
 
 * Ditto for readpipe().
@@ -38,8 +29,6 @@ This is not an exhaustive list of TODO items.
 * Write a bunch of tests for the exception API
 
 * (More?) tests for user defined subs!
-
-* Trawl through perlfunc to find which things autodie may apply to.
 
 * Generate a good way to allow subroutines to register themselves
   with roles and message handlers, possibly defining their own
