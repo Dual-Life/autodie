@@ -1482,4 +1482,6 @@ L<autodie> for a nicer way to use lexical Fatal.
 L<IPC::System::Simple> for a similar idea for calls to C<system()>
 and backticks.
 
+=for Pod::Coverage exception_class fill_protos one_invocation throw write_invocation
+
 =cut
