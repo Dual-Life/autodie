@@ -19,10 +19,15 @@ isnt($@,"","Expanding :1.00 should fail");
 
 my $version = $autodie::VERSION;
 
-# Expanding our current version should work!
-eval { my $foo = autodie->_expand_tag(":$version"); };
+SKIP: {
 
-is($@,"","Expanding :$version should succeed");
+    if ($version =~ /_/) { skip "Tag test skipped on dev release", 1 }
+
+    # Expanding our current version should work!
+    eval { my $foo = autodie->_expand_tag(":$version"); };
+
+    is($@,"","Expanding :$version should succeed");
+}
 
 eval {
     use autodie qw(:2.07);
