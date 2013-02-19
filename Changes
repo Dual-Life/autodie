@@ -16,6 +16,10 @@ Revision history for autodie
 
         * BUILD: We now use dzil to manage autodie.
 
+        * BUILD: Only Perl 5.8.4 and above is supported by autodie.
+          Please upgrade your Perl distro if you're using 5.8.3 or
+          below.
+
         * TEST: Author tests now look for the AUTHOR_TESTING env
           variable (for dzil compliance).
 
