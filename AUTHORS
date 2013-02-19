@@ -123,3 +123,6 @@ Olivier Mengué
 
 Todd Rinaldo
         - Avoided possible test failures when STDIN was a socket.
+
+RsrchBoy
+        - chmod support and tests.
