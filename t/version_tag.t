@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 7;
 use constant NO_SUCH_FILE => 'THIS_FILE_HAD_BETTER_NOT_EXIST';
 
 eval {
@@ -42,3 +42,22 @@ eval {
 };
 
 isa_ok($@, 'autodie::exception', 'Our current version supports chmod');
+
+eval {
+    use autodie qw(:v213);
+
+    # 2.13 didn't support chown.  This shouldn't throw an
+    # exception.
+
+    chown(12345, 12345, NO_SUCH_FILE);
+};
+
+is($@,"","chown wasn't supported in 2.13");
+
+eval {
+    use autodie;
+
+    chown(12345, 12345, NO_SUCH_FILE);
+};
+
+isa_ok($@, 'autodie::exception', 'Our current version supports chown');
