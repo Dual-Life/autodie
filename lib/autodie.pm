@@ -187,6 +187,8 @@ The categories are currently:
                 :file
                     binmode
                     close
+                    chmod
+                    chown
                     fcntl
                     fileno
                     flock
