@@ -2,8 +2,8 @@
 use strict;
 use Test::More;
 
-if (not $ENV{TEST_AUTHOR}) {
-    plan( skip_all => 'Author test.  Set $ENV{TEST_AUTHOR} to true to run.');
+if (not $ENV{AUTHOR_TESTING}) {
+    plan( skip_all => 'Author test.  Set $ENV{AUTHOR_TESTING} to true to run.');
 }
 
 eval "use Test::Pod 1.00";  ## no critic
