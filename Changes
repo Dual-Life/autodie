@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.13_01   2013-02-20 03:10:46 Australia/Melbourne
+
         * BUGFIX: Fixed bug whereby chmod, chown, kill, unlink and
           utime could not throw an exception, even when they didn't
           change all their files, or killed all their processes.
