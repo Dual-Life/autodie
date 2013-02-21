@@ -2,6 +2,11 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * FEATURE: Classes which claim they ->DOES('autodie::skip') are now
+          skipped when generating exceptions.  This is mainly of use to
+          utility classes. See `perldoc autodie::skip` for more details.
+          (GH Issue #15)
+
 2.13_02   2013-02-21 22:33:55 Australia/Melbourne
 
         * TEST: chown() tests are skipped on Win32, as chown on Windows
