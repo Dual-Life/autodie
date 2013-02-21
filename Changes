@@ -5,6 +5,8 @@ Revision history for autodie
         * TEST: truncate.t is now skipped on systems that don't have a
           working File::Temp.
 
+        * TEST: open.t has a few more tests for exotic modes.
+
 2.13_02   2013-02-21 22:33:55 Australia/Melbourne
 
         * TEST: chown() tests are skipped on Win32, as chown on Windows
