@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.13_02   2013-02-21 22:33:55 Australia/Melbourne
+
         * TEST: chown() tests are skipped on Win32, as chown on Windows
           platforms seems to always say it was successful. (Help in
           testing this would be appreciated.)
