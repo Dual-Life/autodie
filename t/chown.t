@@ -1,8 +1,14 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 4;
+use Test::More;
 use constant NO_SUCH_FILE => "this_file_had_better_not_exist";
 use autodie;
+
+if ($^O eq 'MSWin32') {
+    plan skip_all => 'chown() seems to always succeed on Windows';
+}
+
+plan tests => 4;
 
 eval {
     chown(1234, 1234, NO_SUCH_FILE);

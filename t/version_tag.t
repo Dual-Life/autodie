@@ -59,10 +59,15 @@ eval {
 
 is($@,"","chown wasn't supported in 2.13");
 
-eval {
-    use autodie;
+SKIP: {
 
-    chown(12345, 12345, NO_SUCH_FILE);
-};
+    if ($^O eq "MSWin32") { skip("chown() on Windows always succeeds.", 1) }
 
-isa_ok($@, 'autodie::exception', 'Our current version supports chown');
+    eval {
+        use autodie;
+
+        chown(12345, 12345, NO_SUCH_FILE);
+    };
+
+    isa_ok($@, 'autodie::exception', 'Our current version supports chown');
+}
