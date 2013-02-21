@@ -2,6 +2,8 @@ package autodie::skip;
 use strict;
 use warnings;
 
+# VERSION
+
 # This package exists purely so people can inherit from it,
 # which isn't at all how roles are supposed to work, but it's
 # how people will use them anyway.
