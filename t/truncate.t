@@ -5,8 +5,16 @@ use Test::More;
 use File::Temp qw(tempfile);
 use IO::Handle;
 
-my $tmpfh = tempfile();
-my $truncate_status;
+my ($truncate_status, $tmpfh);
+
+# Some systems have a screwy tempfile. We don't run our tests there.
+eval {
+    $tmpfh = tempfile();
+};
+
+if ($@ or !defined $tmpfh) {
+    plan skip_all => 'tempfile() not happy on this system.';
+}
 
 eval {
     $truncate_status = truncate($tmpfh, 0);
