@@ -2,25 +2,26 @@ Revision history for autodie
 
 {{$NEXT}}
 
-        * TEST: truncate.t is now skipped on systems that don't have a
-          working File::Temp.
+        * FEATURE: Classes which claim they ->DOES('autodie::skip') are now
+          skipped when generating exceptions.  This is mainly of use to
+          utility classes. See `perldoc autodie::skip` for more details.
+          (GH Issue #15)
 
-        * TEST: open.t has a few more tests for exotic modes.
-
-2.13_02   2013-02-21 22:33:55 Australia/Melbourne
-
-        * TEST: chown() tests are skipped on Win32, as chown on Windows
-          is a no-op. (Thanks to Mithaldu for spotting this!)
-
-2.13_01   2013-02-20 03:10:46 Australia/Melbourne
+        * BUGFIX: Added support for 'chown', that was previously
+          overlooked. Mad props to RsrchBoy for spotting this.
+          (GH Pull #13)
 
         * BUGFIX: Fixed bug whereby chmod, chown, kill, unlink and
           utime could not throw an exception, even when they didn't
           change all their files, or killed all their processes.
 
-        * BUGFIX: Added support for 'chown', that was previously
-          overlooked. Mad props to RsrchBoy for spotting this.
-          (GH Pull #13)
+        * TEST: truncate.t is now skipped on systems that don't have a
+          working File::Temp.
+
+        * TEST: open.t has a few more tests for exotic modes.
+
+        * TEST: chown() tests are skipped on Win32, as chown on Windows
+          is a no-op. (Thanks to Mithaldu for spotting this!)
 
         * BUGFIX: Removed executable bits from some bundled text files.
 
