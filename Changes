@@ -2,6 +2,10 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * BUILD / BUGFIX: Correct meta-info that wanted at least Perl
+          v5.8.40, rather than v5.8.4.  Giant thanks to Paul Howarth
+          for spotting this!
+
 2.14      2013-02-22 15:43:33 Australia/Melbourne
 
         * FEATURE: Classes which claim they ->DOES('autodie::skip') are now
