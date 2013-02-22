@@ -7,8 +7,12 @@ Revision history for autodie
           utility classes. See `perldoc autodie::skip` for more details.
           (GH Issue #15)
 
-        * BUGFIX: Added support for 'chown', that was previously
-          overlooked. Mad props to RsrchBoy for spotting this.
+        * FEATURE / BUGFIX / INCOMPAT: 'chmod' is now in the ':filesys'
+          category.
+
+        * BUGFIX: Added support for 'chown' and 'utime', that was
+          previously overlooked. Mad props to RsrchBoy for spotting this.
+          These are all in the ':filesys' category.
           (GH Pull #13)
 
         * BUGFIX: Fixed bug whereby chmod, chown, kill, unlink and
@@ -23,6 +27,15 @@ Revision history for autodie
         * TEST: chown() tests are skipped on Win32, as chown on Windows
           is a no-op. (Thanks to Mithaldu for spotting this!)
 
+        * TEST: Author tests now look for the AUTHOR_TESTING env
+          variable (for dzil compliance).
+
+        * TEST: Better testing for chown, chmod, and unlink.
+
+        * TEST: Better testing for ulink.
+
+        * TEST: kwalitee.t is now only run when $ENV{RELEASE_TESTING} is set.
+
         * BUGFIX: Removed executable bits from some bundled text files.
 
         * BUILD: We now use dzil to manage autodie.
@@ -30,11 +43,6 @@ Revision history for autodie
         * BUILD: Only Perl 5.8.4 and above is supported by autodie.
           Please upgrade your Perl distro if you're using 5.8.3 or
           below.
-
-        * TEST: Author tests now look for the AUTHOR_TESTING env
-          variable (for dzil compliance).
-
-        * TEST: Better testing for chown, chmod, and unlink.
 
 2.13  Thu Nov  8 14:22:03 EST 2012
         * TEST: Deterministic tests in hints_pod_examples.t .

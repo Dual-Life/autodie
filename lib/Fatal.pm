@@ -66,9 +66,9 @@ my %TAGS = (
                        read seek sysread syswrite sysseek )],
     ':dbm'     => [qw(dbmopen dbmclose)],
     ':file'    => [qw(open close flock sysopen fcntl fileno binmode
-                     ioctl truncate chmod chown)],
+                     ioctl truncate)],
     ':filesys' => [qw(opendir closedir chdir link unlink rename mkdir
-                      symlink rmdir readlink umask)],
+                      symlink rmdir readlink umask chmod chown utime)],
     ':ipc'     => [qw(:msg :semaphore :shm pipe)],
     ':msg'     => [qw(msgctl msgget msgrcv msgsnd)],
     ':threads' => [qw(fork)],
@@ -90,13 +90,17 @@ my %TAGS = (
 
     ':default' => [qw(:io :threads)],
 
-    # Everything in v2.07 and brefore. This was :default less chmod.
-    ':v207'    => [qw(:threads :dbm :filesys :ipc :socket read seek sysread
+    # Everything in v2.07 and brefore. This was :default less chmod and chown
+    ':v207'    => [qw(:threads :dbm :ipc :socket read seek sysread
                    syswrite sysseek open close flock sysopen fcntl fileno
-                   binmode ioctl truncate)],
+                   binmode ioctl truncate opendir closedir chdir link unlink
+                   rename mkdir symlink rmdir readlink umask)],
 
-    # Everything in v2.13 and brefore. This was :default less chown.
+    # Chmod was added in 2.13
     ':v213'    => [qw(:v207 chmod)],
+
+    # chown, utime were added in 2.14
+    ':v214'    => [qw(:v213 chown utime)],
 
     # Version specific tags.  These allow someone to specify
     # use autodie qw(:1.994) and know exactly what they'll get.
