@@ -686,7 +686,7 @@ sub _init {
         # Anything with the 'autodie::skip' role wants us to skip it.
         # https://github.com/pfenwick/autodie/issues/15
 
-        next if $package->DOES('autodie::skip');
+        next if ($package->can('DOES') and $package->DOES('autodie::skip'));
 
         next if $file =~ /^\(eval\s\d+\)$/;
 
