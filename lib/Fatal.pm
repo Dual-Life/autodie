@@ -69,7 +69,7 @@ my %TAGS = (
                      ioctl truncate)],
     ':filesys' => [qw(opendir closedir chdir link unlink rename mkdir
                       symlink rmdir readlink umask chmod chown utime)],
-    ':ipc'     => [qw(:msg :semaphore :shm pipe)],
+    ':ipc'     => [qw(:msg :semaphore :shm pipe kill)],
     ':msg'     => [qw(msgctl msgget msgrcv msgsnd)],
     ':threads' => [qw(fork)],
     ':semaphore'=>[qw(semctl semget semop)],
@@ -91,16 +91,17 @@ my %TAGS = (
     ':default' => [qw(:io :threads)],
 
     # Everything in v2.07 and brefore. This was :default less chmod and chown
-    ':v207'    => [qw(:threads :dbm :ipc :socket read seek sysread
+    ':v207'    => [qw(:threads :dbm :socket read seek sysread
                    syswrite sysseek open close flock sysopen fcntl fileno
                    binmode ioctl truncate opendir closedir chdir link unlink
-                   rename mkdir symlink rmdir readlink umask)],
+                   rename mkdir symlink rmdir readlink umask
+                   :msg :semaphore :shm pipe)],
 
     # Chmod was added in 2.13
     ':v213'    => [qw(:v207 chmod)],
 
-    # chown, utime were added in 2.14
-    ':v214'    => [qw(:v213 chown utime)],
+    # chown, utime, kill were added in 2.14
+    ':v214'    => [qw(:v213 chown utime kill)],
 
     # Version specific tags.  These allow someone to specify
     # use autodie qw(:1.994) and know exactly what they'll get.
