@@ -2,7 +2,7 @@ package autodie_skippy;
 use strict;
 use warnings;
 use autodie;
-use parent qw(autodie::skip);
+use base qw(autodie::skip);
 
 # This should skip upwards to the caller.
 
