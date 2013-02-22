@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.15      2013-02-22 23:55:22 Australia/Melbourne
+
         * BUILD / BUGFIX: Correct meta-info that wanted at least Perl
           v5.8.40, rather than v5.8.4.  Giant thanks to Paul Howarth
           for spotting this!
