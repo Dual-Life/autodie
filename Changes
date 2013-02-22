@@ -2,27 +2,25 @@ Revision history for autodie
 
 {{$NEXT}}
 
-2.13_04   2013-02-22 15:15:11 Australia/Melbourne
-
         * FEATURE: Classes which claim they ->DOES('autodie::skip') are now
           skipped when generating exceptions.  This is mainly of use to
           utility classes. See `perldoc autodie::skip` for more details.
           (GH Issue #15)
 
         * FEATURE / BUGFIX / INCOMPAT: 'chmod' is now in the ':filesys'
-          category.
+          category (was in ':file').
 
         * BUGFIX: Added support for 'chown' and 'utime', that was
           previously overlooked. Mad props to RsrchBoy for spotting this.
           These are all in the ':filesys' category.
           (GH Pull #13)
 
-        * BUGFIX: Fixed bug whereby chmod, chown, kill, unlink and
-          utime could not throw an exception, even when they didn't
-          change all their files, or killed all their processes.
-
         * BUGFIX: Added support for 'kill'. This is part of the
           ':ipc' category.
+
+        * BUGFIX: Fixed bug whereby chmod, chown, kill, unlink and
+          utime would not throw an exception when they didn't
+          change all their files or signal all their processes.
 
         * TEST: truncate.t is now skipped on systems that don't have a
           working File::Temp.
