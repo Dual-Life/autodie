@@ -43,7 +43,7 @@ Revision history for autodie
 
         * TEST: Better testing for chown, chmod, and unlink.
 
-        * TEST: Better testing for ulink.
+        * TEST: Better testing for utime.
 
         * TEST: kwalitee.t is now only run when $ENV{RELEASE_TESTING} is set.
 
