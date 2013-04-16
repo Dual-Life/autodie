@@ -5,6 +5,9 @@ Revision history for autodie
         * INTERNAL: Silence warnings about experimental smart-match on
           5.17.11+ (via Brian Fraser and p5p)
 
+        * TEST / BUILD: Generate .travis.yml files for CI testing via
+          dzil.
+
 2.16      2013-02-23 01:49:16 Australia/Melbourne
 
         * BUGFIX: Fix breakages under 5.8.x related to the new
