@@ -684,7 +684,7 @@ sub _init {
         next if $package->isa(__PACKAGE__);
 
         # Anything with the 'autodie::skip' role wants us to skip it.
-        # https://github.com/pfenwick/autodie/issues/15
+        # https://github.com/pjf/autodie/issues/15
 
         next if ($package->can('DOES') and $package->DOES('autodie::skip'));
 
