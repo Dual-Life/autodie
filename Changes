@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.17      2013-04-29 01:03:50 Australia/Melbourne
+
         * DOCS: Spelling fixes thanks to dsteinbrunner! (RT #84897)
 
         * DOCS: Fixed github links to point to 'pjf' rather than
