@@ -4,6 +4,9 @@ Revision history for autodie
 
         * DOCS: Spelling fixes thanks to dsteinbrunner! (RT #84897)
 
+        * DOCS: Fixed github links to point to 'pjf' rather than
+          'pfenwick' (GH #18, thanks to Lx!)
+
         * INTERNAL: Silence warnings about experimental smart-match on
           5.17.11+ (via Brian Fraser and p5p)
 
