@@ -255,7 +255,7 @@ The syntax:
 
 allows the C<:default> list from a particular version to be used.  This
 provides the convenience of using the default methods, but the surety
-that no behavorial changes will occur if the C<autodie> module is
+that no behavioral changes will occur if the C<autodie> module is
 upgraded.
 
 C<autodie> can be enabled for all of Perl's built-ins, including

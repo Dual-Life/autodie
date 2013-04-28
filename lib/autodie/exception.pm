@@ -220,7 +220,7 @@ For a string that does start with a colon, if the subroutine
 throwing the exception I<does> that behaviour.  For example, the
 C<CORE::open> subroutine does C<:file>, C<:io> and C<:all>.
 
-See L<autodie/CATEGORIES> for futher information.
+See L<autodie/CATEGORIES> for further information.
 
 =back
 

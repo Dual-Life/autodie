@@ -10,7 +10,7 @@ use warnings;
 
 if ($] < 5.010) {
     # Older Perls don't have a native ->DOES.  Let's provide a cheap
-    # immitation here.
+    # imitation here.
 
     *DOES = sub { return shift->isa(@_); };
 }
