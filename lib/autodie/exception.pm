@@ -454,7 +454,7 @@ sub _format_open {
             }
         }
 
-        # Localising $! means perl make make it a pretty error for us.
+        # Localising $! means perl makes it a pretty error for us.
         local $! = $this->errno;
 
         return $this->_format_open_with_mode($mode, $file, $!);
