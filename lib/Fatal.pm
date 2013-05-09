@@ -221,6 +221,36 @@ my %Retval_action = (
 },
 );
 
+my %reusable_builtins;
+
+@reusable_builtins{qw(
+    CORE::fork
+    CORE::kill
+    CORE::truncate
+    CORE::chdir
+    CORE::link
+    CORE::unlink
+    CORE::rename
+    CORE::mkdir
+    CORE::symlink
+    CORE::rmdir
+    CORE::readlink
+    CORE::umask
+    CORE::chmod
+    CORE::chown
+    CORE::utime
+    CORE::msgctl
+    CORE::msgget
+    CORE::msgrcv
+    CORE::msgsnd
+    CORE::semctl
+    CORE::semget
+    CORE::semop
+    CORE::shmctl
+    CORE::shmget
+    CORE::shmread
+)} = ();
+
 # Cached_fatalised_sub caches the various versions of our
 # fatalised subs as they're produced.  This means we don't
 # have to build our own replacement of CORE::open and friends
@@ -1153,6 +1183,15 @@ sub _make_fatal {
         $call = "CORE::$name";
     }
 
+    if ($core && exists $reusable_builtins{$call}) {
+        my $cached = $reusable_builtins{$call};
+        if (defined $cached) {
+            $class->_install_subs($pkg, { $name => $cached });
+            return $cached;
+        }
+    }
+
+
     if (defined $proto) {
         $real_proto = " ($proto)";
     } else {
@@ -1207,7 +1246,16 @@ sub _make_fatal {
 
         {
             local $@;
-            $code = eval("package $pkg; require Carp; $code");  ## no critic
+            if (!exists($reusable_builtins{$call})) {
+                $code = eval("package $pkg; require Carp; $code");  ## no critic
+            } else {
+                $code = eval("require Carp; $code");  ## no critic
+                if (!$lexical) {
+                    # For the lexical, we need to cache the leak
+                    # guarded variant of the call.
+                    $reusable_builtins{$call} = $code;
+                }
+            }
             $E = $@;
         }
 
@@ -1299,6 +1347,10 @@ sub _make_fatal {
         }
 
         die "Internal error in $class: Leak-guard installation failure: $E" if $E;
+
+        if (exists($reusable_builtins{$call}) && ! defined($reusable_builtins{$call})) {
+            $reusable_builtins{$call} = $leak_guard;
+        }
     }
 
     my $installed_sub = $leak_guard || $code;
