@@ -330,7 +330,7 @@ sub import {
     # Thiese subs will get unloaded at the end of lexical scope.
     my %unload_later;
 
-    # This hash helps us track if we've alredy done work.
+    # This hash helps us track if we've already done work.
     my %done_this;
 
     # NB: we're using while/shift rather than foreach, since
@@ -754,7 +754,7 @@ sub _one_invocation {
     #   $call if the function is CORE
     #   $sub if our function is non-CORE
 
-    # The reason for this is that $call is what we're actualling
+    # The reason for this is that $call is what we're actually
     # calling.  For our core functions, this is always
     # CORE::something.  However for user-defined subs, we're about to
     # replace whatever it is that we're calling; as such, we actually
@@ -805,7 +805,7 @@ sub _one_invocation {
         # We need to stash $@ into $E, rather than using
         # local $@ for the whole sub.  If we don't then
         # any exceptions from internal errors in autodie/Fatal
-        # will mysteriously disappear before propogating
+        # will mysteriously disappear before propagating
         # upwards.
 
         return qq{
@@ -1164,7 +1164,7 @@ sub _make_fatal {
     } elsif ($name eq 'exec') {
         # Exec doesn't have a prototype.  We don't care.  This
         # breaks the exotic form with lexical scope, and gives
-        # the regular form a "do or die" beaviour as expected.
+        # the regular form a "do or die" behavior as expected.
 
         $call = 'CORE::exec';
         $name = 'exec';
@@ -1359,7 +1359,7 @@ sub _make_fatal {
 
     $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical} = $installed_sub;
 
-    # Cache that we've now overriddent this sub.  If we get called
+    # Cache that we've now overridden this sub.  If we get called
     # again, we may need to find that find subroutine again (eg, for hints).
 
     $Is_fatalised_sub{$installed_sub} = $sref;
@@ -1421,7 +1421,7 @@ sub exception_class { return "autodie::exception" };
 # For some reason, dying while replacing our subs doesn't
 # kill our calling program.  It simply stops the loading of
 # autodie and keeps going with everything else.  The _autocroak
-# sub allows us to die with a vegence.  It should *only* ever be
+# sub allows us to die with a vengeance.  It should *only* ever be
 # used for serious internal errors, since the results of it can't
 # be captured.
 
