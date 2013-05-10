@@ -1184,7 +1184,7 @@ sub _make_fatal {
     }
 
     if ($core && exists $reusable_builtins{$call}) {
-        my $cached = $reusable_builtins{$call};
+        my $cached = $reusable_builtins{$call}{$lexical};
         if (defined $cached) {
             $class->_install_subs($pkg, { $name => $cached });
             return $cached;
@@ -1253,7 +1253,7 @@ sub _make_fatal {
                 if (!$lexical) {
                     # For the lexical, we need to cache the leak
                     # guarded variant of the call.
-                    $reusable_builtins{$call} = $code;
+                    $reusable_builtins{$call}{$lexical} = $code;
                 }
             }
             $E = $@;
@@ -1343,7 +1343,7 @@ sub _make_fatal {
                 $leak_guard = eval "package $pkg;\n$leak_guard";  ## no critic
             } else {
                 $leak_guard = eval $leak_guard;  ## no critic
-                $reusable_builtins{$call} = $leak_guard;
+                $reusable_builtins{$lexical}{$call} = $leak_guard;
             }
             $E = $@;
         }
