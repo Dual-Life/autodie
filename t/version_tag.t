@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use constant NO_SUCH_FILE => 'THIS_FILE_HAD_BETTER_NOT_EXIST';
 
 eval {
