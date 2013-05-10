@@ -25,4 +25,9 @@ sub your_rename {
     return rename($_[0], $_[1]);
 }
 
+sub your_dying_rename {
+    use autodie qw(rename);
+    return rename($_[0], $_[1]);
+}
+
 1;

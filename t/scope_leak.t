@@ -41,6 +41,10 @@ is($@,"","autodying main::rename should not leak to other files");
 eval { autodie_test_module::your_rename(NO_SUCH_FILE, NO_SUCH_FILE2); };
 is($@,"","Other package rename should be unaffected");
 
+# Dying rename in the other package should still die.
+eval { autodie_test_module::your_dying_rename(NO_SUCH_FILE, NO_SUCH_FILE2); };
+ok($@, "rename in loaded module should remain autodying.");
+
 # Due to odd filenames reported when doing string evals,
 # older versions of autodie would not propogate into string evals.
 
