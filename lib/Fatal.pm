@@ -1187,7 +1187,7 @@ sub _make_fatal {
         my $cached = $reusable_builtins{$call}{$lexical};
         if (defined $cached) {
             $class->_install_subs($pkg, { $name => $cached });
-            return $cached;
+            return $sref;
         }
     }
 
@@ -1343,7 +1343,7 @@ sub _make_fatal {
                 $leak_guard = eval "package $pkg;\n$leak_guard";  ## no critic
             } else {
                 $leak_guard = eval $leak_guard;  ## no critic
-                $reusable_builtins{$lexical}{$call} = $leak_guard;
+                $reusable_builtins{$call}{$lexical} = $leak_guard;
             }
             $E = $@;
         }
