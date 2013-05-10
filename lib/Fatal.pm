@@ -1281,8 +1281,6 @@ sub _make_fatal {
     if ($lexical) {
 
         $leak_guard = qq<
-            package $pkg;
-
             sub$real_proto {
 
                 # If we're inside a string eval, we can end up with a
@@ -1341,16 +1339,16 @@ sub _make_fatal {
         {
             local $@;
 
-            $leak_guard = eval $leak_guard;  ## no critic
-
+            if (!exists($reusable_builtins{$call})) {
+                $leak_guard = eval "package $pkg;\n$leak_guard";  ## no critic
+            } else {
+                $leak_guard = eval $leak_guard;  ## no critic
+                $reusable_builtins{$call} = $leak_guard;
+            }
             $E = $@;
         }
 
         die "Internal error in $class: Leak-guard installation failure: $E" if $E;
-
-        if (exists($reusable_builtins{$call}) && ! defined($reusable_builtins{$call})) {
-            $reusable_builtins{$call} = $leak_guard;
-        }
     }
 
     my $installed_sub = $leak_guard || $code;
