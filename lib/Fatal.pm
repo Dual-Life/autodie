@@ -606,12 +606,44 @@ sub unimport {
 # to the scary 'XXXX' comment.  ;)
 
 sub fill_protos {
-    my $proto = shift;
+    my ($proto, $qualify_globs_depth) = @_;
     my ($n, $isref, @out, @out1, $seen_semi) = -1;
     while ($proto =~ /\S/) {
         $n++;
         push(@out1,[$n,@out]) if $seen_semi;
         push(@out, $1 . "{\$_[$n]}"), next if $proto =~ s/^\s*\\([\@%\$\&])//;
+        if (defined($qualify_globs_depth) && $proto =~ s/^\s*\*//) {
+            # When qualifying globs, we have to take care of a couple
+            # of special cases.  Take open as an example, which can be
+            # called as one of:
+            #
+            #   open(my $fd,...)
+            #   open(FOO, ...)
+            #   open(\*FOO, ...)
+            #
+            # In the first case "my $fd" may be undef or a ref to a
+            # glob.  In the latter cases, the argument will always be
+            # defined.  In the "\*FOO" case it will be a reference,
+            # but in the "FOO" case it will just be a simple string
+            # (which we have to qualify to refer to the correct glob).
+            #
+            # qualification happens via Symbol::qualify:
+            #
+            #    qualify($_[$n], caller($depth))
+            #
+            # The second problem is that we want to only qualify in
+            # the "FOO" case (the others just work when passed as-is
+            # and qualify does not like receiving "undef").  In fact,
+            # we MUST pass the argument as-is in the "my $fd" case, so
+            # open can change it.  We do this with a slightly lengthy
+            # "one-liner" rather than "if/else", because otherwise the
+            # generated sub will depend on the number of "*"s in the
+            # prototype.
+            push(@out, "((defined(\$_[$n]) && ref(\$_[$n]) eq '')" . # <- condition
+                 " ? Symbol::qualify(\$_[$n], caller($qualify_globs_depth))" . # <- qualify case
+                 " : \$_[$n])"); # <- pass as-is case.
+            next;
+        }
         push(@out, "\$_[$n]"),        next if $proto =~ s/^\s*([_*\$&])//;
         push(@out, "\@_[$n..\$#_]"),  last if $proto =~ s/^\s*(;\s*)?\@//;
         $seen_semi = 1, $n--,         next if $proto =~ s/^\s*;//; # XXXX ????
@@ -1247,9 +1279,9 @@ sub _make_fatal {
         {
             local $@;
             if (!exists($reusable_builtins{$call})) {
-                $code = eval("package $pkg; require Carp; $code");  ## no critic
+                $code = eval("package $pkg; require Carp; require Symbol; $code");  ## no critic
             } else {
-                $code = eval("require Carp; $code");  ## no critic
+                $code = eval("require Carp; require Symbol; $code");  ## no critic
                 if (!$lexical) {
                     # For the lexical, we need to cache the leak
                     # guarded variant of the call.
