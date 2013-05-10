@@ -223,6 +223,12 @@ my %Retval_action = (
 
 my %reusable_builtins;
 
+# XXX - RT #46984 - Some of these may not actually be reusable,
+#                   as they can be called with filehandles/dirhandles:
+#
+# * truncate
+# * chdir
+
 @reusable_builtins{qw(
     CORE::fork
     CORE::kill
@@ -1183,6 +1189,10 @@ sub _make_fatal {
         $call = "CORE::$name";
     }
 
+    # If our subroutine is reusable (ie, not package depdendent),
+    # then check to see if we've got a cached copy, and use that.
+    # See RT #46984. (Thanks to Niels Thykier for being awesome!)
+
     if ($core && exists $reusable_builtins{$call}) {
         my $cached = $reusable_builtins{$call}{$lexical};
         if (defined $cached) {
@@ -1235,9 +1245,8 @@ sub _make_fatal {
     # that's not the case, since they may refer to package-based
     # filehandles (eg, with open).
     #
-    # There is potential to more aggressively cache core subs
-    # that we know will never want to interact with package variables
-    # and filehandles.
+    # The %reusable_builtins hash defines ones we can aggressively
+    # cache as they never depend upon package-based symbols.
 
     {
         no strict 'refs'; ## no critic # to avoid: Can't use string (...) as a symbol ref ...
