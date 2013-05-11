@@ -1428,7 +1428,7 @@ sub _leak_guard {
 
         {
             local $@;
-            $trampoline_sub = eval "package $pkg;\n $trampoline_code";
+            $trampoline_sub = eval "package $pkg;\n $trampoline_code"; ## no critic
             $E = $@;
         }
         die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
