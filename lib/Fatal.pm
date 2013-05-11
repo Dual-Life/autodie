@@ -224,15 +224,18 @@ my %Retval_action = (
 
 my %reusable_builtins;
 
-# XXX - RT #46984 - Some of these may not actually be reusable,
-#                   as they can be called with filehandles/dirhandles:
+# "Wait!" I hear you cry, "truncate() and chdir() are not reuseable! They can take
+# file and directory handles, which are package depedent."
 #
-# * truncate
-# * chdir
+# You would be correct, except that prototype() returns signatures which don't allow
+# for passing of globs, and nobody's complained about that. So you can rejoice in
+# cacheable versions as a result.
 
 @reusable_builtins{qw(
     CORE::fork
     CORE::kill
+    CORE::truncate
+    CORE::chdir
     CORE::link
     CORE::unlink
     CORE::rename
