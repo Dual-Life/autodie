@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use Tie::RefHash;   # To cache subroutine refs
 use Config;
+use Scalar::Util qw(set_prototype);
 
 use constant PERL510     => ( $] >= 5.010 );
 
@@ -1288,76 +1289,20 @@ sub _make_fatal {
     my $leak_guard;
 
     if ($lexical) {
+        # Do a little dance because set_prototype does not accept code
+        # refs (i.e. "my $s = sub {}; set_prototype($s, '$$);" fails)
+        if ($real_proto ne '') {
+            $leak_guard = set_prototype(sub {
+                    unshift @_, [$filename, $code, $sref, $call, \@protos, $pkg];
+                    goto \&_leak_guard;
+                }, $proto);
 
-        $leak_guard = qq<
-            sub$real_proto {
-
-                # If we're inside a string eval, we can end up with a
-                # whacky filename.  The following code allows autodie
-                # to propagate correctly into string evals.
-
-                my \$caller_level = 0;
-
-                my \$caller;
-
-                while ( (\$caller = (caller \$caller_level)[1]) =~ m{^\\(eval \\d+\\)\$} ) {
-
-                    # If our filename is actually an eval, and we
-                    # reach it, then go to our autodying code immediatately.
-
-                    goto &\$code if (\$caller eq \$filename);
-                    \$caller_level++;
-                }
-
-                # We're now out of the eval stack.
-
-                # If we're called from the correct file, then use the
-                # autodying code.
-                goto &\$code if ((caller \$caller_level)[1] eq \$filename);
-
-                # Oh bother, we've leaked into another file.  Call the
-                # original code.  Note that \$sref may actually be a
-                # reference to a Fatalised version of a core built-in.
-                # That's okay, because Fatal *always* leaks between files.
-
-                goto &\$sref if \$sref;
-        >;
-
-
-        # If we're here, it must have been a core subroutine called.
-        # Warning: The following code may disturb some viewers.
-
-        # TODO: It should be possible to combine this with
-        # write_invocation().
-
-        foreach my $proto (@protos) {
-            local $" = ", ";    # So @args is formatted correctly.
-            my ($count, @args) = @$proto;
-            $leak_guard .= qq<
-                if (\@_ == $count) {
-                    return $call(@args);
-                }
-            >;
+        } else {
+            $leak_guard = sub {
+                unshift @_, [$filename, $code, $sref, $call, \@protos, $pkg];
+                goto \&_leak_guard;
+            };
         }
-
-        $leak_guard .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
-
-        # warn "$leak_guard\n";
-
-        my $E;
-        {
-            local $@;
-
-            if (!exists($reusable_builtins{$call})) {
-                $leak_guard = eval "package $pkg;\n$leak_guard";  ## no critic
-            } else {
-                $leak_guard = eval $leak_guard;  ## no critic
-                $reusable_builtins{$call}{$lexical} = $leak_guard;
-            }
-            $E = $@;
-        }
-
-        die "Internal error in $class: Leak-guard installation failure: $E" if $E;
     }
 
     my $installed_sub = $leak_guard || $code;
@@ -1423,6 +1368,76 @@ sub exception_class { return "autodie::exception" };
 
         return $exception_class->new(@args);
     }
+}
+
+sub _leak_guard {
+    my $call_data = shift;
+    my ($filename, $wrapped_sub, $orig_sub, $call, $protos, $pkg) = @{$call_data};
+    my $caller_level = 0;
+    my $caller;
+    my $leaked = 0;
+
+    # NB: if we are wrapping a CORE sub, $orig_sub will be undef.
+
+    while ( ($caller = (caller $caller_level)[1]) =~ m{^\(eval \d+\)$} ) {
+
+        # If our filename is actually an eval, and we
+        # reach it, then go to our autodying code immediatately.
+
+        last if ($caller eq $filename);
+        $caller_level++;
+    }
+    # We're now out of the eval stack.
+
+    if ((caller $caller_level)[1] ne $filename) {
+        # Oh bother, we've leaked into another file.
+        $leaked = 1;
+    }
+
+    if (defined($orig_sub)) {
+        # User sub.
+        goto $wrapped_sub unless $leaked;
+        goto $orig_sub;
+    }
+
+    # Core sub
+    if ($leaked) {
+        # If we're here, it must have been a core subroutine called.
+        # Warning: The following code may disturb some viewers.
+
+        # TODO: It should be possible to combine this with
+        # write_invocation().
+
+        # TODO: cache these.
+
+        my $trampoline_code = 'sub {';
+        my $trampoline_sub;
+
+        foreach my $proto (@{$protos}) {
+            local $" = ", ";    # So @args is formatted correctly.
+            my ($count, @args) = @$proto;
+            $trampoline_code .= qq<
+                if (\@_ == $count) {
+                    return $call(@args);
+                }
+            >;
+        }
+
+        $trampoline_code .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
+        my $E;
+
+        {
+            local $@;
+            $trampoline_sub = eval "package $pkg;\n $trampoline_code";
+            $E = $@;
+        }
+        die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
+            if $E;
+        goto \&$trampoline_sub;
+    }
+
+    # No leak, do a regular goto.
+    goto $wrapped_sub;
 }
 
 # For some reason, dying while replacing our subs doesn't
