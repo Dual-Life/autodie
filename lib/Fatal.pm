@@ -1192,7 +1192,9 @@ sub _make_fatal {
     # then check to see if we've got a cached copy, and use that.
     # See RT #46984. (Thanks to Niels Thykier for being awesome!)
 
-    if ($core && exists $reusable_builtins{$call}) {
+    if ($core && !$lexical && exists $reusable_builtins{$call}) {
+        # For non-lexical subs, we can just use this cache directly
+        # - for lexical variants, we need a leak guard as well.
         my $cached = $reusable_builtins{$call}{$lexical};
         if (defined $cached) {
             $class->_install_subs($pkg, { $name => $cached });
@@ -1257,12 +1259,18 @@ sub _make_fatal {
             if (!exists($reusable_builtins{$call})) {
                 $code = eval("package $pkg; require Carp; $code");  ## no critic
             } else {
-                $code = eval("require Carp; $code");  ## no critic
-                if (!$lexical) {
-                    # For the lexical, we need to cache the leak
-                    # guarded variant of the call.
-                    $reusable_builtins{$call}{$lexical} = $code;
+                my $code_ref;
+                if (exists $reusable_builtins{$call}) {
+                    $code_ref = $reusable_builtins{$call}{$lexical};
                 }
+                if (!defined($code_ref)) {
+                    $code_ref = eval("require Carp; $code");  ## no critic
+                    if (exists $reusable_builtins{$call}) {
+                        # cache it so we don't recompile this part again
+                        $reusable_builtins{$call}{$lexical} = $code_ref;
+                    }
+                }
+                $code = $code_ref;
             }
             $E = $@;
         }
