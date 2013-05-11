@@ -444,7 +444,6 @@ sub import {
         # if you're actually using it.
 
         $^H{autodie} = "$PACKAGE @original_args";
-
     }
 
     return;
@@ -550,6 +549,7 @@ sub unimport {
 
         if (my $original_sub = $Original_user_sub{$sub}) {
             # Hey, we've got an original one of these, put it back.
+            $^H{"autodie/wrapped/$sub"} = 0;
             $class->_install_subs($pkg, { $symbol => $original_sub });
             next;
         }
@@ -558,7 +558,7 @@ sub unimport {
         # it's core (or doesn't exist), we'll just nuke it.
 
         $class->_install_subs($pkg,{ $symbol => undef });
-
+        $^H{"autodie/wrapped/CORE::$symbol"} = 0;
     }
 
     return;
@@ -1188,6 +1188,8 @@ sub _make_fatal {
         $call = "CORE::$name";
     }
 
+    $^H{"autodie/wrapped/$call"} = 1;
+
     # If our subroutine is reusable (ie, not package depdendent),
     # then check to see if we've got a cached copy, and use that.
     # See RT #46984. (Thanks to Niels Thykier for being awesome!)
@@ -1234,6 +1236,11 @@ sub _make_fatal {
     # the exception now.
     $code .= "no warnings qw(exec);\n" if $call eq "CORE::exec";
 
+    if ($lexical && !$core) {
+        # goto the original sub if autodie is not in effect.
+        $code .= "    goto \&sref unless Fatal::in_effect(\$call, 1);\n";
+    }
+
     my @protos = fill_protos($proto);
     $code .= $class->_write_invocation($core, $call, $name, $void, $lexical, $sub, $sref, @protos);
     $code .= "}\n";
@@ -1255,9 +1262,9 @@ sub _make_fatal {
         {
             local $@;
             if (!exists($reusable_builtins{$call})) {
-                $code = eval("package $pkg; require Carp; $code");  ## no critic
+                $code = eval("package $pkg; require Carp; require Fatal; $code");  ## no critic
             } else {
-                $code = eval("require Carp; $code");  ## no critic
+                $code = eval("require Carp; require Fatal; $code");  ## no critic
                 if (!$lexical) {
                     # For the lexical, we need to cache the leak
                     # guarded variant of the call.
@@ -1286,7 +1293,8 @@ sub _make_fatal {
 
     my $leak_guard;
 
-    if ($lexical) {
+    # User subs cannot leak anymore
+    if ($lexical && $core) {
         # Do a little dance because set_prototype does not accept code
         # refs (i.e. "my $s = sub {}; set_prototype($s, '$$);" fails)
         if ($real_proto ne '') {
@@ -1368,12 +1376,21 @@ sub exception_class { return "autodie::exception" };
     }
 }
 
+sub in_effect {
+    my ($call, $level) = @_;
+    $level //= 0;
+    my $hinthash = (caller($level))[10];
+    return $hinthash->{"autodie/wrapped/$call"}//0;
+}
+
+
 sub _leak_guard {
     my $call_data = shift;
     my ($filename, $wrapped_sub, $orig_sub, $call, $protos, $pkg) = @{$call_data};
     my $caller_level = 0;
     my $caller;
     my $leaked = 0;
+    my $in_effect = in_effect($call, 1);
 
     # NB: if we are wrapping a CORE sub, $orig_sub will be undef.
 
@@ -1390,6 +1407,10 @@ sub _leak_guard {
     if ((caller $caller_level)[1] ne $filename) {
         # Oh bother, we've leaked into another file.
         $leaked = 1;
+    }
+
+    if ($leaked ^ !$in_effect) {
+        die ("$leaked vs $in_effect\n");
     }
 
     if (defined($orig_sub)) {
