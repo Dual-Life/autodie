@@ -233,8 +233,6 @@ my %reusable_builtins;
 @reusable_builtins{qw(
     CORE::fork
     CORE::kill
-    CORE::truncate
-    CORE::chdir
     CORE::link
     CORE::unlink
     CORE::rename
