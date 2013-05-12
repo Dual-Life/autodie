@@ -19,12 +19,10 @@ sub leak_test_rename {
 
 # These are used by core-trampoline-slurp.t
 sub slurp_leak_unlink {
-    warn "Calling unlink\n";
     unlink(NOFILE1, NOFILE2, NOFILE3);
 }
 
 sub slurp_leak_open {
-    warn "Calling open\n";
     open(1,2,3,4,5);
 }
 
