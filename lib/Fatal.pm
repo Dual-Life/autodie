@@ -288,6 +288,11 @@ my %Original_user_sub = ();
 my  %Is_fatalised_sub = ();
 tie %Is_fatalised_sub, 'Tie::RefHash';
 
+# Our trampoline cache allows us to cache trampolines which are used to
+# bounce leaked wrapped core subroutines to their actual core counterparts.
+
+my %Trampoline_cache;
+
 # We use our package in a few hash-keys.  Having it in a scalar is
 # convenient.  The "guard $PACKAGE" string is used as a key when
 # setting up lexical guards.
@@ -1413,36 +1418,56 @@ sub _leak_guard {
     # Core sub
     if ($leaked) {
         # If we're here, it must have been a core subroutine called.
-        # Warning: The following code may disturb some viewers.
 
-        # TODO: It should be possible to combine this with
-        # write_invocation().
+        # If we've cached a trampoline, then use it.
+        my $trampoline_sub = $Trampoline_cache{$pkg}{$call};
 
-        # TODO: cache these.
+        if (not $trampoline_sub) {
+            # If we don't have a trampoline, we need to build it.
 
-        my $trampoline_code = 'sub {';
-        my $trampoline_sub;
+            # We need to build a 'trampoline'. Essentially, a tiny sub that figures
+            # out how we should be calling our core sub, puts in the arguments
+            # in the right way, and bounces our control over to it.
+            #
+            # If we could use `goto &` on core builtins, we wouldn't need this.
+            #
+            # We only generate trampolines when we need them, and we can cache
+            # them by subroutine + package.
 
-        foreach my $proto (@{$protos}) {
-            local $" = ", ";    # So @args is formatted correctly.
-            my ($count, @args) = @$proto;
-            $trampoline_code .= qq<
-                if (\@_ == $count) {
-                    return $call(@args);
-                }
-            >;
+            # TODO: Consider caching on reusable_builtins status as well.
+            #       (In which case we can also remove the package line in the eval
+            #       later in this block.)
+
+            # TODO: It may be possible to combine this with write_invocation().
+
+            my $trampoline_code = 'sub {';
+
+            foreach my $proto (@{$protos}) {
+                local $" = ", ";    # So @args is formatted correctly.
+                my ($count, @args) = @$proto;
+                $trampoline_code .= qq<
+                    if (\@_ == $count) {
+                        return $call(@args);
+                    }
+                >;
+            }
+
+            $trampoline_code .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
+            my $E;
+
+            {
+                local $@;
+                $trampoline_sub = eval "package $pkg;\n $trampoline_code"; ## no critic
+                $E = $@;
+            }
+            die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
+                if $E;
+
+            # Phew! Let's cache that, so we don't have to do it again.
+            $Trampoline_cache{$pkg}{$call} = $trampoline_sub;
         }
 
-        $trampoline_code .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
-        my $E;
-
-        {
-            local $@;
-            $trampoline_sub = eval "package $pkg;\n $trampoline_code"; ## no critic
-            $E = $@;
-        }
-        die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
-            if $E;
+        # Bounce to our trampoline, which takes us to our core sub.
         goto \&$trampoline_sub;
     }
 
