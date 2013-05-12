@@ -6,6 +6,12 @@ Revision history for autodie
 
         * TEST: More testing around packages in truncate.t.
 
+        * SPEED / INTERNAL: Significant improvements in load time,
+          especially when autodie is used across multiple files.
+          Huge thanks to Niels Thykier, who is a hero of the
+          free people, and completely and utterly awesome.
+          (RT #46984)
+
 2.17      2013-04-29 01:03:50 Australia/Melbourne
 
         * DOCS: Spelling fixes thanks to dsteinbrunner! (RT #84897)

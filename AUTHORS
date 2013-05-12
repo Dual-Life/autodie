@@ -126,3 +126,11 @@ Todd Rinaldo
 
 RsrchBoy
         - chmod support and tests.
+
+Niels Thykier
+        - Identification and caching of reuseable subroutines.
+        - Significant reductions in the number of string evals().
+        - Refactoring and restructing to make autodie's guts more sane.
+        - General all round speed improvements.
+        - Niels Thykier is a hero of the free people. Autodie loads
+          *much* faster due to his efforts!
