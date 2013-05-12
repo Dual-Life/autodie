@@ -625,6 +625,12 @@ sub unimport {
 sub fill_protos {
     my $proto = shift;
     my ($n, $isref, @out, @out1, $seen_semi) = -1;
+    if ($proto =~ m{^\s* (?: [;] \s*)? \@}x) {
+        # prototype is entirely slurp - special case that does not
+        # require any handling.
+        return ([0, '@_']);
+    }
+
     while ($proto =~ /\S/) {
         $n++;
         push(@out1,[$n,@out]) if $seen_semi;
@@ -677,7 +683,7 @@ sub _write_invocation {
 
             my $condition = "\@_ == $n";
 
-            if (@argv and $argv[-1] =~ /#_/) {
+            if (@argv and $argv[-1] =~ /[#@]_/) {
                 # This argv ends with '@' in the prototype, so it matches
                 # any number of args >= the number of expressions in the
                 # argv.
