@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 3;
 
 # Tests for GH #22
 #
@@ -14,8 +14,9 @@ use FindBin qw($Bin);
 use lib $Bin;
 use autodie_test_module;
 
+# This will throw an error, but it shouldn't throw a leak-guard
+# failure.
 eval { slurp_leak_open(); };
-is($@,"","No error should be thrown by leaked guards (open)");
 unlike($@,qr/Leak-guard failure/, "Leak guard failure (open)");
 
 eval { slurp_leak_unlink(); };
