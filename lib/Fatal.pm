@@ -1404,7 +1404,7 @@ sub _leak_guard {
     }
     # We're now out of the eval stack.
 
-    if ((caller $caller_level)[1] ne $filename) {
+    if ($caller ne $filename) {
         # Oh bother, we've leaked into another file.
         $leaked = 1;
     }
