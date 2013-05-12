@@ -1446,11 +1446,19 @@ sub _leak_guard {
             foreach my $proto (@{$protos}) {
                 local $" = ", ";    # So @args is formatted correctly.
                 my ($count, @args) = @$proto;
-                $trampoline_code .= qq<
-                    if (\@_ == $count) {
-                        return $call(@args);
-                    }
-                >;
+                if ($args[-1] =~ m/[@#]_/) {
+                    $trampoline_code .= qq/
+                        if (\@_ >= $count) {
+                            return $call(@args);
+                        }
+                    /;
+                } else {
+                    $trampoline_code .= qq<
+                        if (\@_ == $count) {
+                            return $call(@args);
+                        }
+                    >;
+                }
             }
 
             $trampoline_code .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
