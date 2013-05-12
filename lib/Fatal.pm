@@ -224,12 +224,14 @@ my %Retval_action = (
 
 my %reusable_builtins;
 
-# "Wait!" I hear you cry, "truncate() and chdir() are not reuseable! They can take
-# file and directory handles, which are package depedent."
+# "Wait!" I hear you cry, "truncate() and chdir() are not reuseable! They can
+# take file and directory handles, which are package depedent."
 #
-# You would be correct, except that prototype() returns signatures which don't allow
-# for passing of globs, and nobody's complained about that. So you can rejoice in
-# cacheable versions as a result.
+# You would be correct, except that prototype() returns signatures which don't
+# allow for passing of globs, and nobody's complained about that. You can
+# still use \*FILEHANDLE, but that results in a reference coming through,
+# and it's already pointing to the filehandle in the caller's packge, so
+# it's all okay.
 
 @reusable_builtins{qw(
     CORE::fork
