@@ -127,6 +127,9 @@ Todd Rinaldo
 RsrchBoy
         - chmod support and tests.
 
+David Steinbrunner
+        - Spelling and documentation corrections.
+
 Niels Thykier
         - Identification and caching of reuseable subroutines.
         - Significant reductions in the number of string evals().
