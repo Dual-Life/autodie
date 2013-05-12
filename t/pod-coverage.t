@@ -37,6 +37,7 @@ all_pod_coverage_ok({
                 |sub_fullname
                 |get_code_info
                 |DOES
+                |in_effect
             )$
         }x ],
 });
