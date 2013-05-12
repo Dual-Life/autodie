@@ -27,7 +27,7 @@ if ($@ || !defined($truncate_status)) {
     plan skip_all => 'Truncate not implemented or not working on this system';
 }
 
-plan tests => 8;
+plan tests => 12;
 
 SKIP: {
     my $can_truncate_stdout = truncate(\*STDOUT,0);
@@ -90,7 +90,14 @@ eval {
     truncate(\*TRUNCATE_FH,0);
 };
 
-is($@, "", "Truncating an opened glob (TRUNCATE_FH)");
+is($@, "", 'Truncating an opened glob (\*TRUNCATE_FH)');
+
+eval {
+    use autodie qw(truncate);
+    truncate(*TRUNCATE_FH,0);
+};
+
+is($@, "", 'Truncating an opened glob (*TRUNCATE_FH)');
 
 # Now let's change packages, since globs are package dependent
 
@@ -101,7 +108,16 @@ eval {
     truncate(\*TRUNCATE_FH,0);  # Should die, as now unopened
 };
 
-isa_ok($@, 'autodie::exception', "Truncating unopened file in different package (TRUNCATE_FH)");
+isa_ok($@, 'autodie::exception', 'Truncating unopened file in different package (\*TRUNCATE_FH)');
+
+eval {
+    package Fatal::Test;
+    no warnings 'once';
+    use autodie qw(truncate);
+    truncate(*TRUNCATE_FH,0);  # Should die, as now unopened
+};
+
+isa_ok($@, 'autodie::exception', 'Truncating unopened file in different package (*TRUNCATE_FH)');
 
 # Now back to our previous test, just to make sure it hasn't changed
 # the original file.
@@ -111,7 +127,14 @@ eval {
     truncate(\*TRUNCATE_FH,0);
 };
 
-is($@, "", "Truncating an opened glob #2 (TRUNCATE_FH)");
+is($@, "", 'Truncating an opened glob #2 (\*TRUNCATE_FH)');
+
+eval {
+    use autodie qw(truncate);
+    truncate(*TRUNCATE_FH,0);
+};
+
+is($@, "", 'Truncating an opened glob #2 (*TRUNCATE_FH)');
 
 # Now to close the file and retry.
 {
@@ -124,4 +147,11 @@ eval {
     truncate(\*TRUNCATE_FH,0);
 };
 
-isa_ok($@, 'autodie::exception', "Truncating freshly closed glob");
+isa_ok($@, 'autodie::exception', 'Truncating freshly closed glob (\*TRUNCATE_FH)');
+
+eval {
+    use autodie qw(truncate);
+    truncate(*TRUNCATE_FH,0);
+};
+
+isa_ok($@, 'autodie::exception', 'Truncating freshly closed glob (*TRUNCATE_FH)');
