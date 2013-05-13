@@ -347,13 +347,20 @@ sub import {
     # Thiese subs will get unloaded at the end of lexical scope.
     my %unload_later;
 
-    # This hash helps us track if we've already done work.
-    my %done_this;
-
-    # NB: we're using while/shift rather than foreach, since
-    # we'll be modifying the array as we walk through it.
-
-    while (my $func = shift @fatalise_these) {
+    # Use _translate_import_args to expand tags for us.  It will
+    # pass-through unknown tags (i.e. we have to manually handle
+    # VOID_TAG).
+    #
+    # TODO: Consider how to handle stuff like:
+    #   use autodie qw(:defaults ! :io);
+    #   use Fatal qw(:defaults :void :io);
+    #
+    # The ! and :void is currently not applied to anything in the
+    # example above since duplicates are filtered out.  This has been
+    # autodie's behaviour for quite a while, but it might make sense
+    # to change it so "!" or ":void" applies to stuff after they
+    # appear (even if they are all duplicates).
+    for my $func ($class->_translate_import_args(@fatalise_these)) {
 
         if ($func eq VOID_TAG) {
 
@@ -363,11 +370,6 @@ sub import {
         } elsif ($func eq INSIST_TAG) {
 
             $insist_hints = 1;
-
-        } elsif (exists $TAGS{$func}) {
-
-            # When it's a tag, expand it.
-            push(@fatalise_these, @{ $TAGS{$func} });
 
         } else {
 
@@ -380,14 +382,6 @@ sub import {
             if ($func =~ s/^!//) {
                 $insist_this = 1;
             }
-
-            # TODO: Even if we've already fatalised, we should
-            # check we've done it with hints (if $insist_hints).
-
-            # If we've already made something fatal this call,
-            # then don't do it twice.
-
-            next if $done_this{$func};
 
             # We're going to make a subroutine fatalistic.
             # However if we're being invoked with 'use Fatal qw(x)'
@@ -416,8 +410,6 @@ sub import {
                 $func, $pkg, $void, $lexical, $filename,
                 ( $insist_this || $insist_hints )
             );
-
-            $done_this{$func}++;
 
             $Original_user_sub{$sub} ||= $sub_ref;
 
@@ -534,15 +526,7 @@ sub unimport {
 
     my @unimport_these = @_ ? @_ : ':all';
 
-    while (my $symbol = shift @unimport_these) {
-
-        if ($symbol =~ /^:/) {
-
-            # Looks like a tag!  Expand it!
-            push(@unimport_these, @{ $TAGS{$symbol} });
-
-            next;
-        }
+    for my $symbol ($class->_translate_import_args(@unimport_these)) {
 
         my $sub = $symbol;
         $sub = "${pkg}::$sub" unless $sub =~ /::/;
@@ -576,6 +560,37 @@ sub unimport {
     return;
 
 }
+
+sub _translate_import_args {
+    my ($class, @args) = @_;
+    my @result;
+    for my $a (@args){
+        if (exists $TAGS{$a}) {
+            my $expanded = $class->_expand_tag($a);
+            # Strip "CORE::" from all elements in the list as import and
+            # unimport does not handle the "CORE::" prefix too well.
+            #
+            # NB: we use substr as it is faster than s/^CORE::// and
+            # it does not change the elements.
+            push @result, map { substr($_, 6) } @{$expanded};
+        } else {
+            #pass through
+            push @result, $a;
+        }
+    }
+    # If @args < 2, then we have no duplicates (because _expand_tag
+    # does not have duplicates and if it is not a tag, it is just a
+    # single value).  We optimize for this because it is a fairly
+    # common case (e.g. use autodie; or use autodie qw(:all); both
+    # trigger this).
+    return @result if @args < 2;
+
+    my %seen = ();
+    # Yes, this is basically List::MoreUtils's uniq/distinct, but
+    # List::MoreUtils is not in the Perl core and autodie is
+    return grep { !$seen{$_}++ } @result;
+}
+
 
 # NB: Perl::Critic's dump-autodie-tag-contents depends upon this
 # continuing to work.
