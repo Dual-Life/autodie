@@ -2,6 +2,13 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * BUGFIX: Loading a file that does not change packages while
+          autodie in effect no longer causes weird behaviour when
+          slurpy built-ins (like open() and unlink()) are called. GH #22
+          Thanks to Niels Thykier.
+
+        * TEST: Tests for leak guard failures for slurpy core functions.
+
 2.18      2013-05-12 18:12:14 Australia/Melbourne
 
         * TEST: More testing in scope_leak.t.

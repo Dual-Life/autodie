@@ -137,3 +137,4 @@ Niels Thykier
         - General all round speed improvements.
         - Niels Thykier is a hero of the free people. Autodie loads
           *much* faster due to his efforts!
+        - Fixes around leak guards and slurpy core subroutines.
