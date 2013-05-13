@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.19      2013-05-13 10:02:15 Australia/Melbourne
+
         * BUGFIX: Loading a file that does not change packages while
           autodie in effect no longer causes weird behaviour when
           slurpy built-ins (like open() and unlink()) are called. GH #22
