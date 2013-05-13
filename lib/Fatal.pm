@@ -577,14 +577,17 @@ sub unimport {
 
 }
 
-# TODO - This is rather terribly inefficient right now.
-
 # NB: Perl::Critic's dump-autodie-tag-contents depends upon this
 # continuing to work.
 
 {
     my %tag_cache;
 
+    # Expand a given tag (e.g. ":default") into a listref containing
+    # all sub names covered by that tag.  Each sub is returned as
+    # "CORE::<name>" (i.e. "CORE::open" rather than "open").
+    #
+    # NB: the listref must not be modified.
     sub _expand_tag {
         my ($class, $tag) = @_;
 
@@ -598,15 +601,37 @@ sub unimport {
 
         my @to_process = @{$TAGS{$tag}};
 
+        # If the tag is basically an alias of another tag (like e.g. ":2.11"),
+        # then just share the resulting reference with the original content (so
+        # we only pay for an extra reference for the alias memory-wise).
+        if (@to_process == 1 && substr($to_process[0], 0, 1) eq ':') {
+            # We could do this for "non-tags" as well, but that only occurs
+            # once at the time of writing (":threads" => ["fork"]), so
+            # probably not worth it.
+            my $expanded = $class->_expand_tag($to_process[0]);
+            $tag_cache{$tag} = $expanded;
+            return $expanded;
+        }
+
+        my %seen = ();
         my @taglist = ();
 
-        while (my $item = shift @to_process) {
-            if ($item =~ /^:/) {
-                # Expand :tags
-                push(@to_process, @{$TAGS{$item}} );
-            }
-            else {
-                push(@taglist, "CORE::$item");
+        for my $item (@to_process) {
+            # substr is more efficient than m/^:/ for stuff like this,
+            # at the price of being a bit more verbose/low-level.
+            if (substr($item, 0, 1) eq ':') {
+                # Use recursion here to ensure we expand a tag at most once.
+                #
+                # TODO: Improve handling of :all so we don't expand
+                # all those aliases (e.g :2.00..:2.07 are all aliases
+                # of v2.07).
+
+                my $expanded = $class->_expand_tag($item);
+                push @taglist, grep { !$seen{$_}++ } @{$expanded};
+            } else {
+                my $subname = "CORE::$item";
+                push @taglist, $subname
+                    unless $seen{$subname}++;
             }
         }
 
