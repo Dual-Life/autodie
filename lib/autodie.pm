@@ -427,6 +427,6 @@ Mark Reed and Roland Giersig -- Klingon translators.
 
 See the F<AUTHORS> file for full credits.  The latest version of this
 file can be found at
-L<http://github.com/pjf/autodie/tree/master/AUTHORS> .
+L<https://github.com/pjf/autodie/tree/master/AUTHORS> .
 
 =cut
