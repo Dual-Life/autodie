@@ -625,6 +625,12 @@ sub unimport {
 sub fill_protos {
     my $proto = shift;
     my ($n, $isref, @out, @out1, $seen_semi) = -1;
+    if ($proto =~ m{^\s* (?: [;] \s*)? \@}x) {
+        # prototype is entirely slurp - special case that does not
+        # require any handling.
+        return ([0, '@_']);
+    }
+
     while ($proto =~ /\S/) {
         $n++;
         push(@out1,[$n,@out]) if $seen_semi;
@@ -677,7 +683,7 @@ sub _write_invocation {
 
             my $condition = "\@_ == $n";
 
-            if (@argv and $argv[-1] =~ /#_/) {
+            if (@argv and $argv[-1] =~ /[#@]_/) {
                 # This argv ends with '@' in the prototype, so it matches
                 # any number of args >= the number of expressions in the
                 # argv.
@@ -1200,14 +1206,6 @@ sub _make_fatal {
         $call = "CORE::$name";
     }
 
-
-    if (defined $proto) {
-        $real_proto = " ($proto)";
-    } else {
-        $real_proto = '';
-        $proto = '@';
-    }
-
     my $true_name = $core ? $call : $sub;
 
     # TODO: This caching works, but I don't like using $void and
@@ -1239,10 +1237,18 @@ sub _make_fatal {
         }
     }
 
-    my @protos = fill_protos($proto);
+    if (defined $proto) {
+        $real_proto = " ($proto)";
+    } else {
+        $real_proto = '';
+        $proto = '@';
+    }
 
     if (!defined($code)) {
         # No code available, generate it now.
+        my $qualify_depth = undef;
+        $qualify_depth = 0 if exists($reusable_builtins{$call});
+        my @protos = fill_protos($proto, $qualify_depth);
 
         $code = qq[
             sub$real_proto {
@@ -1310,13 +1316,13 @@ sub _make_fatal {
         # refs (i.e. "my $s = sub {}; set_prototype($s, '$$);" fails)
         if ($real_proto ne '') {
             $leak_guard = set_prototype(sub {
-                    unshift @_, [$filename, $code, $sref, $call, \@protos, $pkg];
+                    unshift @_, [$filename, $code, $sref, $call, $pkg];
                     goto \&_leak_guard;
                 }, $proto);
 
         } else {
             $leak_guard = sub {
-                unshift @_, [$filename, $code, $sref, $call, \@protos, $pkg];
+                unshift @_, [$filename, $code, $sref, $call, $pkg];
                 goto \&_leak_guard;
             };
         }
@@ -1389,7 +1395,7 @@ sub exception_class { return "autodie::exception" };
 
 sub _leak_guard {
     my $call_data = shift;
-    my ($filename, $wrapped_sub, $orig_sub, $call, $protos, $pkg) = @{$call_data};
+    my ($filename, $wrapped_sub, $orig_sub, $call, $pkg) = @{$call_data};
     my $caller_level = 0;
     my $caller;
     my $leaked = 0;
@@ -1443,8 +1449,8 @@ sub _leak_guard {
             # TODO: It may be possible to combine this with write_invocation().
 
             my $trampoline_code = 'sub {';
-
-            foreach my $proto (@{$protos}) {
+            my @protos = fill_protos(prototype($call));
+            foreach my $proto (@protos) {
                 local $" = ", ";    # So @args is formatted correctly.
                 my ($count, @args) = @$proto;
                 if ($args[-1] =~ m/[@#]_/) {
