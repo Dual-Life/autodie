@@ -1310,16 +1310,8 @@ sub _make_fatal {
     my $leak_guard;
 
     if ($lexical) {
-        $leak_guard = sub {
-            unshift @_, [$filename, $code, $sref, $call, $pkg];
-            goto \&_leak_guard;
-        };
-
-        if ($real_proto ne '') {
-            # The "\&" may appear to be redundant but set_prototype
-            # croaks when it is removed.
-            set_prototype(\&$leak_guard, $proto);
-        }
+        $leak_guard = _make_leak_guard($filename, $code, $sref, $call,
+                                       $pkg, $proto, $real_proto);
     }
 
     my $installed_sub = $leak_guard || $code;
@@ -1387,102 +1379,129 @@ sub exception_class { return "autodie::exception" };
     }
 }
 
-sub _leak_guard {
-    my $call_data = shift;
-    my ($filename, $wrapped_sub, $orig_sub, $call, $pkg) = @{$call_data};
-    my $caller_level = 0;
-    my $caller;
-    my $leaked = 0;
+# Creates and returns a leak guard (with prototype if needed).
+sub _make_leak_guard {
+    my ($filename, $wrapped_sub, $orig_sub, $call, $pkg, $proto, $real_proto) = @_;
 
-    # NB: if we are wrapping a CORE sub, $orig_sub will be undef.
+    # The leak guard is rather lengthly (in fact it makes up the most
+    # of _make_leak_guard).  It is possible to split it into a large
+    # "generic" part and a small wrapper with call-specific
+    # information.  This was done in v2.19 and profiling suggested
+    # that we ended up using a substantial amount of runtime in "goto"
+    # between the leak guard(s) and the final sub.  Therefore, the two
+    # parts were merged into one to reduce the runtime overhead.
 
-    while ( ($caller = (caller $caller_level)[1]) =~ m{^\(eval \d+\)$} ) {
+    my $leak_guard = sub {
+        my $caller_level = 0;
+        my $caller;
+        my $leaked = 0;
 
-        # If our filename is actually an eval, and we
-        # reach it, then go to our autodying code immediatately.
+        # NB: if we are wrapping a CORE sub, $orig_sub will be undef.
 
-        last if ($caller eq $filename);
-        $caller_level++;
-    }
-    # We're now out of the eval stack.
+        while ( ($caller = (caller $caller_level)[1]) =~ m{^\(eval \d+\)$} ) {
 
-    if ($caller ne $filename) {
-        # Oh bother, we've leaked into another file.
-        $leaked = 1;
-    }
+            # If our filename is actually an eval, and we
+            # reach it, then go to our autodying code immediatately.
 
-    if (defined($orig_sub)) {
-        # User sub.
-        goto $wrapped_sub unless $leaked;
-        goto $orig_sub;
-    }
+            last if ($caller eq $filename);
+            $caller_level++;
+        }
+        # We're now out of the eval stack.
 
-    # Core sub
-    if ($leaked) {
-        # If we're here, it must have been a core subroutine called.
-
-        # If we've cached a trampoline, then use it.
-        my $trampoline_sub = $Trampoline_cache{$pkg}{$call};
-
-        if (not $trampoline_sub) {
-            # If we don't have a trampoline, we need to build it.
-
-            # We need to build a 'trampoline'. Essentially, a tiny sub that figures
-            # out how we should be calling our core sub, puts in the arguments
-            # in the right way, and bounces our control over to it.
-            #
-            # If we could use `goto &` on core builtins, we wouldn't need this.
-            #
-            # We only generate trampolines when we need them, and we can cache
-            # them by subroutine + package.
-
-            # TODO: Consider caching on reusable_builtins status as well.
-            #       (In which case we can also remove the package line in the eval
-            #       later in this block.)
-
-            # TODO: It may be possible to combine this with write_invocation().
-
-            my $trampoline_code = 'sub {';
-            my @protos = fill_protos(prototype($call));
-            foreach my $proto (@protos) {
-                local $" = ", ";    # So @args is formatted correctly.
-                my ($count, @args) = @$proto;
-                if ($args[-1] =~ m/[@#]_/) {
-                    $trampoline_code .= qq/
-                        if (\@_ >= $count) {
-                            return $call(@args);
-                        }
-                    /;
-                } else {
-                    $trampoline_code .= qq<
-                        if (\@_ == $count) {
-                            return $call(@args);
-                        }
-                    >;
-                }
-            }
-
-            $trampoline_code .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
-            my $E;
-
-            {
-                local $@;
-                $trampoline_sub = eval "package $pkg;\n $trampoline_code"; ## no critic
-                $E = $@;
-            }
-            die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
-                if $E;
-
-            # Phew! Let's cache that, so we don't have to do it again.
-            $Trampoline_cache{$pkg}{$call} = $trampoline_sub;
+        if ($caller ne $filename) {
+            # Oh bother, we've leaked into another file.
+            $leaked = 1;
         }
 
-        # Bounce to our trampoline, which takes us to our core sub.
-        goto \&$trampoline_sub;
+        if (defined($orig_sub)) {
+            # User sub.
+            goto $wrapped_sub unless $leaked;
+            goto $orig_sub;
+        }
+
+        # Core sub
+        if ($leaked) {
+            # If we're here, it must have been a core subroutine called.
+
+            # If we've cached a trampoline, then use it.
+            my $trampoline_sub = $Trampoline_cache{$pkg}{$call};
+
+            if (not $trampoline_sub) {
+                # If we don't have a trampoline, we need to build it.
+                #
+                # We only generate trampolines when we need them, and
+                # we can cache them by subroutine + package.
+
+                # TODO: Consider caching on reusable_builtins status as well.
+
+                $trampoline_sub = _make_core_trampoline($call, $pkg, $proto);
+
+                # Let's cache that, so we don't have to do it again.
+                $Trampoline_cache{$pkg}{$call} = $trampoline_sub;
+            }
+
+            # Bounce to our trampoline, which takes us to our core sub.
+            goto \&$trampoline_sub;
+        }
+
+        # No leak, do a regular goto.
+        goto $wrapped_sub;
+    };  # <-- end of leak guard
+
+    # If there is a prototype on the original sub, copy it to the leak
+    # guard.
+    if ($real_proto ne '') {
+        # The "\&" may appear to be redundant but set_prototype
+        # croaks when it is removed.
+        set_prototype(\&$leak_guard, $proto);
     }
 
-    # No leak, do a regular goto.
-    goto $wrapped_sub;
+    return $leak_guard;
+}
+
+# Create a trampoline for calling a core sub.  Essentially, a tiny sub
+# that figures out how we should be calling our core sub, puts in the
+# arguments in the right way, and bounces our control over to it.
+#
+# If we could use `goto &` on core builtins, we wouldn't need this.
+sub _make_core_trampoline {
+    my ($call, $pkg, $proto) = @_;
+    my $trampoline_code = 'sub {';
+    my $trampoline_sub;
+    my @protos = fill_protos($proto);
+
+    # TODO: It may be possible to combine this with write_invocation().
+
+    foreach my $proto (@protos) {
+        local $" = ", ";    # So @args is formatted correctly.
+        my ($count, @args) = @$proto;
+        if ($args[-1] =~ m/[@#]_/) {
+            $trampoline_code .= qq/
+                if (\@_ >= $count) {
+                    return $call(@args);
+                }
+             /;
+        } else {
+            $trampoline_code .= qq<
+                if (\@_ == $count) {
+                    return $call(@args);
+                }
+             >;
+        }
+    }
+
+    $trampoline_code .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
+    my $E;
+
+    {
+        local $@;
+        $trampoline_sub = eval "package $pkg;\n $trampoline_code"; ## no critic
+        $E = $@;
+    }
+    die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
+        if $E;
+
+    return $trampoline_sub;
 }
 
 # For some reason, dying while replacing our subs doesn't
