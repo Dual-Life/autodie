@@ -1456,17 +1456,17 @@ sub _make_leak_guard {
 #
 # If we could use `goto &` on core builtins, we wouldn't need this.
 sub _make_core_trampoline {
-    my ($call, $pkg, $proto) = @_;
+    my ($call, $pkg, $proto_str) = @_;
     my $trampoline_code = 'sub {';
     my $trampoline_sub;
-    my @protos = fill_protos($proto);
+    my @protos = fill_protos($proto_str);
 
     # TODO: It may be possible to combine this with write_invocation().
 
     foreach my $proto (@protos) {
         local $" = ", ";    # So @args is formatted correctly.
         my ($count, @args) = @$proto;
-        if ($args[-1] =~ m/[@#]_/) {
+        if (@args && $args[-1] =~ m/[@#]_/) {
             $trampoline_code .= qq/
                 if (\@_ >= $count) {
                     return $call(@args);
