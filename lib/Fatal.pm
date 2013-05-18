@@ -1310,19 +1310,15 @@ sub _make_fatal {
     my $leak_guard;
 
     if ($lexical) {
-        # Do a little dance because set_prototype does not accept code
-        # refs (i.e. "my $s = sub {}; set_prototype($s, '$$);" fails)
-        if ($real_proto ne '') {
-            $leak_guard = set_prototype(sub {
-                    unshift @_, [$filename, $code, $sref, $call, $pkg];
-                    goto \&_leak_guard;
-                }, $proto);
+        $leak_guard = sub {
+            unshift @_, [$filename, $code, $sref, $call, $pkg];
+            goto \&_leak_guard;
+        };
 
-        } else {
-            $leak_guard = sub {
-                unshift @_, [$filename, $code, $sref, $call, $pkg];
-                goto \&_leak_guard;
-            };
+        if ($real_proto ne '') {
+            # The "\&" may appear to be redundant but set_prototype
+            # croaks when it is removed.
+            set_prototype(\&$leak_guard, $proto);
         }
     }
 
