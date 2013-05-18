@@ -1394,9 +1394,6 @@ sub _make_leak_guard {
     my $leak_guard = sub {
         my $caller_level = 0;
         my $caller;
-        my $leaked = 0;
-
-        # NB: if we are wrapping a CORE sub, $orig_sub will be undef.
 
         while ( ($caller = (caller $caller_level)[1]) =~ m{^\(eval \d+\)$} ) {
 
@@ -1406,46 +1403,40 @@ sub _make_leak_guard {
             last if ($caller eq $filename);
             $caller_level++;
         }
+
         # We're now out of the eval stack.
 
-        if ($caller ne $filename) {
-            # Oh bother, we've leaked into another file.
-            $leaked = 1;
+        if ($caller eq $filename) {
+            # No leak, call the wrapper.  NB: In this case, it doesn't
+            # matter if it is a CORE sub or not.
+            goto $wrapped_sub;
         }
 
-        if (defined($orig_sub)) {
-            # User sub.
-            goto $wrapped_sub unless $leaked;
-            goto $orig_sub;
+        # We leaked, time to call the original function.
+        # - for non-core functions that will be $orig_sub
+        goto $orig_sub if defined($orig_sub);
+
+        # We are wrapping a CORE sub
+
+        # If we've cached a trampoline, then use it.
+        my $trampoline_sub = $Trampoline_cache{$pkg}{$call};
+
+        if (not $trampoline_sub) {
+            # If we don't have a trampoline, we need to build it.
+            #
+            # We only generate trampolines when we need them, and
+            # we can cache them by subroutine + package.
+
+            # TODO: Consider caching on reusable_builtins status as well.
+
+            $trampoline_sub = _make_core_trampoline($call, $pkg, $proto);
+
+            # Let's cache that, so we don't have to do it again.
+            $Trampoline_cache{$pkg}{$call} = $trampoline_sub;
         }
 
-        # Core sub
-        if ($leaked) {
-            # If we're here, it must have been a core subroutine called.
-
-            # If we've cached a trampoline, then use it.
-            my $trampoline_sub = $Trampoline_cache{$pkg}{$call};
-
-            if (not $trampoline_sub) {
-                # If we don't have a trampoline, we need to build it.
-                #
-                # We only generate trampolines when we need them, and
-                # we can cache them by subroutine + package.
-
-                # TODO: Consider caching on reusable_builtins status as well.
-
-                $trampoline_sub = _make_core_trampoline($call, $pkg, $proto);
-
-                # Let's cache that, so we don't have to do it again.
-                $Trampoline_cache{$pkg}{$call} = $trampoline_sub;
-            }
-
-            # Bounce to our trampoline, which takes us to our core sub.
-            goto \&$trampoline_sub;
-        }
-
-        # No leak, do a regular goto.
-        goto $wrapped_sub;
+        # Bounce to our trampoline, which takes us to our core sub.
+        goto \&$trampoline_sub;
     };  # <-- end of leak guard
 
     # If there is a prototype on the original sub, copy it to the leak
