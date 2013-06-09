@@ -509,7 +509,7 @@ sub _install_subs {
         if ($sub_ref) {
 
             no strict;  ## no critic
-            *{ $pkg_sym . $sub_name } = $sub_ref;
+            *{ $full_path } = $sub_ref;
         }
     }
 
