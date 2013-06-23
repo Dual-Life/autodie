@@ -1459,7 +1459,13 @@ sub _make_leak_guard {
 
         # We are wrapping a CORE sub
 
-        # If we've cached a trampoline, then use it.
+        # If we've cached a trampoline, then use it.  Note that we use
+        # "Fatal" as package name for reusable subs because A) that
+        # allows us to trivially re-use the trampolines as well and B)
+        # because the reusable sub is compiled into "package Fatal" as
+        # well.
+
+        $pkg = 'Fatal' if exists $reusable_builtins{$call};
         my $trampoline_sub = $Trampoline_cache{$pkg}{$call};
 
         if (not $trampoline_sub) {
@@ -1467,8 +1473,6 @@ sub _make_leak_guard {
             #
             # We only generate trampolines when we need them, and
             # we can cache them by subroutine + package.
-
-            # TODO: Consider caching on reusable_builtins status as well.
 
             $trampoline_sub = _make_core_trampoline($call, $pkg, $proto);
 
