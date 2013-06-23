@@ -2,6 +2,19 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        Many improvements from Niels Thykier, hero of the
+        free people.  From GH #25:
+
+        * SPEED / INTERNAL: Less time is spent computing prototypes
+
+        * SPEED / INTERNAL: Leak guards are more efficient.
+
+        * SPEED : Expanding tags (eg: qw(:all)) is now faster.
+          This also improves the speed of checking autodying
+          code with Perl::Critic.
+
+        * INTERNAL: Expanding of tags is faster and preserves order.
+
 2.19      2013-05-13 10:02:15 Australia/Melbourne
 
         * BUGFIX: Loading a file that does not change packages while
