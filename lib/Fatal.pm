@@ -1255,8 +1255,6 @@ sub _make_fatal {
         $call = "CORE::$name";
     }
 
-    my $true_name = $core ? $call : $sub;
-
     # TODO: This caching works, but I don't like using $void and
     # $lexical as keys.  In particular, I suspect our code may end up
     # wrapping already wrapped code when autodie and Fatal are used
@@ -1286,62 +1284,16 @@ sub _make_fatal {
         }
     }
 
-    if (defined $proto) {
-        $real_proto = " ($proto)";
-    } else {
-        $real_proto = '';
-        $proto = '@';
-    }
-
     if (!defined($code)) {
         # No code available, generate it now.
-        my @protos = fill_protos($proto);
-
-        $code = qq[
-            sub$real_proto {
-              local(\$", \$!) = (', ', 0);    # TODO - Why do we do this?
-        ];
-
-        # Don't have perl whine if exec fails, since we'll be handling
-        # the exception now.
-        $code .= "no warnings qw(exec);\n" if $call eq "CORE::exec";
-
-        $code .= $class->_write_invocation($core, $call, $name, $void, $lexical,
-                                           $sub, $sref, @protos);
-        $code .= "}\n";
-        warn $code if $Debug;
-
-        # I thought that changing package was a monumental waste of
-        # time for CORE subs, since they'll always be the same.  However
-        # that's not the case, since they may refer to package-based
-        # filehandles (eg, with open).
-        #
-        # The %reusable_builtins hash defines ones we can aggressively
-        # cache as they never depend upon package-based symbols.
-
-        {
-            no strict 'refs'; ## no critic # to avoid: Can't use string (...) as a symbol ref ...
-
-            my $E;
-
-            {
-                local $@;
-                if (!exists($reusable_builtins{$call})) {
-                    $code = eval("package $pkg; require Carp; $code");  ## no critic
-                } else {
-                    $code = eval("require Carp; $code");  ## no critic
-                    if (exists $reusable_builtins{$call}) {
-                        # cache it so we don't recompile this part again
-                        $reusable_builtins{$call}{$lexical} = $code;
-                    }
-                }
-                $E = $@;
-            }
-
-            if (not $code) {
-                croak("Internal error in autodie/Fatal processing $true_name: $E");
-
-            }
+        my $wrapper_pkg = $pkg;
+        $wrapper_pkg = undef if (exists($reusable_builtins{$call}));
+        $code = $class->_compile_wrapper($wrapper_pkg, $core, $call, $name,
+                                         $void, $lexical, $sub, $sref,
+                                         $hints, $proto);
+        if (!defined($wrapper_pkg)) {
+            # cache it so we don't recompile this part again
+            $reusable_builtins{$call}{$lexical} = $code;
         }
     }
 
@@ -1359,6 +1311,12 @@ sub _make_fatal {
     my $leak_guard;
 
     if ($lexical) {
+        my $real_proto = '';
+        if (defined $proto) {
+            $real_proto = " ($proto)";
+        } else {
+            $proto = '@';
+        }
         $leak_guard = _make_leak_guard($filename, $code, $sref, $call,
                                        $pkg, $proto, $real_proto);
     }
@@ -1546,6 +1504,61 @@ sub _make_core_trampoline {
         if $E;
 
     return $trampoline_sub;
+}
+
+sub _compile_wrapper {
+    my ($class, $wrapper_pkg, $core, $call, $name, $void, $lexical, $sub, $sref, $hints, $proto) = @_;
+    my $real_proto = '';
+    my @protos;
+    my $code;
+    if (defined $proto) {
+        $real_proto = " ($proto)";
+    } else {
+        $proto = '@';
+    }
+
+    @protos = fill_protos($proto);
+    $code = qq[
+        sub$real_proto {
+           local(\$", \$!) = (', ', 0);
+    ];
+
+    # Don't have perl whine if exec fails, since we'll be handling
+    # the exception now.
+    $code .= "no warnings qw(exec);\n" if $call eq "CORE::exec";
+
+    $code .= $class->_write_invocation($core, $call, $name, $void, $lexical,
+                                       $sub, $sref, @protos);
+    $code .= "}\n";
+    warn $code if $Debug;
+
+    # I thought that changing package was a monumental waste of
+    # time for CORE subs, since they'll always be the same.  However
+    # that's not the case, since they may refer to package-based
+    # filehandles (eg, with open).
+    #
+    # The %reusable_builtins hash defines ones we can aggressively
+    # cache as they never depend upon package-based symbols.
+
+    my $E;
+
+    {
+        no strict 'refs'; ## no critic # to avoid: Can't use string (...) as a symbol ref ...
+        local $@;
+        if (defined($wrapper_pkg)) {
+            $code = eval("package $wrapper_pkg; require Carp; $code");  ## no critic
+        } else {
+            $code = eval("require Carp; $code");  ## no critic
+
+        }
+        $E = $@;
+    }
+
+    if (not $code) {
+        my $true_name = $core ? $call : $sub;
+        croak("Internal error in autodie/Fatal processing $true_name: $E");
+    }
+    return $code;
 }
 
 # For some reason, dying while replacing our subs doesn't
