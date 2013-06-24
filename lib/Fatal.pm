@@ -345,8 +345,10 @@ sub import {
 
     my @fatalise_these =  @_;
 
-    # Thiese subs will get unloaded at the end of lexical scope.
+    # These subs will get unloaded at the end of lexical scope.
     my %unload_later;
+    # These subs are to be installed into callers namespace.
+    my %install_subs;
 
     # Use _translate_import_args to expand tags for us.  It will
     # pass-through unknown tags (i.e. we have to manually handle
@@ -409,7 +411,8 @@ sub import {
 
             my $sub_ref = $class->_make_fatal(
                 $func, $pkg, $void, $lexical, $filename,
-                ( $insist_this || $insist_hints )
+                ( $insist_this || $insist_hints ),
+                \%install_subs,
             );
 
             $Original_user_sub{$sub} ||= $sub_ref;
@@ -421,6 +424,8 @@ sub import {
             $unload_later{$func} = $sub_ref if $lexical;
         }
     }
+
+    $class->_install_subs($pkg, \%install_subs);
 
     if ($lexical) {
 
@@ -526,6 +531,7 @@ sub unimport {
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
     my @unimport_these = @_ ? @_ : ':all';
+    my %uninstall_subs;
 
     for my $symbol ($class->_translate_import_args(@unimport_these)) {
 
@@ -547,16 +553,18 @@ sub unimport {
 
         if (my $original_sub = $Original_user_sub{$sub}) {
             # Hey, we've got an original one of these, put it back.
-            $class->_install_subs($pkg, { $symbol => $original_sub });
+            $uninstall_subs{$symbol} = $original_sub;
             next;
         }
 
         # We don't have an original copy of the sub, on the assumption
         # it's core (or doesn't exist), we'll just nuke it.
 
-        $class->_install_subs($pkg,{ $symbol => undef });
+        $uninstall_subs{$symbol} = undef;
 
     }
+
+    $class->_install_subs($pkg, \%uninstall_subs);
 
     return;
 
@@ -1106,7 +1114,7 @@ sub _one_invocation {
 # TODO - BACKCOMPAT - This is not yet compatible with 5.10.0
 
 sub _make_fatal {
-    my($class, $sub, $pkg, $void, $lexical, $filename, $insist) = @_;
+    my($class, $sub, $pkg, $void, $lexical, $filename, $insist, $install_subs) = @_;
     my($name, $code, $sref, $real_proto, $proto, $core, $call, $hints);
     my $ini = $sub;
 
@@ -1260,7 +1268,7 @@ sub _make_fatal {
     # access to the wrong package filehandles.
 
     if (my $subref = $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical}) {
-        $class->_install_subs($pkg, { $name => $subref });
+        $install_subs->{$name} = $subref;
         return $sref;
     }
 
@@ -1273,7 +1281,7 @@ sub _make_fatal {
         # - for lexical variants, we need a leak guard as well.
         $code = $reusable_builtins{$call}{$lexical};
         if (!$lexical && defined($code)) {
-            $class->_install_subs($pkg, { $name => $code });
+            $install_subs->{$name} = $code;
             return $sref;
         }
     }
@@ -1357,7 +1365,7 @@ sub _make_fatal {
 
     my $installed_sub = $leak_guard || $code;
 
-    $class->_install_subs($pkg, { $name => $installed_sub });
+    $install_subs->{$name} = $installed_sub;
 
     $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical} = $installed_sub;
 
