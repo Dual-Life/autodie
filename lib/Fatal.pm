@@ -16,6 +16,12 @@ use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
 use constant INSIST_TAG  => q{!};
 
+# Keys for %Cached_fatalised_sub  (used in 3rd level)
+use constant CACHE_AUTODIE_LEAK_GUARD    => 0;
+use constant CACHE_FATAL_WRAPPER         => 1;
+use constant CACHE_FATAL_VOID            => 2;
+
+
 use constant ERROR_NOARGS    => 'Cannot use lexical %s with no arguments';
 use constant ERROR_VOID_LEX  => VOID_TAG.' cannot be used with lexical scope';
 use constant ERROR_LEX_FIRST => LEXICAL_TAG.' must be used as first argument';
@@ -1117,6 +1123,8 @@ sub _make_fatal {
     my($class, $sub, $pkg, $void, $lexical, $filename, $insist, $install_subs) = @_;
     my($name, $code, $sref, $real_proto, $proto, $core, $call, $hints);
     my $ini = $sub;
+    my $cache;
+    my $cache_type;
 
     $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
@@ -1265,7 +1273,15 @@ sub _make_fatal {
     # results code that's in the wrong package, and hence has
     # access to the wrong package filehandles.
 
-    if (my $subref = $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical}) {
+    $cache = $Cached_fatalised_sub{$class}{$sub};
+    if ($lexical) {
+        $cache_type = CACHE_AUTODIE_LEAK_GUARD;
+    } else {
+        $cache_type = CACHE_FATAL_WRAPPER;
+        $cache_type = CACHE_FATAL_VOID if $void;
+    }
+
+    if (my $subref = $cache->{$cache_type}) {
         $install_subs->{$name} = $subref;
         return $sref;
     }
@@ -1323,9 +1339,9 @@ sub _make_fatal {
 
     my $installed_sub = $leak_guard || $code;
 
-    $install_subs->{$name} = $installed_sub;
+    $cache->{$cache_type} = $code;
 
-    $Cached_fatalised_sub{$class}{$sub}{$void}{$lexical} = $installed_sub;
+    $install_subs->{$name} = $installed_sub;
 
     # Cache that we've now overridden this sub.  If we get called
     # again, we may need to find that find subroutine again (eg, for hints).
