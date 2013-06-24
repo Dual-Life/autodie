@@ -1300,7 +1300,7 @@ sub _make_fatal {
         }
     }
 
-    if (!defined($code)) {
+    if (!defined($code) && !($lexical && $core)) {
         # No code available, generate it now.
         my $wrapper_pkg = $pkg;
         $wrapper_pkg = undef if (exists($reusable_builtins{$call}));
@@ -1333,8 +1333,8 @@ sub _make_fatal {
         } else {
             $proto = '@';
         }
-        $leak_guard = _make_leak_guard($filename, $code, $sref, $call,
-                                       $pkg, $proto, $real_proto);
+        $leak_guard = $class->_make_leak_guard($filename, $code, $sref, $call,
+                                               $pkg, $proto, $real_proto);
     }
 
     my $installed_sub = $leak_guard || $code;
@@ -1404,7 +1404,7 @@ sub exception_class { return "autodie::exception" };
 
 # Creates and returns a leak guard (with prototype if needed).
 sub _make_leak_guard {
-    my ($filename, $wrapped_sub, $orig_sub, $call, $pkg, $proto, $real_proto) = @_;
+    my ($class, $filename, $wrapped_sub, $orig_sub, $call, $pkg, $proto, $real_proto) = @_;
 
     # The leak guard is rather lengthly (in fact it makes up the most
     # of _make_leak_guard).  It is possible to split it into a large
@@ -1432,6 +1432,43 @@ sub _make_leak_guard {
         if ($caller eq $filename) {
             # No leak, call the wrapper.  NB: In this case, it doesn't
             # matter if it is a CORE sub or not.
+            if (!defined($wrapped_sub)) {
+                # CORE sub that we were too lazy to compile when we
+                # created this leak guard.
+                die "$call is not CORE::<something>"
+                    if substr($call, 0, 6) ne 'CORE::';
+
+                my $name = substr($call, 6);
+                my $sub = $name;
+                my $cache = $Cached_fatalised_sub{$class}{$sub};
+                my $lexical = 1;
+                my $code;
+                if (exists($reusable_builtins{$call})) {
+                    $code = $reusable_builtins{$call}{$lexical};
+                }
+                if (!defined($code)) {
+                    my $wrapper_pkg = $pkg;
+                    $wrapper_pkg = undef if (exists($reusable_builtins{$call}));
+                    $code = $class->_compile_wrapper($wrapper_pkg,
+                                                     1, # core
+                                                     $call,
+                                                     $name,
+                                                     0, # void
+                                                     $lexical,
+                                                     $sub,
+                                                     undef, # subref (not used for core)
+                                                     undef, # hints (not used for core)
+                                                     $proto);
+
+                    if (!defined($wrapper_pkg)) {
+                        # cache it so we don't recompile this part again
+                        $reusable_builtins{$call}{$lexical} = $code;
+                    }
+                }
+                # As $wrapped_sub is "closed over", updating its value will
+                # be "remembered" for the next call.
+                $wrapped_sub = $code;
+            }
             goto $wrapped_sub;
         }
 
