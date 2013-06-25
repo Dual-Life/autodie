@@ -352,15 +352,16 @@ sub import {
     # pass-through unknown tags (i.e. we have to manually handle
     # VOID_TAG).
     #
-    # TODO: Consider how to handle stuff like:
-    #   use autodie qw(:defaults ! :io);
-    #   use Fatal qw(:defaults :void :io);
+    # NB: _translate_import_args re-orders everything for us, so
+    # we don't have to worry about stuff like:
     #
-    # The ! and :void is currently not applied to anything in the
-    # example above since duplicates are filtered out.  This has been
-    # autodie's behaviour for quite a while, but it might make sense
-    # to change it so "!" or ":void" applies to stuff after they
-    # appear (even if they are all duplicates).
+    #     :default :void :io
+    #
+    # That will (correctly) translated into
+    #
+    #     expand(:defaults-without-io) :void :io
+    #
+    # by _translate_import_args.
     for my $func ($class->_translate_import_args(@fatalise_these)) {
 
         if ($func eq VOID_TAG) {
@@ -565,31 +566,83 @@ sub unimport {
 sub _translate_import_args {
     my ($class, @args) = @_;
     my @result;
-    for my $a (@args){
+    my %seen;
+
+    if (@args < 2) {
+        # Optimize for this case, as it is fairly common.  (e.g. use
+        # autodie; or use autodie qw(:all); both trigger this).
+        return unless @args;
+
+        # Not a (known) tag, pass through.
+        return @args unless exists($TAGS{$args[0]});
+
+        # Strip "CORE::" from all elements in the list as import and
+        # unimport does not handle the "CORE::" prefix too well.
+        #
+        # NB: we use substr as it is faster than s/^CORE::// and
+        # it does not change the elements.
+        return map { substr($_, 6) } @{ $class->_expand_tag($args[0]) };
+    }
+
+    # We want to translate
+    #
+    #     :default :void :io
+    #
+    # into (pseudo-ish):
+    #
+    #     expanded(:threads) :void expanded(:io)
+    #
+    # We accomplish this by "reverse, expand + filter, reverse".
+    for my $a (reverse(@args)) {
         if (exists $TAGS{$a}) {
             my $expanded = $class->_expand_tag($a);
-            # Strip "CORE::" from all elements in the list as import and
-            # unimport does not handle the "CORE::" prefix too well.
-            #
-            # NB: we use substr as it is faster than s/^CORE::// and
-            # it does not change the elements.
-            push @result, map { substr($_, 6) } @{$expanded};
+            push(@result,
+                 # Remove duplicates after ...
+                 grep { !$seen{$_}++ }
+                 # we have stripped CORE:: (see above)
+                 map { substr($_, 6) }
+                 # We take the elements in reverse order
+                 # (as @result be reversed later).
+                 reverse(@{$expanded}));
         } else {
-            #pass through
+            # pass through - no filtering here for tags.
+            #
+            # The reason for not filtering tags cases like:
+            #
+            #    ":default :void :io :void :threads"
+            #
+            # As we have reversed args, we see this as:
+            #
+            #    ":threads :void :io :void* :default*"
+            #
+            # (Entries marked with "*" will be filtered out completely).  When
+            # reversed again, this will be:
+            #
+            #    ":io :void :threads"
+            #
+            # But we would rather want it to be:
+            #
+            #    ":void :io :threads" or ":void :io :void :threads"
+            #
+
+            my $letter = substr($a, 0, 1);
+            if ($letter ne ':' && $a ne INSIST_TAG) {
+                next if $seen{$a}++;
+                if ($letter eq '!' and $seen{substr($a, 1)}++) {
+                    my $name = substr($a, 1);
+                    # People are being silly and doing:
+                    #
+                    #    use autodie qw(!a a);
+                    #
+                    # Enjoy this little O(n) clean up...
+                    @result = grep { $_ ne $name } @result;
+                }
+            }
             push @result, $a;
         }
     }
-    # If @args < 2, then we have no duplicates (because _expand_tag
-    # does not have duplicates and if it is not a tag, it is just a
-    # single value).  We optimize for this because it is a fairly
-    # common case (e.g. use autodie; or use autodie qw(:all); both
-    # trigger this).
-    return @result if @args < 2;
-
-    my %seen = ();
-    # Yes, this is basically List::MoreUtils's uniq/distinct, but
-    # List::MoreUtils is not in the Perl core and autodie is
-    return grep { !$seen{$_}++ } @result;
+    # Reverse the result to restore the input order
+    return reverse(@result);
 }
 
 
