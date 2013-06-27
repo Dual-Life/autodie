@@ -1595,8 +1595,13 @@ sub _compile_wrapper {
     @protos = fill_protos($proto);
     $code = qq[
         sub$real_proto {
-           local(\$", \$!) = (', ', 0);
     ];
+
+    if (!$lexical) {
+        $code .= q[
+           local($", $!) = (', ', 0);
+        ];
+    }
 
     # Don't have perl whine if exec fails, since we'll be handling
     # the exception now.
