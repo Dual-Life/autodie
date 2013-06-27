@@ -13,3 +13,4 @@ sub run {
         binmode(STDOUT);
     }
 }
+run();
