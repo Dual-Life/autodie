@@ -1176,29 +1176,51 @@ sub _make_fatal {
             # then look-up the name of the original sub for the rest of
             # our processing.
 
-            $sub = $Is_fatalised_sub{\&$sub} || $sub;
+            if (exists($Is_fatalised_sub{\&$sub})) {
+                # $sub is one of our wrappers around a CORE sub or a
+                # user sub.  wrapping our wrapper, lets just generate
+                # a new wrapper for the original sub.
+                # - NB: the current wrapper might be for a different class
+                #   then the one we are generating now (e.g. some limited
+                #   mixing between use Fatal + use autodie can occur).
+                # - Even for nested autodie, we need this as the leak guards
+                #   differ.
+                my $s = $Is_fatalised_sub{\&$sub};
+                if (defined($s)) {
+                    # It is a wrapper for a user sub
+                    $sub = $s;
+                } else {
+                    # It is a wrapper for a CORE:: sub
+                    $core = 1;
+                    $call = "CORE::$name";
+                    $proto = prototype($call);
+                }
+            }
 
             # A regular user sub, or a user sub wrapping a
             # core sub.
 
             $sref = \&$sub;
-            $proto = prototype $sref;
-            $call = '&$sref';
-            require autodie::hints;
+            if (!$core) {
+                # A non-CORE sub might have hints and such...
+                $proto = prototype($sref);
+                $call = '&$sref';
+                require autodie::hints;
 
-            $hints = autodie::hints->get_hints_for( $sref );
+                $hints = autodie::hints->get_hints_for( $sref );
 
-            # If we've insisted on hints, but don't have them, then
-            # bail out!
+                # If we've insisted on hints, but don't have them, then
+                # bail out!
 
-            if ($insist and not $hints) {
-                croak(sprintf(ERROR_NOHINTS, $name));
+                if ($insist and not $hints) {
+                    croak(sprintf(ERROR_NOHINTS, $name));
+                }
+
+                # Otherwise, use the default hints if we don't have
+                # any.
+
+                $hints ||= autodie::hints::DEFAULT_HINTS();
             }
-
-            # Otherwise, use the default hints if we don't have
-            # any.
-
-            $hints ||= autodie::hints::DEFAULT_HINTS();
 
         }
 
