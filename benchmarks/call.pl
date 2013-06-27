@@ -8,7 +8,8 @@ use constant N => 1000000;
 
 # Run an autodie wrapped sub many times in what's essentially a no-op.
 # This should give us an idea of autodie's overhead.
-
-for (1..N) {
-    binmode(STDOUT);
+sub run {
+    for (1..N) {
+        binmode(STDOUT);
+    }
 }
