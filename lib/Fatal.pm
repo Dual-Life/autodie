@@ -148,7 +148,20 @@ my %TAGS = (
 # chmod was only introduced in 2.07
 # chown was only introduced in 2.14
 
-$TAGS{':all'}  = [ keys %TAGS ];
+{
+    # Expand :all immediately by expanding and flattening all tags.
+    # _expand_tag is not really optimised for expanding the ":all"
+    # case (i.e. keys %TAGS, or values %TAGS for that matter), so we
+    # just do it here.
+    #
+    # NB: The %tag_cache/_expand_tag relies on $TAGS{':all'} being
+    # pre-expanded.
+    my %seen;
+    my @all = grep {
+        !/^:/ && !$seen{$_}++
+    } map { @{$_} } values %TAGS;
+    $TAGS{':all'} = \@all;
+}
 
 # This hash contains subroutines for which we should
 # subroutine() // die() rather than subroutine() || die()
@@ -611,7 +624,11 @@ sub _translate_import_args {
 # continuing to work.
 
 {
-    my %tag_cache;
+    # We assume that $TAGS{':all'} is pre-expanded and just fill it in
+    # from the beginning.
+    my %tag_cache = (
+        'all' => $TAGS{':all'},
+    );
 
     # Expand a given tag (e.g. ":default") into a listref containing
     # all sub names covered by that tag.  Each sub is returned as
@@ -651,10 +668,6 @@ sub _translate_import_args {
             # at the price of being a bit more verbose/low-level.
             if (substr($item, 0, 1) eq ':') {
                 # Use recursion here to ensure we expand a tag at most once.
-                #
-                # TODO: Improve handling of :all so we don't expand
-                # all those aliases (e.g :2.00..:2.07 are all aliases
-                # of v2.07).
 
                 my $expanded = $class->_expand_tag($item);
                 push @taglist, grep { !$seen{$_}++ } @{$expanded};
