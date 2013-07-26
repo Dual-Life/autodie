@@ -1475,15 +1475,14 @@ sub _make_leak_guard {
 
                 my $name = substr($call, 6);
                 my $sub = $name;
-                my $cache = $Cached_fatalised_sub{$class}{$sub};
                 my $lexical = 1;
+                my $wrapper_pkg = $pkg;
                 my $code;
                 if (exists($reusable_builtins{$call})) {
                     $code = $reusable_builtins{$call}{$lexical};
+                    $wrapper_pkg = undef;
                 }
                 if (!defined($code)) {
-                    my $wrapper_pkg = $pkg;
-                    $wrapper_pkg = undef if (exists($reusable_builtins{$call}));
                     $code = $class->_compile_wrapper($wrapper_pkg,
                                                      1, # core
                                                      $call,
