@@ -1191,10 +1191,10 @@ sub _make_fatal {
 
             if (exists($Is_fatalised_sub{\&$sub})) {
                 # $sub is one of our wrappers around a CORE sub or a
-                # user sub.  wrapping our wrapper, lets just generate
-                # a new wrapper for the original sub.
+                # user sub.  Instead of wrapping our wrapper, lets just
+                # generate a new wrapper for the original sub.
                 # - NB: the current wrapper might be for a different class
-                #   then the one we are generating now (e.g. some limited
+                #   than the one we are generating now (e.g. some limited
                 #   mixing between use Fatal + use autodie can occur).
                 # - Even for nested autodie, we need this as the leak guards
                 #   differ.
