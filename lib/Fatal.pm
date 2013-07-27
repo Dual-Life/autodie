@@ -1508,33 +1508,56 @@ sub _make_leak_guard {
 
         # We leaked, time to call the original function.
         # - for non-core functions that will be $orig_sub
+        # - for CORE functions, $orig_sub may be a trampoline
         goto $orig_sub if defined($orig_sub);
 
-        # We are wrapping a CORE sub
-
-        # If we've cached a trampoline, then use it.  Note that we use
-        # "Fatal" as package name for reusable subs because A) that
-        # allows us to trivially re-use the trampolines as well and B)
-        # because the reusable sub is compiled into "package Fatal" as
-        # well.
+        # We are wrapping a CORE sub and we do not have a trampoline
+        # yet.
+        #
+        # If we've cached a trampoline, then use it.  Usually only
+        # resuable subs will have cache hits, but non-reusuably ones
+        # can get it as well in (very) rare cases.  It is mostly in
+        # cases where a package uses autodie multiple times and leaks
+        # from multiple places.  Possibly something like:
+        #
+        #  package Pkg::With::LeakyCode;
+        #  sub a {
+        #      use autodie;
+        #      code_that_leaks();
+        #  }
+        #
+        #  sub b {
+        #      use autodie;
+        #      more_leaky_code();
+        #  }
+        #
+        # Note that we use "Fatal" as package name for reusable subs
+        # because A) that allows us to trivially re-use the
+        # trampolines as well and B) because the reusable sub is
+        # compiled into "package Fatal" as well.
 
         $pkg = 'Fatal' if exists $reusable_builtins{$call};
-        my $trampoline_sub = $Trampoline_cache{$pkg}{$call};
+        $orig_sub = $Trampoline_cache{$pkg}{$call};
 
-        if (not $trampoline_sub) {
+        if (not $orig_sub) {
             # If we don't have a trampoline, we need to build it.
             #
             # We only generate trampolines when we need them, and
             # we can cache them by subroutine + package.
+            #
+            # As $orig_sub is "closed over", updating its value will
+            # be "remembered" for the next call.
 
-            $trampoline_sub = _make_core_trampoline($call, $pkg, $proto);
+            $orig_sub = _make_core_trampoline($call, $pkg, $proto);
 
-            # Let's cache that, so we don't have to do it again.
-            $Trampoline_cache{$pkg}{$call} = $trampoline_sub;
+            # We still cache it despite remembering it in $orig_sub as
+            # well.  In particularly, we rely on this to avoid
+            # re-compiling the reusable trampolines.
+            $Trampoline_cache{$pkg}{$call} = $orig_sub;
         }
 
         # Bounce to our trampoline, which takes us to our core sub.
-        goto \&$trampoline_sub;
+        goto $orig_sub;
     };  # <-- end of leak guard
 
     # If there is a prototype on the original sub, copy it to the leak
