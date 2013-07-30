@@ -631,7 +631,7 @@ sub _translate_import_args {
     # We assume that $TAGS{':all'} is pre-expanded and just fill it in
     # from the beginning.
     my %tag_cache = (
-        'all' => $TAGS{':all'},
+        'all' => [map { "CORE::$_" } @{$TAGS{':all'}}],
     );
 
     # Expand a given tag (e.g. ":default") into a listref containing
