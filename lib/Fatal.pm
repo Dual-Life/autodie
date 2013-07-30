@@ -315,6 +315,10 @@ tie %Is_fatalised_sub, 'Tie::RefHash';
 
 my %Trampoline_cache;
 
+# A cache mapping "CORE::<name>" to their prototype.  Turns out that if
+# you "use autodie;" enough times, this pays off.
+my %CORE_prototype_cache;
+
 # We use our package in a few hash-keys.  Having it in a scalar is
 # convenient.  The "guard $PACKAGE" string is used as a key when
 # setting up lexical guards.
@@ -399,9 +403,10 @@ sub import {
 
             # Check to see if there's an insist flag at the front.
             # If so, remove it, and insist we have hints for this sub.
-            my $insist_this;
+            my $insist_this = $insist_hints;
 
-            if ($func =~ s/^!//) {
+            if (substr($func, 0, 1) eq '!') {
+                $func = substr($func, 1);
                 $insist_this = 1;
             }
 
@@ -430,8 +435,7 @@ sub import {
 
             my $sub_ref = $class->_make_fatal(
                 $func, $pkg, $void, $lexical, $filename,
-                ( $insist_this || $insist_hints ),
-                \%install_subs,
+                $insist_this, \%install_subs,
             );
 
             $Original_user_sub{$sub} ||= $sub_ref;
@@ -1134,12 +1138,20 @@ sub _one_invocation {
 
 sub _make_fatal {
     my($class, $sub, $pkg, $void, $lexical, $filename, $insist, $install_subs) = @_;
-    my($name, $code, $sref, $real_proto, $proto, $core, $call, $hints);
+    my($code, $sref, $real_proto, $proto, $core, $call, $hints, $cache, $cache_type);
     my $ini = $sub;
-    my $cache;
-    my $cache_type;
+    my $name = $sub;
 
-    $sub = "${pkg}::$sub" unless $sub =~ /::/;
+
+    if (index($sub, '::') == -1) {
+        $sub = "${pkg}::$sub";
+        if (substr($name, 0, 1) eq '&') {
+            $name = substr($name, 1);
+        }
+    } else {
+        $name =~ s/.*:://;
+    }
+
 
     # Figure if we're using lexical or package semantics and
     # twiddle the appropriate bits.
@@ -1151,8 +1163,6 @@ sub _make_fatal {
     # TODO - We *should* be able to do skipping, since we know when
     # we've lexicalised / unlexicalised a subroutine.
 
-    $name = $sub;
-    $name =~ s/.*::// or $name =~ s/^&//;
 
     warn  "# _make_fatal: sub=$sub pkg=$pkg name=$name void=$void\n" if $Debug;
     croak(sprintf(ERROR_BADNAME, $class, $name)) unless $name =~ /^\w+$/;
@@ -1167,7 +1177,7 @@ sub _make_fatal {
         # This could be something that we've fatalised that
         # was in core.
 
-        if ( $Package_Fatal{$sub} and do { local $@; eval { prototype "CORE::$name" } } ) {
+        if ( $Package_Fatal{$sub} and exists($CORE_prototype_cache{"CORE::$name"})) {
 
             # Something we previously made Fatal that was core.
             # This is safe to replace with an autodying to core
@@ -1175,7 +1185,7 @@ sub _make_fatal {
 
             $core  = 1;
             $call  = "CORE::$name";
-            $proto = prototype $call;
+            $proto = $CORE_prototype_cache{$call};
 
             # We return our $sref from this subroutine later
             # on, indicating this subroutine should be placed
@@ -1206,7 +1216,7 @@ sub _make_fatal {
                     # It is a wrapper for a CORE:: sub
                     $core = 1;
                     $call = "CORE::$name";
-                    $proto = prototype($call);
+                    $proto = $CORE_prototype_cache{$call};
                 }
             }
 
@@ -1273,7 +1283,6 @@ sub _make_fatal {
         }
 
         $call = 'CORE::system';
-        $name = 'system';
         $core = 1;
 
     } elsif ($name eq 'exec') {
@@ -1282,20 +1291,24 @@ sub _make_fatal {
         # the regular form a "do or die" behavior as expected.
 
         $call = 'CORE::exec';
-        $name = 'exec';
         $core = 1;
 
     } else {            # CORE subroutine
-        my $E;
-        {
-            local $@;
-            $proto = eval { prototype "CORE::$name" };
-            $E = $@;
-        }
-        croak(sprintf(ERROR_NOT_BUILT,$name)) if $E;
-        croak(sprintf(ERROR_CANT_OVERRIDE,$name)) if not defined $proto;
-        $core = 1;
         $call = "CORE::$name";
+        if (exists($CORE_prototype_cache{$call})) {
+            $proto = $CORE_prototype_cache{$call};
+        } else {
+            my $E;
+            {
+                local $@;
+                $proto = eval { prototype $call };
+                $E = $@;
+            }
+            croak(sprintf(ERROR_NOT_BUILT,$name)) if $E;
+            croak(sprintf(ERROR_CANT_OVERRIDE,$name)) if not defined $proto;
+            $CORE_prototype_cache{$call} = $proto;
+        }
+        $core = 1;
     }
 
     # TODO: This caching works, but I don't like using $void and
@@ -1335,7 +1348,7 @@ sub _make_fatal {
         }
     }
 
-    if (!defined($code) && !($lexical && $core)) {
+    if (!($lexical && $core) && !defined($code)) {
         # No code available, generate it now.
         my $wrapper_pkg = $pkg;
         $wrapper_pkg = undef if (exists($reusable_builtins{$call}));
@@ -1359,7 +1372,7 @@ sub _make_fatal {
     # TODO: This is pretty hairy code.  A lot more tests would
     # be really nice for this.
 
-    my $leak_guard;
+    my $installed_sub = $code;
 
     if ($lexical) {
         my $real_proto = '';
@@ -1368,11 +1381,9 @@ sub _make_fatal {
         } else {
             $proto = '@';
         }
-        $leak_guard = $class->_make_leak_guard($filename, $code, $sref, $call,
-                                               $pkg, $proto, $real_proto);
+        $installed_sub = $class->_make_leak_guard($filename, $code, $sref, $call,
+                                                  $pkg, $proto, $real_proto);
     }
-
-    my $installed_sub = $leak_guard || $code;
 
     $cache->{$cache_type} = $code;
 
