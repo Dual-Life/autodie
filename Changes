@@ -2,6 +2,9 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * TEST: Compatibility with Carp 1.32 (thanks to Zefram).
+          RT #88076.
+
 2.20      2013-06-23 16:08:41 PST8PDT
 
         Many improvements from Niels Thykier, hero of the
