@@ -2,6 +2,36 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        Many more improvements from Niels Thykier, great hero of the
+        free people. Plus a compatibility patch from Zefram, keeper
+        of Carp.
+
+        * SPEED / INTERNAL : Through the magic of globally reuseable
+          core leak trampolines, autodie is even faster when used across
+          multiple pacakages.
+
+        * SPEED / INTERNAL : Caches used for keeping track of
+          fatalised subroutines are faster and leaner.
+
+        * SPEED / INTERNAL : Core subroutine wrappers are now lazily
+          compiled.
+
+        * SPEED / INTERNAL : Using autodie while autodie is already in
+          effect is now faster and more efficient.
+
+        * INTERNAL : $" and $! are no longer arbitrarily messed with
+          for no reason via autodie.  (They're still messed with when
+          using Fatal.)
+
+        * SPEED / INTERNAL : The ':all' tag hierachy is expanded
+          immediately, in an efficient fashion.
+
+        * INTERNAL : Numerous minor clean-ups. Dead variables removed.
+          Typos fixed.
+
+        * SPEED / INTERNAL : import() and _make_fatal() cache more
+          aggressively, reducing CPU overhead.
+
         * TEST: Compatibility with Carp 1.32 (thanks to Zefram).
           RT #88076.
 
