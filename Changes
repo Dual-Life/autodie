@@ -2,6 +2,10 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * TEST / INTERNAL: Restore timestamps on touched testing
+          files to avoid git flagging files having changed in
+          git. (RT #88444, courtesy shay@cpan)
+
 2.21      2013-09-12 13:17:23 Australia/Melbourne
 
         Many more improvements from Niels Thykier, great hero of the
