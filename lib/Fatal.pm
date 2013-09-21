@@ -61,6 +61,10 @@ our %_EWOULDBLOCK = (
     MSWin32 => 33,
 );
 
+$Carp::CarpInternal{'Fatal'} = 1;
+$Carp::CarpInternal{'autodie'} = 1;
+$Carp::CarpInternal{'autodie::exception'} = 1;
+
 # the linux parisc port has separate EAGAIN and EWOULDBLOCK,
 # and the kernel returns EAGAIN
 my $try_EAGAIN = ($^O eq 'linux' and $Config{archname} =~ /hppa|parisc/) ? 1 : 0;
