@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.22      2013-09-21 11:37:14 Asia/Tokyo
+
         * TEST / INTERNAL: Restore timestamps on touched testing
           files to avoid git flagging files having changed in
           git. (RT #88444, courtesy shay@cpan)
