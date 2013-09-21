@@ -21,7 +21,7 @@ my $version = $autodie::VERSION;
 
 SKIP: {
 
-    if ($version =~ /_/) { skip "Tag test skipped on dev release", 1 }
+    if (!defined $version or $version =~ /_/) { skip "Tag test skipped on dev release", 1 }
 
     # Expanding our current version should work!
     eval { my $foo = autodie->_expand_tag(":$version"); };
