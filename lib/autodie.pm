@@ -39,7 +39,7 @@ BEGIN {
     # If we have the wrong Fatal, then we've probably loaded the system
     # one, not our own.  Complain, and give a useful hint. ;)
 
-    if ($Fatal::VERSION ne $VERSION) {
+    if (defined $Fatal::VERSION and $Fatal::VERSION ne $VERSION) {
         my $autodie_path = $INC{'autodie.pm'};
 
         $autodie_path =~ s/autodie\.pm//;
