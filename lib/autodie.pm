@@ -88,6 +88,10 @@ autodie - Replace functions with ones that succeed or die with lexical scope
         open(my $fh, "<", $filename); # Could fail silently!
         no autodie;                   # disable all autodies
     }
+    
+    open my $fh, ">", $filename;
+    print $fh or die $!; # autodie doesn't check print!
+    close $fh;
 
 =head1 DESCRIPTION
 
