@@ -265,6 +265,10 @@ C<system> and C<exec> with:
 
 =head1 FUNCTION SPECIFIC NOTES
 
+=head2 print
+
+The autodie pragma B<<does not check calls to C<print>>>.
+
 =head2 flock
 
 It is not considered an error for C<flock> to return false if it fails
