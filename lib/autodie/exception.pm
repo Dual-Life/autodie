@@ -404,6 +404,8 @@ sub _format_open_with_mode {
     elsif ($mode eq '>')  { $wordy_mode = 'writing';   }
     elsif ($mode eq '>>') { $wordy_mode = 'appending'; }
 
+    $file = '<undef>' if not defined $file;
+
     return sprintf _FORMAT_OPEN, $file, $wordy_mode, $error if $wordy_mode;
 
     Carp::confess("Internal autodie::exception error: Don't know how to format mode '$mode'.");
