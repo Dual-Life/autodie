@@ -10,7 +10,7 @@ use Tie::RefHash;   # To cache subroutine refs
 use Config;
 use Scalar::Util qw(set_prototype);
 
-use autodie::Scope::Guard;
+use autodie::ScopeUtil qw(on_end_of_compile_scope);
 
 use constant PERL510     => ( $] >= 5.010 );
 
@@ -328,7 +328,6 @@ my %CORE_prototype_cache;
 # setting up lexical guards.
 
 my $PACKAGE       = __PACKAGE__;
-my $PACKAGE_GUARD = "guard $PACKAGE";
 my $NO_PACKAGE    = "no $PACKAGE";      # Used to detect 'no autodie'
 
 # Here's where all the magic happens when someone write 'use Fatal'
@@ -468,9 +467,9 @@ sub import {
         # Our package guard gets invoked when we leave our lexical
         # scope.
 
-        push(@ { $^H{$PACKAGE_GUARD} }, autodie::Scope::Guard->new(sub {
+        on_end_of_compile_scope(sub {
             $class->_install_subs($pkg, \%unload_later);
-        }));
+        });
 
         # To allow others to determine when autodie was in scope,
         # and with what arguments, we also set a %^H hint which
