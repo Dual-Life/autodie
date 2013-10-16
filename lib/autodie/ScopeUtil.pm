@@ -11,6 +11,8 @@ use autodie::Scope::GuardStack;
 
 our @EXPORT_OK = qw(on_end_of_compile_scope);
 
+# ABSTRACT: Utilities for managing %^H scopes
+
 # docs says we should pick __PACKAGE__ /<whatever>
 my $H_STACK_KEY = __PACKAGE__ . '/stack';
 
@@ -36,3 +38,42 @@ sub on_end_of_compile_scope {
 }
 
 1;
+
+=head1 NAME
+
+autodie::ScopeUtil - Utilities for managing %^H scopes
+
+=head1 SYNOPSIS
+
+    use autodie::ScopeUtil qw(on_end_of_compile_scope);
+    on_end_of_compile_scope(sub { print "Hallo world\n"; });
+
+=head1 DESCRIPTION
+
+Utilities for abstracting away the underlying magic of (ab)using
+C<%^H> to call subs at the end of a (compile-time) scopes.
+
+Due to how C<%^H> works, these utilties are only useful during the
+compilation phase of a perl module and relies on the internals of how
+perl handles references in C<%^H>.  This module is not a part of
+autodie's public API.
+
+=head2 Methods
+
+=head3 on_end_of_compile_scope
+
+  on_end_of_compile_scope(sub { print "Hallo world\n"; });
+
+Will invoke a sub at the end of a (compile-time) scope.  The sub is
+called once with no arguments.  Can be called multiple times (even in
+the same "compile-time" scope) to install multiple subs.  Subs are
+called in a "first-in-last-out"-order (FILO or "stack"-order).
+
+=head1 AUTHOR
+
+Copyright 2013, Niels Thykier E<lt>niels@thykier.netE<gt>
+
+=head1 LICENSE
+
+This module is free software.  You may distribute it under the
+same terms as Perl itself.
