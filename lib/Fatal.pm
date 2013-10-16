@@ -10,6 +10,8 @@ use Tie::RefHash;   # To cache subroutine refs
 use Config;
 use Scalar::Util qw(set_prototype);
 
+use autodie::Scope::Guard;
+
 use constant PERL510     => ( $] >= 5.010 );
 
 use constant LEXICAL_TAG => q{:lexical};
@@ -1699,24 +1701,6 @@ sub _compile_wrapper {
 sub _autocroak {
     warn Carp::longmess(@_);
     exit(255);  # Ugh!
-}
-
-package autodie::Scope::Guard;
-
-# This code schedules the cleanup of subroutines at the end of
-# scope.  It's directly inspired by chocolateboy's excellent
-# Scope::Guard module.
-
-sub new {
-    my ($class, $handler) = @_;
-
-    return bless $handler, $class;
-}
-
-sub DESTROY {
-    my ($self) = @_;
-
-    $self->();
 }
 
 1;
