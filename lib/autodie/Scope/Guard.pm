@@ -9,7 +9,6 @@ use warnings;
 
 sub new {
     my ($class, $handler) = @_;
-
     return bless($handler, $class);
 }
 

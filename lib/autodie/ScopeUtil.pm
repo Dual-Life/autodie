@@ -7,12 +7,12 @@ use warnings;
 # 5.8.4, so this should "just work".
 use Exporter 5.57 qw(import);
 
-use autodie::Scope::Guard;
+use autodie::Scope::GuardStack;
 
 our @EXPORT_OK = qw(on_end_of_compile_scope);
 
 # docs says we should pick __PACKAGE__ /<whatever>
-my $H_KEY = __PACKAGE__ . '/guard';
+my $H_STACK_KEY = __PACKAGE__ . '/stack';
 
 sub on_end_of_compile_scope {
     my ($hook) = @_;
@@ -25,9 +25,13 @@ sub on_end_of_compile_scope {
     # This magic bit causes %^H to be lexically scoped.
     $^H |= 0x020000;
 
-    # Technically, this is not accurate and causes problems like
-    # RT#72053.  But this is the code used in autodie for ages.
-    push(@ { $^H{$H_KEY} }, autodie::Scope::Guard->new($hook));
+    my $stack = $^H{$H_STACK_KEY};
+    if (not defined($stack)) {
+        $stack = autodie::Scope::GuardStack->new;
+        $^H{$H_STACK_KEY} = $stack;
+    }
+
+    $stack->push_hook($hook);
     return;
 }
 
