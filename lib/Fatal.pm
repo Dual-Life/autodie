@@ -557,7 +557,7 @@ sub unimport {
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
     my @unimport_these = @_ ? @_ : ':all';
-    my %uninstall_subs;
+    my (%uninstall_subs, %reinstall_subs);
 
     for my $symbol ($class->_translate_import_args(@unimport_these)) {
 
@@ -576,6 +576,8 @@ sub unimport {
         # (eg, mixing Fatal with no autodie)
 
         $^H{$NO_PACKAGE}{$sub} = 1;
+        my $current_sub = \&$sub;
+        $reinstall_subs{$symbol} = $current_sub;
 
         if (my $original_sub = $Original_user_sub{$sub}) {
             # Hey, we've got an original one of these, put it back.
@@ -591,6 +593,9 @@ sub unimport {
     }
 
     $class->_install_subs($pkg, \%uninstall_subs);
+    on_end_of_compile_scope(sub {
+        $class->_install_subs($pkg, \%reinstall_subs);
+    });
 
     return;
 
