@@ -43,7 +43,7 @@ sub push_hook {
         #  then hook 2.  hook 3 will then be destroyed, but do nothing
         #  since its "frame" was already popped and finally hook 1
         #  will be popped and take its own frame with it.
-        $self->pop_hook while @{$self} > $size;
+        $self->_pop_hook while @{$self} > $size;
     });
     push(@{$self}, [$hook, $h_key]);
     return;
