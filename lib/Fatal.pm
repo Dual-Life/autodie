@@ -504,18 +504,26 @@ sub _install_subs {
 
     # It does not hurt to do this in a predictable order, and might help debugging.
     foreach my $sub_name (sort keys %$subs_to_reinstate) {
+
+        # We will repeatedly mess with stuff that strict "refs" does
+        # not like.  So lets just disable it once for this entire
+        # scope.
+        no strict qw(refs);   ## no critic
+
         my $sub_ref= $subs_to_reinstate->{$sub_name};
 
         my $full_path = $pkg_sym.$sub_name;
-
-        # Copy symbols across to temp area.
-
-        no strict 'refs';   ## no critic
-
-        local *__tmp = *{ $full_path };
+        my $oldglob = *$full_path;
 
         # Nuke the old glob.
-        { no strict; delete $pkg_sym->{$sub_name}; }    ## no critic
+        delete $pkg_sym->{$sub_name};
+
+        # For some reason this local *alias = *$full_path triggers an
+        # "only used once" warning.  Not entirely sure why, but at
+        # least it is easy to silence.
+        no warnings qw(once);
+        local *alias = *$full_path;
+        use warnings qw(once);
 
         # Copy innocent bystanders back.  Note that we lose
         # formats; it seems that Perl versions up to 5.10.0
@@ -523,16 +531,12 @@ sub _install_subs {
         # the scalar slot.  Thanks to Ben Morrow for spotting this.
 
         foreach my $slot (qw( SCALAR ARRAY HASH IO ) ) {
-            next unless defined *__tmp{ $slot };
-            *{ $full_path } = *__tmp{ $slot };
+            next unless defined *$oldglob{$slot};
+            *alias = *$oldglob{$slot};
         }
 
-        # Put back the old sub (if there was one).
-
         if ($sub_ref) {
-
-            no strict;  ## no critic
-            *{ $full_path } = $sub_ref;
+            *$full_path = $sub_ref;
         }
     }
 
