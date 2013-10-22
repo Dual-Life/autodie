@@ -6,6 +6,11 @@ Revision history for autodie
           tweaks to make travis-ci more happy with testing
           autodie.
 
+        * BUGFIX: autodie no longer weakens strict by allowing
+          undeclared variables with the same name as built-ins.
+          (RT #74246, thanks to Neils Thykier and Father
+          Chrysostomos.)
+
 2.22      2013-09-21 11:37:14 Asia/Tokyo
 
         * TEST / INTERNAL: Restore timestamps on touched testing
