@@ -2,12 +2,13 @@
 use 5.010;
 use strict;
 use warnings;
-use autodie qw(binmode);
 
 use constant N => 1000000;
 
-# Run an autodie wrapped sub many times in what's essentially a no-op.
-# This should give us an idea of autodie's overhead.
+# Essentially run a no-op many times - This is useful for comparison
+# with leak.pl or call.pl
+
+
 sub run {
     for (1..N) {
         binmode(STDOUT);
