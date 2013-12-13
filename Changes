@@ -11,6 +11,9 @@ Revision history for autodie
           (RT #74246, thanks to Neils Thykier and Father
           Chrysostomos.)
 
+        * BUGFIX: `use autodie qw( foo ! foo);` now correctly
+          insists that we have hints for foo. (Thanks Niels Thykier)
+
 2.22      2013-09-21 11:37:14 Asia/Tokyo
 
         * TEST / INTERNAL: Restore timestamps on touched testing
