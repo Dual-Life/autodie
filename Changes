@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.23      2014-01-27 13:50:55EST+1100 Australia/Melbourne
+
         * TEST / BUGFIX: Improved testing support on Android
           and Blackberry devices. (GH #44, thanks to
           Hugmeir.)
