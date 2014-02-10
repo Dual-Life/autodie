@@ -7,23 +7,23 @@ perl:
    - "5.10"
    - "5.8"
 
+branches:
+    only:
+        - /^travis-ci/
+
 before_install:
    # Prevent "Please tell me who you are" errors for certain DZIL configs
    - git config --global user.name "TravisCI"
-install:
-   # Deal with all of the DZIL dependancies, quickly and quietly
-   - cpanm --notest --skip-satisfied Dist::Zilla
 
+install:
    # Config::Tiny wants a newer version of File::Temp, but for
    # some reason cpanm doesn't pick up on this. Install it manually.
    # TODO : Remove this kludge
 
    - cpanm --notest File::Temp
-
-   - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --notest --skip-satisfied
-
+   - cpanm --installdeps --with-develop .
    - export HARNESS_OPTIONS=j10:c HARNESS_TIMER=1 AUTOMATED_TESTING=1 NONINTERACTIVE_TESTING=1
-   - dzil listdeps | grep -vP '[^\w:]' | cpanm --notest --skip-satisfied
    - export RELEASE_TESTING=1 AUTHOR_TESTING=1
+
 script:
-   - dzil smoke --release --author
+    - prove -lr t/
