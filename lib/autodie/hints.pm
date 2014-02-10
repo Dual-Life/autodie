@@ -597,6 +597,6 @@ same terms as Perl itself.
 
 L<autodie>, L<Class::DOES>
 
-=for Pod::Coverage get_hints_for load_hints normalise_hints sub_fullname
+=for Pod::Coverage get_hints_for load_hints normalise_hints sub_fullname get_code_info
 
 =cut
