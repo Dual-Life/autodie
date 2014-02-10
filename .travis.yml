@@ -5,6 +5,7 @@ perl:
    - "5.14"
    - "5.12"
    - "5.10"
+   - "5.8"
 
 before_install:
    # Prevent "Please tell me who you are" errors for certain DZIL configs
