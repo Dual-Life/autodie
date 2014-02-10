@@ -21,7 +21,7 @@ install:
    # TODO : Remove this kludge
 
    - cpanm --notest File::Temp
-   - cpanm --installdeps --with-develop .
+   - cpanm --installdeps --with-develop --with-recommends .
    - export HARNESS_OPTIONS=j10:c HARNESS_TIMER=1 AUTOMATED_TESTING=1 NONINTERACTIVE_TESTING=1
    - export RELEASE_TESTING=1 AUTHOR_TESTING=1
 
