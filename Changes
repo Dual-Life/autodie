@@ -2,6 +2,10 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * TEST: Removed obsolete boilerplate.t
+        * TEST / INTERNAL: Enabled travis-ci for Perl 5.8
+        * TEST: Stopped some Pod::Coverage tests failing under Perl 5.8
+
 2.23      2014-01-27 13:50:55EST+1100 Australia/Melbourne
 
         * TEST / BUGFIX: Improved testing support on Android
