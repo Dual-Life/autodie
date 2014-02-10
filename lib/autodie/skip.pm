@@ -51,4 +51,6 @@ terms as Perl itself.
 
 L<autodie>, L<autodie::exception>
 
+=for Pod::Coverage DOES
+
 =cut
