@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * FEATURE: Provide a stack backtrace when `Carp::Always` is enabled.
+                   (Thanks to Niels Thykier, GH #35)
         * TEST: Removed obsolete boilerplate.t
         * TEST / INTERNAL: Enabled travis-ci for Perl 5.8
         * TEST: Stopped some Pod::Coverage tests failing under Perl 5.8
