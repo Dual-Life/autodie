@@ -540,6 +540,7 @@ sub stringify {
     my ($this) = @_;
 
     my $call        =  $this->function;
+    my $msg;
 
     if ($DEBUG) {
         my $dying_pkg   = $this->package;
@@ -550,11 +551,14 @@ sub stringify {
 
     # TODO - This isn't using inheritance.  Should it?
     if ( my $sub = $formatter_of{$call} ) {
-        return $sub->($this) . $this->add_file_and_line;
+        $msg = $sub->($this) . $this->add_file_and_line;
+    } else {
+        $msg = $this->format_default . $this->add_file_and_line;
     }
+    $msg .=  $this->{$PACKAGE}{_stack_trace}
+        if $Carp::Verbose;
 
-    return $this->format_default . $this->add_file_and_line;
-
+    return $msg;
 }
 
 =head3 format_default
@@ -722,7 +726,13 @@ sub _init {
     $this->{$PACKAGE}{file}    = $file;
     $this->{$PACKAGE}{line}    = $line;
     $this->{$PACKAGE}{caller}  = $sub;
-    $this->{$PACKAGE}{package} = $package;
+
+    # Tranks to %Carp::CarpInternal all Fatal, autodie and
+    # autodie::exception stack frames are filtered already, but our
+    # nameless wrapper is still present, so strip that.
+    my $trace = Carp::longmess();
+    $trace =~ s/^\s*at \(eval[^\n]++\n//;
+    $this->{$PACKAGE}{_stack_trace} = $trace;
 
     $this->{$PACKAGE}{errno}   = $args{errno} || 0;
 
