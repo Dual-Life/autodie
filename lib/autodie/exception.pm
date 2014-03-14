@@ -731,7 +731,8 @@ sub _init {
     # autodie::exception stack frames are filtered already, but our
     # nameless wrapper is still present, so strip that.
     my $trace = Carp::longmess();
-    $trace =~ s/^\s*at \(eval[^\n]+\n//;
+    $trace =~ s/^\s*at \(eval[^\n]+\n(?:\s*[\w:]+__ANON__[^\n]+\n)?//;
+
     $this->{$PACKAGE}{_stack_trace} = $trace;
 
     $this->{$PACKAGE}{errno}   = $args{errno} || 0;
