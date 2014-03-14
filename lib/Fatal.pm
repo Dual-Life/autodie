@@ -10,6 +10,8 @@ use Tie::RefHash;   # To cache subroutine refs
 use Config;
 use Scalar::Util qw(set_prototype);
 
+use autodie::ScopeUtil qw(on_end_of_compile_scope);
+
 use constant PERL510     => ( $] >= 5.010 );
 
 use constant LEXICAL_TAG => q{:lexical};
@@ -331,7 +333,6 @@ my %CORE_prototype_cache;
 # setting up lexical guards.
 
 my $PACKAGE       = __PACKAGE__;
-my $PACKAGE_GUARD = "guard $PACKAGE";
 my $NO_PACKAGE    = "no $PACKAGE";      # Used to detect 'no autodie'
 
 # Here's where all the magic happens when someone write 'use Fatal'
@@ -472,9 +473,9 @@ sub import {
         # Our package guard gets invoked when we leave our lexical
         # scope.
 
-        push(@ { $^H{$PACKAGE_GUARD} }, autodie::Scope::Guard->new(sub {
+        on_end_of_compile_scope(sub {
             $class->_install_subs($pkg, \%unload_later);
-        }));
+        });
 
         # To allow others to determine when autodie was in scope,
         # and with what arguments, we also set a %^H hint which
@@ -566,7 +567,7 @@ sub unimport {
     # in which case, we disable Fatalistic behaviour for 'blah'.
 
     my @unimport_these = @_ ? @_ : ':all';
-    my %uninstall_subs;
+    my (%uninstall_subs, %reinstall_subs);
 
     for my $symbol ($class->_translate_import_args(@unimport_these)) {
 
@@ -585,6 +586,8 @@ sub unimport {
         # (eg, mixing Fatal with no autodie)
 
         $^H{$NO_PACKAGE}{$sub} = 1;
+        my $current_sub = \&$sub;
+        $reinstall_subs{$symbol} = $current_sub;
 
         if (my $original_sub = $Original_user_sub{$sub}) {
             # Hey, we've got an original one of these, put it back.
@@ -600,6 +603,9 @@ sub unimport {
     }
 
     $class->_install_subs($pkg, \%uninstall_subs);
+    on_end_of_compile_scope(sub {
+        $class->_install_subs($pkg, \%reinstall_subs);
+    });
 
     return;
 
@@ -1761,24 +1767,6 @@ sub _compile_wrapper {
 sub _autocroak {
     warn Carp::longmess(@_);
     exit(255);  # Ugh!
-}
-
-package autodie::Scope::Guard;
-
-# This code schedules the cleanup of subroutines at the end of
-# scope.  It's directly inspired by chocolateboy's excellent
-# Scope::Guard module.
-
-sub new {
-    my ($class, $handler) = @_;
-
-    return bless $handler, $class;
-}
-
-sub DESTROY {
-    my ($self) = @_;
-
-    $self->();
 }
 
 1;
