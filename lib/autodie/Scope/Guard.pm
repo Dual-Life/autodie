@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 # ABSTRACT: Wrapper class for calling subs at end of scope
+# VERSION
 
 # This code schedules the cleanup of subroutines at the end of
 # scope.  It's directly inspired by chocolateboy's excellent
