@@ -89,9 +89,7 @@ autodie - Replace functions with ones that succeed or die with lexical scope
         no autodie;                   # disable all autodies
     }
     
-    open my $fh, ">", $filename;
-    print $fh or die $!; # autodie doesn't check print!
-    close $fh;
+    print "Hello World" or die $!;    # autodie DOESN'T check print!
 
 =head1 DESCRIPTION
 
