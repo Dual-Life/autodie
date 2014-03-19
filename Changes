@@ -9,6 +9,11 @@ Revision history for autodie
                   scope. (Thanks to Niels Thykier, GH #41, RT #72053,
                   RT #86396)
 
+        * INTERNAL: Remove now unused variables in code (Niels Thykier).
+
+        * DOCS: Make it extra-clear autodie doesn't check `print`.
+                (Dave Rolsky, GH #39)
+
         * TEST: Removed obsolete boilerplate.t
 
         * TEST / INTERNAL: Enabled travis-ci for Perl 5.8
