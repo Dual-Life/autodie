@@ -730,8 +730,19 @@ sub _init {
     # Tranks to %Carp::CarpInternal all Fatal, autodie and
     # autodie::exception stack frames are filtered already, but our
     # nameless wrapper is still present, so strip that.
+
     my $trace = Carp::longmess();
     $trace =~ s/^\s*at \(eval[^\n]+\n//;
+
+    # And if we see an __ANON__, then we'll replace that with the actual
+    # name of our autodying function.
+
+    my $short_func = $args{function};
+    $short_func =~ s/^CORE:://;
+    $trace =~ s/(\s*[\w:]+)__ANON__/$1$short_func/;
+
+    # And now we just fill in all our attributes.
+
     $this->{$PACKAGE}{_stack_trace} = $trace;
 
     $this->{$PACKAGE}{errno}   = $args{errno} || 0;
