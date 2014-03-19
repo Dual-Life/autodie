@@ -1208,7 +1208,7 @@ sub _one_invocation {
 
 sub _make_fatal {
     my($class, $sub, $pkg, $void, $lexical, $filename, $insist, $install_subs) = @_;
-    my($code, $sref, $real_proto, $proto, $core, $call, $hints, $cache, $cache_type);
+    my($code, $sref, $proto, $core, $call, $hints, $cache, $cache_type);
     my $ini = $sub;
     my $name = $sub;
 
@@ -1445,14 +1445,8 @@ sub _make_fatal {
     my $installed_sub = $code;
 
     if ($lexical) {
-        my $real_proto = '';
-        if (defined $proto) {
-            $real_proto = " ($proto)";
-        } else {
-            $proto = '@';
-        }
         $installed_sub = $class->_make_leak_guard($filename, $code, $sref, $call,
-                                                  $pkg, $proto, $real_proto);
+                                                  $pkg, $proto);
     }
 
     $cache->{$cache_type} = $code;
@@ -1520,7 +1514,7 @@ sub exception_class { return "autodie::exception" };
 
 # Creates and returns a leak guard (with prototype if needed).
 sub _make_leak_guard {
-    my ($class, $filename, $wrapped_sub, $orig_sub, $call, $pkg, $proto, $real_proto) = @_;
+    my ($class, $filename, $wrapped_sub, $orig_sub, $call, $pkg, $proto) = @_;
 
     # The leak guard is rather lengthly (in fact it makes up the most
     # of _make_leak_guard).  It is possible to split it into a large
@@ -1643,7 +1637,7 @@ sub _make_leak_guard {
 
     # If there is a prototype on the original sub, copy it to the leak
     # guard.
-    if ($real_proto ne '') {
+    if (defined $proto) {
         # The "\&" may appear to be redundant but set_prototype
         # croaks when it is removed.
         set_prototype(\&$leak_guard, $proto);
