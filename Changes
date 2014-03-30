@@ -3,6 +3,8 @@ Revision history for autodie
 {{$NEXT}}
 
         * FEATURE: Provide a stack backtrace when `Carp::Always` is enabled.
+                   Note that sometimes this is not as pretty as it could
+                   be, patches welcome.
                    (Thanks to Niels Thykier, GH #35)
 
         * BUGFIX: Fix situations where `no autodie` doesn't respect lexical
