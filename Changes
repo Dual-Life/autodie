@@ -20,6 +20,9 @@ Revision history for autodie
 
         * TEST: Stopped some Pod::Coverage tests failing under Perl 5.8
 
+        * BUILD: Better support for building in a read-only directory
+                 (courtesy Andrew Fresh, GH #46)
+
 
 2.23      2014-01-27 13:50:55EST+1100 Australia/Melbourne
 
