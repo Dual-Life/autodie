@@ -2,6 +2,9 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * DOCS: Spelling fixes in autodie::ScopeUtil
+                (Courtesy Salvatore Bonaccorso)
+
 2.24      2014-03-30 19:30:10EST+1100 Australia/Melbourne
 
         * FEATURE: Provide a stack backtrace when `Carp::Always` is enabled.

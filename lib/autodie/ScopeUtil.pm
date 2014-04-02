@@ -54,7 +54,7 @@ autodie::ScopeUtil - Utilities for managing %^H scopes
 Utilities for abstracting away the underlying magic of (ab)using
 C<%^H> to call subs at the end of a (compile-time) scopes.
 
-Due to how C<%^H> works, these utilties are only useful during the
+Due to how C<%^H> works, these utilities are only useful during the
 compilation phase of a perl module and relies on the internals of how
 perl handles references in C<%^H>.  This module is not a part of
 autodie's public API.
