@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.25      2014-04-03 09:43:15EST+1100 Australia/Melbourne
+
         * DOCS: Spelling fixes in autodie::ScopeUtil
                 (Courtesy Salvatore Bonaccorso)
 
