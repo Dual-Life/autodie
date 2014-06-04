@@ -117,32 +117,6 @@ Exceptions produced by the C<autodie> pragma are members of the
 L<autodie::exception> class.  The preferred way to work with
 these exceptions under Perl 5.10 is as follows:
 
-    use feature qw(switch);
-
-    eval {
-        use autodie;
-
-        open(my $fh, '<', $some_file);
-
-        my @records = <$fh>;
-
-        # Do things with @records...
-
-        close($fh);
-
-    };
-
-    given ($@) {
-        when (undef)   { say "No error";                    }
-        when ('open')  { say "Error from open";             }
-        when (':io')   { say "Non-open, IO error.";         }
-        when (':all')  { say "All other autodie errors."    }
-        default        { say "Not an autodie error at all." }
-    }
-
-Under Perl 5.8, the C<given/when> structure is not available, so the
-following structure may be used:
-
     eval {
         use autodie;
 
