@@ -214,7 +214,7 @@ my %Retval_action = (
     "CORE::open"        => q{
 
     # apply the open pragma from our caller
-    if( defined $retval ) {
+    if( defined $retval && !( @_ >= 3 && $_[1] =~ /:/ )) {
         # Get the caller's hint hash
         my $hints = (caller 0)[10];
 
