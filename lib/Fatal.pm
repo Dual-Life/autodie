@@ -588,19 +588,11 @@ sub unimport {
         # (eg, mixing Fatal with no autodie)
 
         $^H{$NO_PACKAGE}{$sub} = 1;
-        my $current_sub = \&$sub;
-        $reinstall_subs{$symbol} = $current_sub;
-
-        if (my $original_sub = $Original_user_sub{$sub}) {
-            # Hey, we've got an original one of these, put it back.
-            $uninstall_subs{$symbol} = $original_sub;
-            next;
-        }
-
-        # We don't have an original copy of the sub, on the assumption
-        # it's core (or doesn't exist), we'll just nuke it.
-
-        $uninstall_subs{$symbol} = undef;
+        # Record the current sub to be reinstalled at end of scope
+        # and then restore the original (can be undef for "CORE::"
+        # subs)
+        $reinstall_subs{$symbol} = \&$sub;
+        $uninstall_subs{$symbol} = $Original_user_sub{$sub};
 
     }
 
