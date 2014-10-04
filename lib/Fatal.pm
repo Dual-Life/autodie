@@ -1249,6 +1249,9 @@ sub _make_fatal {
         # This could be something that we've fatalised that
         # was in core.
 
+	# Store the current sub in case we need to restore it.
+	$sref = \&$sub;
+
         if ( $Package_Fatal{$sub} and exists($CORE_prototype_cache{"CORE::$name"})) {
 
             # Something we previously made Fatal that was core.
@@ -1263,7 +1266,7 @@ sub _make_fatal {
             # on, indicating this subroutine should be placed
             # back when we're finished.
 
-            $sref = \&$sub;
+
 
         } else {
 
@@ -1271,7 +1274,7 @@ sub _make_fatal {
             # then look-up the name of the original sub for the rest of
             # our processing.
 
-            if (exists($Is_fatalised_sub{\&$sub})) {
+            if (exists($Is_fatalised_sub{$sref})) {
                 # $sub is one of our wrappers around a CORE sub or a
                 # user sub.  Instead of wrapping our wrapper, lets just
                 # generate a new wrapper for the original sub.
@@ -1280,7 +1283,7 @@ sub _make_fatal {
                 #   mixing between use Fatal + use autodie can occur).
                 # - Even for nested autodie, we need this as the leak guards
                 #   differ.
-                my $s = $Is_fatalised_sub{\&$sub};
+                my $s = $Is_fatalised_sub{$sref};
                 if (defined($s)) {
                     # It is a wrapper for a user sub
                     $sub = $s;
@@ -1295,7 +1298,6 @@ sub _make_fatal {
             # A regular user sub, or a user sub wrapping a
             # core sub.
 
-            $sref = \&$sub;
             if (!$core) {
                 # A non-CORE sub might have hints and such...
                 $proto = prototype($sref);
