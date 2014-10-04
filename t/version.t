@@ -21,7 +21,7 @@ require autodie::exception::system;
 ok(defined($autodie::VERSION), 'autodie has a version');
 ok(defined($autodie::exception::VERSION), 'autodie::exception has a version');
 ok(defined($autodie::hints::VERSION), 'autodie::hints has a version');
-ok(defined($FATAL::VERSION), 'Fatal has a version');
+ok(defined($Fatal::VERSION), 'Fatal has a version');
 is($Fatal::VERSION, $autodie::VERSION);
 is($autodie::VERSION, $autodie::exception::VERSION);
 is($autodie::exception::VERSION, $autodie::exception::system::VERSION);
