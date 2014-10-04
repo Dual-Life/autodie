@@ -140,7 +140,7 @@ my %TAGS = (
     ':2.10'  => [qw(:v213)],
     ':2.11'  => [qw(:v213)],
     ':2.12'  => [qw(:v213)],
-    ':2.13'  => [qw(:v213)],
+    ':2.13'  => [qw(:v213)],     # Last release without chown
     ':2.14'  => [qw(:default)],
     ':2.15'  => [qw(:default)],
     ':2.16'  => [qw(:default)],
@@ -156,8 +156,6 @@ my %TAGS = (
     ':2.26'  => [qw(:default)],
 );
 
-# chmod was only introduced in 2.07
-# chown was only introduced in 2.14
 
 {
     # Expand :all immediately by expanding and flattening all tags.
