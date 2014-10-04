@@ -331,6 +331,18 @@ Functions called in list context are assumed to have failed if they
 return an empty list, or a list consisting only of a single undef
 element.
 
+Some builtins (e.g. C<chdir> or C<truncate>) has a call signature that
+cannot completely be representated with a Perl prototype.  This means
+that some valid Perl code will be invalid under autodie.  As an example:
+
+  chdir(BAREWORD);
+
+Without autodie (and assuming BAREWORD is an open
+filehandle/dirhandle) this is a valid call to chdir.  But under
+autodie, C<chdir> will behave like it had the prototype ";$" and thus
+BAREWORD will be a syntax error (under "use strict".  Without strict, it
+will interpreted as a filename).
+
 =head1 DIAGNOSTICS
 
 =over 4
