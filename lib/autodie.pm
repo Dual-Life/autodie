@@ -210,6 +210,7 @@ The categories are currently:
                     symlink
                     unlink
                 :ipc
+                    kill
                     pipe
                     :msg
                         msgctl
