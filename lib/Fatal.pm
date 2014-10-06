@@ -81,7 +81,7 @@ my %TAGS = (
     ':file'    => [qw(open close flock sysopen fcntl fileno binmode
                      ioctl truncate)],
     ':filesys' => [qw(opendir closedir chdir link unlink rename mkdir
-                      symlink rmdir readlink umask chmod chown utime)],
+                      symlink rmdir readlink chmod chown utime)],
     ':ipc'     => [qw(:msg :semaphore :shm pipe kill)],
     ':msg'     => [qw(msgctl msgget msgrcv msgsnd)],
     ':threads' => [qw(fork)],
@@ -116,6 +116,9 @@ my %TAGS = (
     # chown, utime, kill were added in 2.14
     ':v214'    => [qw(:v213 chown utime kill)],
 
+    # umask was removed in 2.26
+    ':v225' => [qw(:io :threads umask)],
+
     # Version specific tags.  These allow someone to specify
     # use autodie qw(:1.994) and know exactly what they'll get.
 
@@ -141,18 +144,18 @@ my %TAGS = (
     ':2.11'  => [qw(:v213)],
     ':2.12'  => [qw(:v213)],
     ':2.13'  => [qw(:v213)],     # Last release without chown
-    ':2.14'  => [qw(:default)],
-    ':2.15'  => [qw(:default)],
+    ':2.14'  => [qw(:v225)],
+    ':2.15'  => [qw(:v225)],
     ':2.16'  => [qw(:default)],
-    ':2.17'  => [qw(:default)],
-    ':2.18'  => [qw(:default)],
-    ':2.19'  => [qw(:default)],
-    ':2.20'  => [qw(:default)],
-    ':2.21'  => [qw(:default)],
-    ':2.22'  => [qw(:default)],
-    ':2.23'  => [qw(:default)],
-    ':2.24'  => [qw(:default)],
-    ':2.25'  => [qw(:default)],
+    ':2.17'  => [qw(:v225)],
+    ':2.18'  => [qw(:v225)],
+    ':2.19'  => [qw(:v225)],
+    ':2.20'  => [qw(:v225)],
+    ':2.21'  => [qw(:v225)],
+    ':2.22'  => [qw(:v225)],
+    ':2.23'  => [qw(:v225)],
+    ':2.24'  => [qw(:v225)],
+    ':2.25'  => [qw(:v225)],
     ':2.26'  => [qw(:default)],
 );
 
