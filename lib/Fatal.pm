@@ -78,7 +78,7 @@ my %TAGS = (
     ':io'      => [qw(:dbm :file :filesys :ipc :socket
                        read seek sysread syswrite sysseek )],
     ':dbm'     => [qw(dbmopen dbmclose)],
-    ':file'    => [qw(open close flock sysopen fcntl fileno binmode
+    ':file'    => [qw(open close flock sysopen fcntl binmode
                      ioctl truncate)],
     ':filesys' => [qw(opendir closedir chdir link unlink rename mkdir
                       symlink rmdir readlink chmod chown utime)],
@@ -117,7 +117,7 @@ my %TAGS = (
     ':v214'    => [qw(:v213 chown utime kill)],
 
     # umask was removed in 2.26
-    ':v225' => [qw(:io :threads umask)],
+    ':v225' => [qw(:io :threads umask fileno)],
 
     # Version specific tags.  These allow someone to specify
     # use autodie qw(:1.994) and know exactly what they'll get.

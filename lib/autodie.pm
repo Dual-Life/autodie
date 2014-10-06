@@ -171,7 +171,7 @@ Autodie uses a simple set of categories to group together similar
 built-ins.  Requesting a category type (starting with a colon) will
 enable autodie for all built-ins beneath that category.  For example,
 requesting C<:file> will enable autodie for C<close>, C<fcntl>,
-C<fileno>, C<open> and C<sysopen>.
+C<open> and C<sysopen>.
 
 The categories are currently:
 
@@ -192,7 +192,6 @@ The categories are currently:
                     chmod
                     chown
                     fcntl
-                    fileno
                     flock
                     ioctl
                     open
