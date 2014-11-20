@@ -10,7 +10,8 @@ use Carp qw(croak);
 our $DEBUG = 0;
 
 use overload
-    q{""} => "stringify"
+    q{""} => "stringify",
+    fallback => 1
 ;
 
 # Overload smart-match only if we're using 5.10
