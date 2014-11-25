@@ -2,6 +2,11 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * BUGFIX: Fixed an error that could occur during global destruction of
+          the form "(in cleanup) Can't use an undefined value as an ARRAY
+          reference at .../autodie/Scope/GuardStack.pm line 48 during global
+          destruction" (Dave Rolsky).
+
 2.25      2014-04-03 09:43:15EST+1100 Australia/Melbourne
 
         * DOCS: Spelling fixes in autodie::ScopeUtil
