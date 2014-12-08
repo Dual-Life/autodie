@@ -347,8 +347,6 @@ use constant DEFAULT_HINTS => {
 
 use constant HINTS_PROVIDER => 'autodie::hints::provider';
 
-use base qw(Exporter);
-
 our $DEBUG = 0;
 
 # Only ( undef ) is a strange but possible situation for very
