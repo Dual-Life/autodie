@@ -10,7 +10,7 @@ use Tie::RefHash;   # To cache subroutine refs
 use Config;
 use Scalar::Util qw(set_prototype);
 
-use autodie::ScopeUtil qw(on_end_of_compile_scope);
+use autodie::Util qw(on_end_of_compile_scope);
 
 use constant PERL510     => ( $] >= 5.010 );
 
