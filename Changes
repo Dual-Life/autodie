@@ -5,7 +5,45 @@ Revision history for autodie
         * BUGFIX: Fixed an error that could occur during global destruction of
           the form "(in cleanup) Can't use an undefined value as an ARRAY
           reference at .../autodie/Scope/GuardStack.pm line 48 during global
-          destruction" (Dave Rolsky).
+          destruction" (Thanks to Dave Rolsky).
+
+        * BUGFIX: The open-pragma is now properly ignored when open is
+                  given an explicit layer.  This brings autodie protected
+                  open in sync with open.  Thanks to Gregory Oschwald and
+                  Graham Knop for the report + test case and the patch.
+                  (GH#52 + GH#53)
+
+        * FEATURE: Let autodie::exception work in equality tests and
+                   string comparison via "overload fallback".
+                   (Thanks to Michael G. Schwern)
+
+        * DOC: Mention that "kill" is in the ":ipc" category.  It has
+               been there since autodie v2.14.
+               (Thanks to Felipe Gasper for reporting it, RT#97320).
+
+        * INTERNAL: Use "parent" instead of "base" for inheritance.  Also
+                    avoid some @ISA relationships that were redundant.
+                    Either truly redundant ones or by importing "import"
+                    from Exporter v5.57.
+                    -  This change implies that perl 5.8 users must now
+                       also fetch "parent" from cpan.
+                    (Thanks to Olivier Mengué, GH#59)
+
+        * DEVEL / TEST: The autodie module now accepts an undefined Fatal
+                        version, assuming it to be development version.
+                        Test cases that require versions are now either
+                        skipped or considered "release" test.
+
+        * TEST / INTERNAL: Enabled travis-ci for Perl 5.20
+
+        * TEST: Close temp file before re-opening in t/truncate.t.
+                (Thanks to Craig A. Berry, RT#96609)
+
+        * TEST: Pass O_TRUNC with O_CREAT to sysopen in t/utf8_open.t.
+                (Thanks to Craig A. Berry, RT#87237)
+
+        * TEST: Clean up temp file in t/truncate.t.
+                (Thanks to Dave Mitchell, RT#100688)
 
 2.25      2014-04-03 09:43:15EST+1100 Australia/Melbourne
 
