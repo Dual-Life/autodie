@@ -10,7 +10,7 @@ use Tie::RefHash;   # To cache subroutine refs
 use Config;
 use Scalar::Util qw(set_prototype);
 
-use autodie::Util qw(on_end_of_compile_scope);
+use autodie::Util qw(on_end_of_compile_scope fill_protos);
 
 use constant PERL510     => ( $] >= 5.010 );
 
@@ -791,32 +791,6 @@ sub _translate_import_args {
 
     }
 
-}
-
-# This code is from the original Fatal.  It scares me.
-# It is 100% compatible with the 5.10.0 Fatal module, right down
-# to the scary 'XXXX' comment.  ;)
-
-sub fill_protos {
-    my $proto = shift;
-    my ($n, $isref, @out, @out1, $seen_semi) = -1;
-    if ($proto =~ m{^\s* (?: [;] \s*)? \@}x) {
-        # prototype is entirely slurp - special case that does not
-        # require any handling.
-        return ([0, '@_']);
-    }
-
-    while ($proto =~ /\S/) {
-        $n++;
-        push(@out1,[$n,@out]) if $seen_semi;
-        push(@out, $1 . "{\$_[$n]}"), next if $proto =~ s/^\s*\\([\@%\$\&])//;
-        push(@out, "\$_[$n]"),        next if $proto =~ s/^\s*([_*\$&])//;
-        push(@out, "\@_[$n..\$#_]"),  last if $proto =~ s/^\s*(;\s*)?\@//;
-        $seen_semi = 1, $n--,         next if $proto =~ s/^\s*;//; # XXXX ????
-        die "Internal error: Unknown prototype letters: \"$proto\"";
-    }
-    push(@out1,[$n+1,@out]);
-    return @out1;
 }
 
 # This is a backwards compatible version of _write_invocation.  It's

@@ -8,6 +8,7 @@ use Exporter 5.57 qw(import);
 use autodie::Scope::GuardStack;
 
 our @EXPORT_OK = qw(
+  fill_protos
   on_end_of_compile_scope
 );
 
@@ -37,6 +38,30 @@ sub on_end_of_compile_scope {
 
     $stack->push_hook($hook);
     return;
+}
+
+# This code is based on code from the original Fatal.  The "XXXX"
+# remark is from the original code and its meaning is (sadly) unknown.
+sub fill_protos {
+    my ($proto) = @_;
+    my ($n, $isref, @out, @out1, $seen_semi) = -1;
+    if ($proto =~ m{^\s* (?: [;] \s*)? \@}x) {
+        # prototype is entirely slurply - special case that does not
+        # require any handling.
+        return ([0, '@_']);
+    }
+
+    while ($proto =~ /\S/) {
+        $n++;
+        push(@out1,[$n,@out]) if $seen_semi;
+        push(@out, $1 . "{\$_[$n]}"), next if $proto =~ s/^\s*\\([\@%\$\&])//;
+        push(@out, "\$_[$n]"),        next if $proto =~ s/^\s*([_*\$&])//;
+        push(@out, "\@_[$n..\$#_]"),  last if $proto =~ s/^\s*(;\s*)?\@//;
+        $seen_semi = 1, $n--,         next if $proto =~ s/^\s*;//; # XXXX ????
+        die "Internal error: Unknown prototype letters: \"$proto\"";
+    }
+    push(@out1,[$n+1,@out]);
+    return @out1;
 }
 
 1;
@@ -77,6 +102,24 @@ Will invoke a sub at the end of a (compile-time) scope.  The sub is
 called once with no arguments.  Can be called multiple times (even in
 the same "compile-time" scope) to install multiple subs.  Subs are
 called in a "first-in-last-out"-order (FILO or "stack"-order).
+
+=head3 fill_protos
+
+  fill_protos('*$$;$@')
+
+Given a Perl subroutine prototype, return a list of invocation
+specifications.  Each specification is a listref, where the first
+member is the (minimum) number of arguments for this invocation
+specification.  The remaining arguments are a string representation of
+how to pass the arguments correctly to a sub with the given prototype,
+when called with the given number of arguments.
+
+The specifications are returned in increasing order of arguments
+starting at 0 (e.g.  ';$') or 1 (e.g.  '$@').  Note that if the
+prototype is "slurpy" (e.g. ends with a "@"), the number of arguments
+for the last specification is a "minimum" number rather than an exact
+number.  This can be detected by the last member of the last
+specification matching m/[@#]_/.
 
 =head1 AUTHOR
 
