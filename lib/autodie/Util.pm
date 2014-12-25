@@ -9,6 +9,7 @@ use autodie::Scope::GuardStack;
 
 our @EXPORT_OK = qw(
   fill_protos
+  make_core_trampoline
   on_end_of_compile_scope
 );
 
@@ -62,6 +63,45 @@ sub fill_protos {
     }
     push(@out1,[$n+1,@out]);
     return @out1;
+}
+
+
+sub make_core_trampoline {
+    my ($call, $pkg, $proto_str) = @_;
+    my $trampoline_code = 'sub {';
+    my $trampoline_sub;
+    my @protos = fill_protos($proto_str);
+
+    foreach my $proto (@protos) {
+        local $" = ", ";    # So @args is formatted correctly.
+        my ($count, @args) = @$proto;
+        if (@args && $args[-1] =~ m/[@#]_/) {
+            $trampoline_code .= qq/
+                if (\@_ >= $count) {
+                    return $call(@args);
+                }
+             /;
+        } else {
+            $trampoline_code .= qq<
+                if (\@_ == $count) {
+                    return $call(@args);
+                }
+             >;
+        }
+    }
+
+    $trampoline_code .= qq< require Carp; Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
+    my $E;
+
+    {
+        local $@;
+        $trampoline_sub = eval "package $pkg;\n $trampoline_code"; ## no critic
+        $E = $@;
+    }
+    die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
+        if $E;
+
+    return $trampoline_sub;
 }
 
 1;
@@ -120,6 +160,17 @@ prototype is "slurpy" (e.g. ends with a "@"), the number of arguments
 for the last specification is a "minimum" number rather than an exact
 number.  This can be detected by the last member of the last
 specification matching m/[@#]_/.
+
+=head3 make_core_trampoline
+
+  make_core_trampoline('CORE::open', 'main', prototype('CORE::open'))
+
+Creates a trampoline for calling a core sub.  Essentially, a tiny sub
+that figures out how we should be calling our core sub, puts in the
+arguments in the right way, and bounces our control over to it.
+
+If we could reliably use `goto &` on core builtins, we wouldn't need
+this subroutine.
 
 =head1 AUTHOR
 

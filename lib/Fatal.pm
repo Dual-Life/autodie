@@ -10,7 +10,11 @@ use Tie::RefHash;   # To cache subroutine refs
 use Config;
 use Scalar::Util qw(set_prototype);
 
-use autodie::Util qw(on_end_of_compile_scope fill_protos);
+use autodie::Util qw(
+  fill_protos
+  make_core_trampoline
+  on_end_of_compile_scope
+);
 
 use constant PERL510     => ( $] >= 5.010 );
 
@@ -1632,7 +1636,7 @@ sub _make_leak_guard {
             # As $orig_sub is "closed over", updating its value will
             # be "remembered" for the next call.
 
-            $orig_sub = _make_core_trampoline($call, $pkg, $proto);
+            $orig_sub = make_core_trampoline($call, $pkg, $proto);
 
             # We still cache it despite remembering it in $orig_sub as
             # well.  In particularly, we rely on this to avoid
@@ -1653,51 +1657,6 @@ sub _make_leak_guard {
     }
 
     return $leak_guard;
-}
-
-# Create a trampoline for calling a core sub.  Essentially, a tiny sub
-# that figures out how we should be calling our core sub, puts in the
-# arguments in the right way, and bounces our control over to it.
-#
-# If we could use `goto &` on core builtins, we wouldn't need this.
-sub _make_core_trampoline {
-    my ($call, $pkg, $proto_str) = @_;
-    my $trampoline_code = 'sub {';
-    my $trampoline_sub;
-    my @protos = fill_protos($proto_str);
-
-    # TODO: It may be possible to combine this with write_invocation().
-
-    foreach my $proto (@protos) {
-        local $" = ", ";    # So @args is formatted correctly.
-        my ($count, @args) = @$proto;
-        if (@args && $args[-1] =~ m/[@#]_/) {
-            $trampoline_code .= qq/
-                if (\@_ >= $count) {
-                    return $call(@args);
-                }
-             /;
-        } else {
-            $trampoline_code .= qq<
-                if (\@_ == $count) {
-                    return $call(@args);
-                }
-             >;
-        }
-    }
-
-    $trampoline_code .= qq< Carp::croak("Internal error in Fatal/autodie.  Leak-guard failure"); } >;
-    my $E;
-
-    {
-        local $@;
-        $trampoline_sub = eval "package $pkg;\n $trampoline_code"; ## no critic
-        $E = $@;
-    }
-    die "Internal error in Fatal/autodie: Leak-guard installation failure: $E"
-        if $E;
-
-    return $trampoline_sub;
 }
 
 sub _compile_wrapper {
