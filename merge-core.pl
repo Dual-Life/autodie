@@ -28,6 +28,8 @@ my @non_core_tests = qw(
     critic.t
     fork.t
     kwalitee.t
+    import-into.t
+    lib/my/pragma.pm
     lex58.t
     pod-coverage.t
     pod.t
