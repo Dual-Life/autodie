@@ -13,6 +13,12 @@ Revision history for autodie
                   Graham Knop for the report + test case and the patch.
                   (GH#52 + GH#53)
 
+        * BUGFIX: Hide the "SCALAR" (buffer) argument in the string
+                  representation of autodie::exception for the read,
+                  sysread and syswrite CORE subs.  This is to avoid
+                  a dump of binary data to the screen/log when a
+                  (sys)read or syswrite fails.
+
         * FEATURE: Let autodie::exception work in equality tests and
                    string comparison via "overload fallback".
                    (Thanks to Michael G. Schwern)
