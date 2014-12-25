@@ -397,8 +397,9 @@ C<autodie> with block eval is considered good practice.
 
 =head2 REPORTING BUGS
 
-Please report bugs via the CPAN Request Tracker at
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie>.
+Please report bugs via the GitHub Issue Tracker at
+L<https://github.com/pjf/autodie/issues> or via the CPAN Request
+Tracker at L<https://rt.cpan.org/NoAuth/Bugs.html?Dist=autodie>.
 
 =head1 FEEDBACK
 
