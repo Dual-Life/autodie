@@ -2,6 +2,10 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * BUGFIX / INCOMPAT: Remove "fileno" and "umask" from the list of
+                             CORE subs protected by autodie and Fatal.
+                             When they return undef, it is not a failure.
+
         * BUGFIX: Fixed an error that could occur during global destruction of
           the form "(in cleanup) Can't use an undefined value as an ARRAY
           reference at .../autodie/Scope/GuardStack.pm line 48 during global
