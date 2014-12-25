@@ -3,8 +3,7 @@ use 5.008;
 use strict;
 use warnings;
 
-use Fatal ();
-our @ISA = qw(Fatal);
+use parent qw(Fatal);
 our $VERSION;
 
 # ABSTRACT: Replace functions with ones that succeed or die with lexical scope
