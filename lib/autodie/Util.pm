@@ -9,6 +9,7 @@ use autodie::Scope::GuardStack;
 
 our @EXPORT_OK = qw(
   fill_protos
+  install_subs
   make_core_trampoline
   on_end_of_compile_scope
 );
@@ -104,6 +105,63 @@ sub make_core_trampoline {
     return $trampoline_sub;
 }
 
+# The code here is originally lifted from namespace::clean,
+# by Robert "phaylon" Sedlacek.
+#
+# It's been redesigned after feedback from ikegami on perlmonks.
+# See http://perlmonks.org/?node_id=693338 .  Ikegami rocks.
+#
+# Given a package, and hash of (subname => subref) pairs,
+# we install the given subroutines into the package.  If
+# a subref is undef, the subroutine is removed.  Otherwise
+# it replaces any existing subs which were already there.
+
+sub install_subs {
+    my ($target_pkg, $subs_to_reinstate) = @_;
+
+    my $pkg_sym = "${target_pkg}::";
+
+    # It does not hurt to do this in a predictable order, and might help debugging.
+    foreach my $sub_name (sort keys(%{$subs_to_reinstate})) {
+
+        # We will repeatedly mess with stuff that strict "refs" does
+        # not like.  So lets just disable it once for this entire
+        # scope.
+        no strict qw(refs);   ## no critic
+
+        my $sub_ref = $subs_to_reinstate->{$sub_name};
+
+        my $full_path = ${pkg_sym}.${sub_name};
+        my $oldglob = *$full_path;
+
+        # Nuke the old glob.
+        delete($pkg_sym->{$sub_name});
+
+        # For some reason this local *alias = *$full_path triggers an
+        # "only used once" warning.  Not entirely sure why, but at
+        # least it is easy to silence.
+        no warnings qw(once);
+        local *alias = *$full_path;
+        use warnings qw(once);
+
+        # Copy innocent bystanders back.  Note that we lose
+        # formats; it seems that Perl versions up to 5.10.0
+        # have a bug which causes copying formats to end up in
+        # the scalar slot.  Thanks to Ben Morrow for spotting this.
+
+        foreach my $slot (qw( SCALAR ARRAY HASH IO ) ) {
+            next unless defined(*$oldglob{$slot});
+            *alias = *$oldglob{$slot};
+        }
+
+        if ($sub_ref) {
+            *$full_path = $sub_ref;
+        }
+    }
+
+    return;
+}
+
 1;
 
 __END__
@@ -171,6 +229,16 @@ arguments in the right way, and bounces our control over to it.
 
 If we could reliably use `goto &` on core builtins, we wouldn't need
 this subroutine.
+
+=head3 install_subs
+
+  install_subs('My::Module', { 'read' => sub { die("Hallo\n"), ... }})
+
+Given a package name and a hashref mapping names to a subroutine
+reference (or C<undef>), this subroutine will install said subroutines
+on their given name in that module.  If a name mapes to C<undef>, any
+subroutine with that name in the target module will be remove
+(possibly "unshadowing" a CORE sub of same name).
 
 =head1 AUTHOR
 
