@@ -360,6 +360,41 @@ sub import {
         $lexical = 1;
         shift @_;
 
+        # It is currently an implementation detail that autodie is
+        # implemented as "use Fatal qw(:lexical ...)".  For backwards
+        # compatibility, we allow it - but not without a warning.
+        # NB: Optimise of autodie as it is quite possibly the most
+        # freq. consumer of this case.
+        if ($class ne 'autodie' and not $class->isa('autodie')) {
+            if ($class eq 'Fatal') {
+                warnings::warnif(
+                    'deprecated',
+                    '[deprecated] The "use Fatal qw(:lexical ...)" '
+                    . 'should be replaced by "use autodie qw(...)". '
+                    . 'Seen' # warnif appends " at <...>"
+                    );
+            } else {
+                warnings::warnif(
+                    'deprecated',
+                    "[deprecated] The class/Package $class is a "
+                    . 'subclass of Fatal and used the :lexical. '
+                    . 'If $class provides lexical error checking '
+                    . 'it should extend autodie instead of using :lexical. '
+                    . 'Seen' # warnif appends " at <...>"
+                    );
+            }
+            # "Promote" the call to autodie from here on.  This is
+            # already mostly the case (e.g. use Fatal qw(:lexical ...)
+            # would throw autodie::exceptions on error rather than the
+            # Fatal errors.
+            $class = 'autodie';
+            # This requires that autodie is in fact loaded; otherwise
+            # the "$class->X()" method calls below will explode.
+            require autodie;
+            # TODO, when autodie and Fatal are cleanly separated, we
+            # should go a "goto &autodie::import" here instead.
+        }
+
         # If we see no arguments and :lexical, we assume they
         # wanted ':default'.
 
