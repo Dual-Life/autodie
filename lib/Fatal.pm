@@ -363,7 +363,7 @@ sub import {
         # It is currently an implementation detail that autodie is
         # implemented as "use Fatal qw(:lexical ...)".  For backwards
         # compatibility, we allow it - but not without a warning.
-        # NB: Optimise of autodie as it is quite possibly the most
+        # NB: Optimise for autodie as it is quite possibly the most
         # freq. consumer of this case.
         if ($class ne 'autodie' and not $class->isa('autodie')) {
             if ($class eq 'Fatal') {
