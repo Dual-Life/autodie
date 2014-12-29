@@ -294,6 +294,8 @@ my %reusable_builtins;
     CORE::shmctl
     CORE::shmget
     CORE::shmread
+    CORE::exec
+    CORE::system
 )} = ();
 
 # Cached_fatalised_sub caches the various versions of our

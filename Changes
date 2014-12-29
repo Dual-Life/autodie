@@ -2,6 +2,9 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * SPEED: Allow wrappers for CORE::exec and CORE::system to be
+          reused as they are not dependent on the calling package.
+
 2.26      2014-12-26 16:27:23+00:00 UTC
 
         * BUGFIX / INCOMPAT: Remove "fileno" and "umask" from the list of
