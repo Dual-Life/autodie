@@ -8,6 +8,11 @@ perl:
    - "5.10"
    - "5.8"
 
+# We do not use sudo and declaring so allows us to access
+# the container based Travis infrastructure.
+# - http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
+sudo: false
+
 before_install:
    # Prevent "Please tell me who you are" errors for certain DZIL configs
    - git config --global user.name "TravisCI"
