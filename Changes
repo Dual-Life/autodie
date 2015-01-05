@@ -2,8 +2,22 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * DEPRECATION: Deprecate the use of "Fatal qw(:lexcial)".  It
+          is an implementation detail of autodie and is about to
+          change.
+
         * SPEED: Allow wrappers for CORE::exec and CORE::system to be
           reused as they are not dependent on the calling package.
+
+        * TEST: Avoid hard-coded directory separator in t/system.t.
+          Thanks to A. Sinan Unur for reporting it and providing a
+          patch.  (GH#62)
+
+        * TEST: Add missing "require autdoie" in import-into test and
+          ensure Import::Into remains an optional test dependency.
+
+        * TEST / INTERNAL / TRAVIS: Set "sudo: false" to gain access
+          to the Travis container based infrastructure.
 
 2.26      2014-12-26 16:27:23+00:00 UTC
 
