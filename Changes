@@ -19,6 +19,10 @@ Revision history for autodie
         * TEST / INTERNAL / TRAVIS: Set "sudo: false" to gain access
           to the Travis container based infrastructure.
 
+        * TEST: Bump version of Import::Into to 1.002004 as older
+          versions are insufficient for our test.  Thanks to
+          Olivier Mengué for reporting it.  (RT#101377)
+
 2.26      2014-12-26 16:27:23+00:00 UTC
 
         * BUGFIX / INCOMPAT: Remove "fileno" and "umask" from the list of
