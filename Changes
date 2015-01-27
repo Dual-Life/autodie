@@ -13,7 +13,7 @@ Revision history for autodie
           Thanks to A. Sinan Unur for reporting it and providing a
           patch.  (GH#62)
 
-        * TEST: Add missing "require autdoie" in import-into test and
+        * TEST: Add missing "require autodie" in import-into test and
           ensure Import::Into remains an optional test dependency.
 
         * TEST / INTERNAL / TRAVIS: Set "sudo: false" to gain access
