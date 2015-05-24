@@ -313,6 +313,16 @@ sub _beautify_arguments {
     return @_;
 }
 
+sub _trim_package_name {
+    # Info: The following is done since 05/2008 (which is before v1.10)
+
+    # TODO: This is probably a good idea for CORE, is it
+    # a good idea for other subs?
+
+    # Trim package name off dying sub for error messages
+    return $_[1] =~ s/.*:://r;
+}
+
 # Returns the parameter formatted as octal number
 sub _octalize_number {
     my $number = $_[1];
@@ -458,11 +468,8 @@ sub _format_close {
 # may contain binary data.
 sub _format_readwrite {
     my ($this) = @_;
-    my $call = $this->function;
+    my $call = $this->_trim_package_name($this->function);
     local $! = $this->errno;
-
-    # Trim package name off dying sub for error messages.
-    $call =~ s/.*:://;
 
     # These subs receive the following arguments (in order):
     #
@@ -678,15 +685,9 @@ messages are formatted.
 sub format_default {
     my ($this) = @_;
 
-    my $call        =  $this->function;
+    my $call   =  $this->_trim_package_name($this->function);
 
     local $! = $this->errno;
-
-    # TODO: This is probably a good idea for CORE, is it
-    # a good idea for other subs?
-
-    # Trim package name off dying sub for error messages.
-    $call =~ s/.*:://;
 
     my @args = @{ $this->args() };
     @args = $this->_beautify_arguments(@args);
