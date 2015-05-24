@@ -292,6 +292,7 @@ my %formatter_of = (
     'CORE::read'     => \&_format_readwrite,
     'CORE::sysread'  => \&_format_readwrite,
     'CORE::syswrite' => \&_format_readwrite,
+    'CORE::chmod'    => \&_format_chmod,
 );
 
 # TODO: Our tests only check LOCK_EX | LOCK_NB is properly
@@ -346,6 +347,25 @@ sub _format_flock {
 
     return "Can't $lock_unlock filehandle$cooked_filehandle $mode_type: $!";
 
+}
+
+# Default formatter for CORE::chmod
+sub _format_chmod {
+    my ($this) = @_;
+    my @args   = @{$this->args};
+
+    my $mode   = shift @args;
+    local $!   = $this->errno;
+
+    # If we have a mode, then display it in octal, not decimal.
+    # We don't do this if it already looks octalish, or doesn't
+    # look like a number.
+
+    if ($mode =~ /^[^\D0]\d+$/) {
+        $mode = sprintf("0%lo", $mode);
+    }
+
+    return "Can't chmod($mode, ". join(q{, }, @args) ."): '$!'";
 }
 
 # Default formatter for CORE::dbmopen
