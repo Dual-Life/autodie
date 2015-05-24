@@ -293,6 +293,7 @@ my %formatter_of = (
     'CORE::sysread'  => \&_format_readwrite,
     'CORE::syswrite' => \&_format_readwrite,
     'CORE::chmod'    => \&_format_chmod,
+    'CORE::mkdir'    => \&_format_mkdir,
 );
 
 # TODO: Our tests only check LOCK_EX | LOCK_NB is properly
@@ -366,6 +367,31 @@ sub _format_chmod {
     }
 
     return "Can't chmod($mode, ". join(q{, }, @args) ."): '$!'";
+}
+
+# Default formatter for CORE::mkdir
+sub _format_mkdir {
+    my ($this) = @_;
+    my @args   = @{$this->args};
+
+    # If no mask is specified use default formatter
+    if (@args < 2) {
+      return $this->format_default;
+    }
+
+    my $file = $args[0];
+    my $mask = $args[1];
+    local $! = $this->errno;
+
+    # If we have a mask, then display it in octal, not decimal.
+    # We don't do this if it already looks octalish, or doesn't
+    # look like a number.
+
+    if ($mask =~ /^[^\D0]\d+$/) {
+        $mask = sprintf("0%lo", $mask);
+    }
+
+    return "Can't mkdir('$file', $mask): '$!'";
 }
 
 # Default formatter for CORE::dbmopen

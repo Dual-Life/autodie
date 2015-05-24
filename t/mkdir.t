@@ -3,6 +3,7 @@ use strict;
 use Test::More;
 use FindBin qw($Bin);
 use constant TMPDIR => "$Bin/mkdir_test_delete_me";
+use constant ERROR_REGEXP => qr{Can't mkdir\('${\(TMPDIR)}', 0777\):};
 
 # Delete our directory if it's there
 rmdir TMPDIR;
@@ -25,7 +26,7 @@ if(-d TMPDIR) { plan skip_all => "Failed to delete test directory"; }
 # Try to delete second time
 if(rmdir TMPDIR) { plan skip_all => "Able to rmdir directory twice"; }
 
-plan tests => 12;
+plan tests => 13;
 
 # Create a directory (this should succeed)
 eval {
@@ -40,12 +41,13 @@ ok(-d TMPDIR, "Successfully created test directory");
 eval {
 	use autodie;
 
-	mkdir TMPDIR;
+	mkdir TMPDIR, 0777;
 };
 ok($@, "Re-creating directory causes failure.");
 isa_ok($@, "autodie::exception", "... errors are of the correct type");
 ok($@->matches("mkdir"), "... it's also a mkdir object");
 ok($@->matches(":filesys"), "... and a filesys object");
+like($@, ERROR_REGEXP, "Message should include numeric mask in octal form");
 
 # Try to delete directory (this should succeed)
 eval {
