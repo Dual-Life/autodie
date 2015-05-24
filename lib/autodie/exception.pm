@@ -319,7 +319,7 @@ sub _octalize_number {
 
     # Only reformat if it looks like a whole number
     if ($number =~ /^\d+$/) {
-        $number = sprintf("%#lo", $number);
+        $number = sprintf("%#04lo", $number);
     }
 
     return $number;

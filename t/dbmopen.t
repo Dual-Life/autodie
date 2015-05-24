@@ -3,7 +3,7 @@ use strict;
 use Test::More tests => 9;
 
 use constant ERROR_REGEXP => qr{Can't dbmopen\(%hash, 'foo/bar/baz', 0666\):};
-use constant SINGLE_DIGIT_ERROR_REGEXP => qr{Can't dbmopen\(%hash, 'foo/bar/baz', 010\):};
+use constant SINGLE_DIGIT_ERROR_REGEXP => qr{Can't dbmopen\(%hash, 'foo/bar/baz', 0010\):};
 
 my $return = "default";
 
