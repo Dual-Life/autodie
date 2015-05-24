@@ -320,7 +320,7 @@ sub _octalize_number {
     # Only reformat if:
     # - it looks like a number
     # - doesn't seem to be in octal form already
-    if ($number =~ /^[1-9]\d+$/) {
+    if ($number =~ /^[1-9]\d*$/) {
         $number = sprintf("0%lo", $number);
     }
 
