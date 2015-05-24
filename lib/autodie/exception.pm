@@ -313,6 +313,20 @@ sub _beautify_arguments {
     return @_;
 }
 
+# Returns the parameter formatted as octal number
+sub _octalize_number {
+    my $number = $_[1];
+
+    # Only reformat if:
+    # - it looks like a number
+    # - doesn't seem to be in octal form already
+    if ($number =~ /^[^\D0]\d+$/) {
+        $number = sprintf("0%lo", $number);
+    }
+
+    return $number;
+}
+
 # TODO: Our tests only check LOCK_EX | LOCK_NB is properly
 # formatted.  Try other combinations and ensure they work
 # correctly.
@@ -375,13 +389,7 @@ sub _format_chmod {
     my $mode   = shift @args;
     local $!   = $this->errno;
 
-    # If we have a mode, then display it in octal, not decimal.
-    # We don't do this if it already looks octalish, or doesn't
-    # look like a number.
-
-    if ($mode =~ /^[^\D0]\d+$/) {
-        $mode = sprintf("0%lo", $mode);
-    }
+    $mode = $this->_octalize_number($mode);
 
     @args = $this->_beautify_arguments(@args);
 
@@ -402,13 +410,7 @@ sub _format_mkdir {
     my $mask = $args[1];
     local $! = $this->errno;
 
-    # If we have a mask, then display it in octal, not decimal.
-    # We don't do this if it already looks octalish, or doesn't
-    # look like a number.
-
-    if ($mask =~ /^[^\D0]\d+$/) {
-        $mask = sprintf("0%lo", $mask);
-    }
+    $mask = $this->_octalize_number($mask);
 
     return "Can't mkdir('$file', $mask): '$!'";
 }
@@ -427,13 +429,7 @@ sub _format_dbmopen {
     my $mode = $args[-1];
     my $file = $args[-2];
 
-    # If we have a mask, then display it in octal, not decimal.
-    # We don't do this if it already looks octalish, or doesn't
-    # look like a number.
-
-    if ($mode =~ /^[^\D0]\d+$/) {
-        $mode = sprintf("0%lo", $mode);
-    };
+    $mode = $this->_octalize_number($mode);
 
     local $! = $this->errno;
 
