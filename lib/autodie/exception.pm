@@ -296,6 +296,23 @@ my %formatter_of = (
     'CORE::mkdir'    => \&_format_mkdir,
 );
 
+sub _beautify_arguments {
+    shift @_;
+
+    # Walk through all our arguments, and...
+    #
+    #   * Replace undef with the word 'undef'
+    #   * Replace globs with the string '$fh'
+    #   * Quote all other args.
+    foreach my $arg (@_) {
+       if    (not defined($arg))   { $arg = 'undef' }
+       elsif (ref($arg) eq "GLOB") { $arg = '$fh'   }
+       else                        { $arg = qq{'$arg'} }
+    }
+
+    return @_;
+}
+
 # TODO: Our tests only check LOCK_EX | LOCK_NB is properly
 # formatted.  Try other combinations and ensure they work
 # correctly.
@@ -366,7 +383,9 @@ sub _format_chmod {
         $mode = sprintf("0%lo", $mode);
     }
 
-    return "Can't chmod($mode, ". join(q{, }, @args) ."): '$!'";
+    @args = $this->_beautify_arguments(@args);
+
+    return "Can't chmod($mode, ". join(q{, }, @args) ."): $!";
 }
 
 # Default formatter for CORE::mkdir
@@ -675,19 +694,8 @@ sub format_default {
     # Trim package name off dying sub for error messages.
     $call =~ s/.*:://;
 
-    # Walk through all our arguments, and...
-    #
-    #   * Replace undef with the word 'undef'
-    #   * Replace globs with the string '$fh'
-    #   * Quote all other args.
-
     my @args = @{ $this->args() };
-
-    foreach my $arg (@args) {
-       if    (not defined($arg))   { $arg = 'undef' }
-       elsif (ref($arg) eq "GLOB") { $arg = '$fh'   }
-       else                        { $arg = qq{'$arg'} }
-    }
+    @args = $this->_beautify_arguments(@args);
 
     # Format our beautiful error.
 

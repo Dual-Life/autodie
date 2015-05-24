@@ -2,7 +2,7 @@
 use strict;
 use Test::More tests => 5;
 use constant NO_SUCH_FILE => "this_file_had_better_not_exist";
-use constant ERROR_REGEXP => qr{Can't chmod\(0755, ${\(NO_SUCH_FILE)}\):};
+use constant ERROR_REGEXP => qr{Can't chmod\(0755, '${\(NO_SUCH_FILE)}'\):};
 use autodie;
 
 # This tests RT #50423, Debian #550462
