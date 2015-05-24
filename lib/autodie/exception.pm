@@ -320,7 +320,8 @@ sub _trim_package_name {
     # a good idea for other subs?
 
     # Trim package name off dying sub for error messages
-    return $_[1] =~ s/.*:://r;
+    (my $name = $_[1]) =~ s/.*:://;
+    return $name;
 }
 
 # Returns the parameter formatted as octal number
