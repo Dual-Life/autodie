@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.27      2015-06-10 19:19:49+10:00 Australia/Melbourne
+
         * DEPRECATION: Deprecate the use of "Fatal qw(:lexcial)".  It
           is an implementation detail of autodie and is about to
           change.
