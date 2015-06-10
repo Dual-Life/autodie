@@ -108,7 +108,7 @@ my %TAGS = (
 
     ':default' => [qw(:io :threads)],
 
-    # Everything in v2.07 and brefore. This was :default less chmod and chown
+    # Everything in v2.07 and before. This was :default less chmod and chown
     ':v207'    => [qw(:threads :dbm :socket read seek sysread
                    syswrite sysseek open close flock sysopen fcntl fileno
                    binmode ioctl truncate opendir closedir chdir link unlink
@@ -163,6 +163,7 @@ my %TAGS = (
     ':2.25'  => [qw(:v225)],
     ':2.26'  => [qw(:default)],
     ':2.27'  => [qw(:default)],
+    ':2.28'  => [qw(:default)],
 );
 
 
