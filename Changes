@@ -2,6 +2,10 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * TEST BUG: Properly skip the Import::Into test if the
+          version of Import::Into is insufficent.  Thanks to
+          Olivier Mengué.  (GH#67)
+
         * DOC: Document change in 2.27 that was omitted from the
           Changes-file by mistake.
 
