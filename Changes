@@ -2,11 +2,18 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * DOC: Document change in 2.27 that was omitted from the
+          Changes-file by mistake.
+
 2.27      2015-06-10 19:19:49+10:00 Australia/Melbourne
 
         * DEPRECATION: Deprecate the use of "Fatal qw(:lexcial)".  It
           is an implementation detail of autodie and is about to
           change.
+
+        * BUG: Use "octal" numbers in error messages for CORE
+          subroutines taking a "mode" parameter (e.g. mkdir and chmod).
+          Thanks to "Bugdebugger". (GH#65 and GH#66)
 
         * SPEED: Allow wrappers for CORE::exec and CORE::system to be
           reused as they are not dependent on the calling package.
