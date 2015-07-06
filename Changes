@@ -1,6 +1,7 @@
 Revision history for autodie
 
 {{$NEXT}}
+        * install into 'perl' rather than 'site' for older perls (RT#85801)
 
 2.28      2015-06-22 16:20:35+10:00 Australia/Melbourne
 
