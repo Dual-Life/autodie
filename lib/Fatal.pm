@@ -165,6 +165,7 @@ my %TAGS = (
     ':2.27'  => [qw(:default)],
     ':2.28'  => [qw(:default)],
     ':2.29'  => [qw(:default)],
+    ':2.30'  => [qw(:default)],
 );
 
 
