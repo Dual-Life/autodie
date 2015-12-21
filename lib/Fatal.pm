@@ -581,7 +581,12 @@ sub unimport {
         # Record the current sub to be reinstalled at end of scope
         # and then restore the original (can be undef for "CORE::"
         # subs)
-        $reinstall_subs{$symbol} = \&$sub;
+
+        {
+            no strict 'refs';
+            $reinstall_subs{$symbol} = \&$sub
+                if exists ${"${pkg}::"}{$symbol};
+        }
         $uninstall_subs{$symbol} = $Original_user_sub{$sub};
 
     }
