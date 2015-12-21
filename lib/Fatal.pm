@@ -563,6 +563,8 @@ sub unimport {
 
     for my $symbol ($class->_translate_import_args(@unimport_these)) {
 
+        next if !exists $::{$symbol};
+
         my $sub = $symbol;
         $sub = "${pkg}::$sub" unless $sub =~ /::/;
 
