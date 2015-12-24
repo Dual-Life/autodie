@@ -370,6 +370,14 @@ any hints available.
 
 See also L<Fatal/DIAGNOSTICS>.
 
+=head1 Tips and Tricks
+
+=head2 Importing autodie into another namespace than "caller"
+
+It is possible to import autodie into a different namespace by using
+L<Import::Into>.  However, you have to pass a "caller depth" (rather
+than a package name) for this to work correctly.
+
 =head1 BUGS
 
 "Used only once" warnings can be generated when C<autodie> or C<Fatal>
