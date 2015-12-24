@@ -2,6 +2,12 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * BUGFIX: Apply patch from Niko Tyni to fix a scoping
+          issue "no autodie" and the "system" sub.  (GH#69)
+
+        * DOC: Document how to use Import::Into with autodie.
+          (GH#50)
+
 2.29      2015-07-09 17:16:38+10:00 Australia/Melbourne
         * BUGFIX: Apply patch from Karen Etheridge to install
           autodie and Fatal into 'perl' rather than 'site'
