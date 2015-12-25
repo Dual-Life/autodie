@@ -583,7 +583,7 @@ sub unimport {
         # subs)
 
         {
-            no strict 'refs';
+            no strict 'refs';  ## no critic # to avoid: Can't use string (...) as a symbol ref ...
             $reinstall_subs{$symbol} = \&$sub
                 if exists ${"${pkg}::"}{$symbol};
         }
