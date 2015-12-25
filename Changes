@@ -8,6 +8,8 @@ Revision history for autodie
         * DOC: Document how to use Import::Into with autodie.
           (GH#50)
 
+        * TEST / INTERNAL / TRAVIS: Also test with Perl 5.22.
+
 2.29      2015-07-09 17:16:38+10:00 Australia/Melbourne
         * BUGFIX: Apply patch from Karen Etheridge to install
           autodie and Fatal into 'perl' rather than 'site'
