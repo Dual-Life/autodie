@@ -1029,6 +1029,25 @@ sub _one_invocation {
         };
     }
 
+    if ($call eq 'CORE::kill') {
+
+        return qq[
+
+            my \$num_things = \@_ - $Returns_num_things_changed{$call};
+            my \$context = ! defined wantarray() ? 'void' : 'scalar';
+            my \$signal = \$_[0];
+            my \$retval = $call(@argv);
+
+            if ( (\$signal == 0 and \$context eq 'void')
+                 or (\$signal != 0 and \$retval != \$num_things) ) {
+
+                $die;
+            }
+
+            return \$retval;
+        ];
+    }
+
     if (exists $Returns_num_things_changed{$call}) {
 
         # Some things return the number of things changed (like
