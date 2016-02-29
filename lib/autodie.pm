@@ -268,7 +268,7 @@ C<system> and C<exec> with:
 
 =head2 print
 
-The autodie pragma B<<does not check calls to C<print>>>.
+The autodie pragma B<does not check calls to C<print>Z<>>.
 
 =head2 flock
 
