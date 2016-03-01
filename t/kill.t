@@ -20,7 +20,7 @@ plan tests => 6;
 eval { my $rv = kill(0, $$); };
 is($@, '', "Signalling self is fine");
 
-eval { kill(1, $$); };
+eval { kill('HUP', $$); };
 is($@, '', "Kill with non-zero signal, in void context is ok");
 
 eval { kill(0, SYSINIT) };
@@ -29,6 +29,6 @@ isa_ok($@, 'autodie::exception', "kill 0 should die if called in void context");
 eval { my $rv = kill(0, SYSINIT) };
 is($@, '', "kill 0 should never die if called in scalar context");
 
-eval { my $rv = kill(1, $$, SYSINIT) };
+eval { my $rv = kill('HUP', $$, SYSINIT) };
 isa_ok($@, 'autodie::exception', 'kill exception on single failure.');
 is($@->return, 1, "kill fails correctly on a 'true' failure.");
