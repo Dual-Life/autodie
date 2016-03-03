@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use Tie::RefHash;   # To cache subroutine refs
 use Config;
-use Scalar::Util qw(set_prototype);
+use Scalar::Util qw(set_prototype looks_like_number);
 
 use autodie::Util qw(
   fill_protos
@@ -1027,6 +1027,26 @@ sub _one_invocation {
             $die;
 
         };
+    }
+
+    if ($call eq 'CORE::kill') {
+
+        return qq[
+
+            my \$num_things = \@_ - $Returns_num_things_changed{$call};
+            my \$context = ! defined wantarray() ? 'void' : 'scalar';
+            my \$signal = \$_[0];
+            my \$retval = $call(@argv);
+            my \$sigzero = looks_like_number( \$signal ) and \$signal == 0;
+
+            if (    (   \$sigzero and \$context eq 'void' )
+                 or ( ! \$sigzero and \$retval != \$num_things ) ) {
+
+                $die;
+            }
+
+            return \$retval;
+        ];
     }
 
     if (exists $Returns_num_things_changed{$call}) {
