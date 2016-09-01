@@ -1037,7 +1037,7 @@ sub _one_invocation {
             my \$context = ! defined wantarray() ? 'void' : 'scalar';
             my \$signal = \$_[0];
             my \$retval = $call(@argv);
-            my \$sigzero = looks_like_number( \$signal ) and \$signal == 0;
+            my \$sigzero = looks_like_number( \$signal ) && \$signal == 0;
 
             if (    (   \$sigzero and \$context eq 'void' )
                  or ( ! \$sigzero and \$retval != \$num_things ) ) {
