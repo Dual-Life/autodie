@@ -1039,8 +1039,8 @@ sub _one_invocation {
             my \$retval = $call(@argv);
             my \$sigzero = looks_like_number( \$signal ) && \$signal == 0;
 
-            if (    (   \$sigzero and \$context eq 'void' )
-                 or ( ! \$sigzero and \$retval != \$num_things ) ) {
+            if (    (   \$sigzero && \$context eq 'void' )
+                 or ( ! \$sigzero && \$retval != \$num_things ) ) {
 
                 $die;
             }
