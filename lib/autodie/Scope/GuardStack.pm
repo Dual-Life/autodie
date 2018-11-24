@@ -78,7 +78,7 @@ __END__
 
 =head1 NAME
 
-autodie::Scope::GuardStack -  Hook stack for managing scopes via %^H
+autodie::Scope::GuardStack - Hook stack for managing scopes via %^H
 
 =head1 SYNOPSIS
 
