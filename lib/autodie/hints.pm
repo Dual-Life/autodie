@@ -120,7 +120,7 @@ subroutine references.  You can specify different hints for how
 failure should be identified in scalar and list contexts.
 
 These examples apply for use in the C<AUTODIE_HINTS> subroutine and when
-calling C<autodie::hints->set_hints_for()>.
+calling C<< autodie::hints->set_hints_for() >>.
 
 The most common context-specific hints are:
 
