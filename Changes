@@ -2,13 +2,39 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * BUGFIX: Fix a boolean logic precedence error causing
+          a "useless use of numeric" warning when using kill
+          with a signal of 0.  Thanks to Maurice Aubrey for
+          reporting the issue and providing a Pull Request
+          for it.  (GH#76)
+
         * BUGFIX: Apply patch from Niko Tyni to fix a scoping
           issue "no autodie" and the "system" sub.  (GH#69)
+
+        * BUGFIX / DOC: Update code and documentation about
+          smartmatch to match current the current support
+          in perl.  Thanks to Zefram; cherry-picked from
+          perl core.  (GH#83)
+
+        * DOC: Fix a POD error and some unnecessary spaces
+          that tripped POD parsers.  Thanks to Aaron Crane
+          and Chase Whitener for reporting the issues plus
+          providing Pull Requests for it.  (GH#51 and GH#79)
 
         * DOC: Document how to use Import::Into with autodie.
           (GH#50)
 
-        * TEST / INTERNAL / TRAVIS: Also test with Perl 5.22.
+        * BUILD: Clean up of dzil.ini removing some unnecessary
+          test recommends.  Thanks to Karen Etheridge for
+          reporting the issue and providing a Pull Requests
+          for it.  (GH#78)
+
+        * TEST BUGFIX: Set binmode on some file handles to fix
+          issues on Windows.  Thanks to Tony Cook; cherry-picked
+          from perl core.  (GH#83)
+
+        * TEST / INTERNAL / TRAVIS: Also test with Perl 5.22,
+          5.24, 5.26 and 5.28.
 
 2.29      2015-07-09 17:16:38+10:00 Australia/Melbourne
         * BUGFIX: Apply patch from Karen Etheridge to install
