@@ -9,7 +9,7 @@ perl:
    - "5.14"
    - "5.12"
    - "5.10"
-   - "5.8"
+#   - "5.8"
 
 # We do not use sudo and declaring so allows us to access
 # the container based Travis infrastructure.
@@ -25,7 +25,7 @@ install:
    - export ORIG_PERL=$PERLBREW_PERL
 
    # Start by using a known version of Perl which supports dzil
-   - perlbrew use 5.14
+#   - perlbrew use 5.14
    - perl --version
 
    # Deal with all of the DZIL dependancies, quickly and quietly
