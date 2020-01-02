@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+2.30      2020-01-02 16:51:16-06:00 America/Chicago
+
         * BUGFIX: Fix a boolean logic precedence error causing
           a "useless use of numeric" warning when using kill
           with a signal of 0.  Thanks to Maurice Aubrey for
