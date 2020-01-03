@@ -5,6 +5,10 @@ use autodie;
 
 use constant SYSINIT => 1;
 
+if ($^O eq 'MSWin32') {
+    plan skip_all => "Can't send signals to own process on recent versions of Windows.";
+}
+
 if (not CORE::kill(0,$$)) {
     plan skip_all => "Can't send signals to own process on this system.";
 }
