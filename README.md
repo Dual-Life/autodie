@@ -13,7 +13,8 @@ latest stable release, use your favourite CPAN installer:
 
 ## DEVELOPMENT
 
-[![Build Status](https://travis-ci.org/pjf/autodie.png?branch=master)](https://travis-ci.org/pjf/autodie)
+[![](https://github.com/pjf/autodie/workflows/linux/badge.svg)](https://github.com/pjf/autodie/actions) [![](https://github.com/pjf/autodie/workflows/macos/badge.svg)](https://github.com/pjf/autodie/actions) [![](https://github.com/pjf/autodie/workflows/windows/badge.svg)](https://github.com/pjf/autodie/actions)
+
 
 autodie is hosted [on github](https://github.com/pjf/autodie). You
 can track and contribute to its development there.
