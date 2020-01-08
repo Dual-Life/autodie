@@ -23,7 +23,7 @@ require autodie::hints;
 require autodie::exception;
 require autodie::exception::system;
 
-diag explain \%ENV;
+diag(explain(\%ENV));
 
 ok(defined($autodie::VERSION), 'autodie has a version');
 ok(defined($autodie::exception::VERSION), 'autodie::exception has a version');
