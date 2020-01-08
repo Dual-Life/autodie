@@ -2,6 +2,18 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * TEST BUGFIX: Correct diag explain in t/version.t
+          so it'll pass on perl 5.8
+
+        * TEST BUGFIX: Only test t/no-all.t if optional
+          IPC::System::Simple is available
+
+        * BUILD: Switch automated testing to github actions
+
+        * TEST BUGFIX: Turn off t/kill.t for windows. Recent
+          versions of windows seem to choke when doing:
+          `kill 0, $$;`
+
 2.30      2020-01-02 16:51:16-06:00 America/Chicago
 
         * BUGFIX: Fix a boolean logic precedence error causing
