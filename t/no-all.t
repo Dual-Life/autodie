@@ -3,7 +3,15 @@
 package foo;
 use warnings;
 use strict;
-use Test::More tests => 1;
+
+use Test::More;
+
+BEGIN {
+    eval 'use IPC::System::Simple';  ## no critic
+    plan skip_all => "Optional IPC::System::Simple required to do this test" if $@;
+}
+plan tests => 1;
+
 use autodie qw(:all);
 
 use_system();
