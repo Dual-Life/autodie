@@ -32,6 +32,6 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Soft prereqs and parent (for perl 5.8)
-        run: cpanm --notest IPC::System::Simple parent Test::Perl::Critic BSD::Resource Import::Into Test::Pod::Coverage Test::Pod
+        run: cpanm --notest IPC::System::Simple parent Test::Perl::Critic BSD::Resource Import::Into Sub::Identify Test::Pod::Coverage Test::Pod
       - name: Tests
         run: prove -wlr t/*.t
