@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: perl -V
         run: perl -V
-      - name: IPC::System::Simple
-        run: cpan -T IPC::System::Simple
+      - name: Soft prereqs
+        run: cpan -T IPC::System::Simple BSD::Resource Import::Into Sub::Identify 
       - name: Tests
         run: prove -wlm t/*.t

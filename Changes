@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * Update automated tests to include soft dependencies.
+
         * Remove Test::Perl::Critic as a testing requirement.
 
         * Update README.md to show github actions status
