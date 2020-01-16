@@ -32,6 +32,6 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Prereq IPC::System::Simple and parent (for perl 5.8)
-        run: cpanm --notest IPC::System::Simple parent
+        run: cpanm --notest IPC::System::Simple parent Test::Perl::Critic
       - name: Tests
         run: prove -wlr t/*.t
