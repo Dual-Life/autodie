@@ -2,6 +2,8 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * Update bug tracker to github after consolodate of issues.
+
 2.32      2020-01-16 11:40:52-06:00 America/Chicago
 
         * Update automated tests to include soft dependencies.
