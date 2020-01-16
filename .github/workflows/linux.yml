@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: perl -V
         run: perl -V
-      - name: Prereq IPC::System::Simple and parent (for perl 5.8)
-        run: cpanm --notest IPC::System::Simple parent Test::Perl::Critic
+      - name: Soft prereqs and parent (for perl 5.8)
+        run: cpanm --notest IPC::System::Simple parent Test::Perl::Critic BSD::Resource Import::Into Test::Kwalitee Test::Pod::Coverage Test::Pod
       - name: Tests
         run: prove -wlr t/*.t
