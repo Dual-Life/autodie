@@ -2,7 +2,15 @@ Revision history for autodie
 
 {{$NEXT}}
 
-        * Update bug tracker to github after consolodate of issues.
+        * Switch to testsuite CI workflow
+
+        * Add 2.33 support to Fatal.pm
+
+        * Add missing use Scalar::Utils for using bless
+
+        * Fix typo
+
+        * Update bug tracker to github to prep for rt shutdown.
 
 2.32      2020-01-16 11:40:52-06:00 America/Chicago
 
