@@ -2,6 +2,10 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * Remove rt.cpan.org reference.
+
+2.33
+
         * Switch to testsuite CI workflow
 
         * Add 2.33 support to Fatal.pm
