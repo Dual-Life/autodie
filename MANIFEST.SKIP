@@ -1,10 +1,10 @@
-.git
-.gitignore
-.prove
-.proverc
+^\.git
+^\.github
+^\.gitignore
+^\.prove
+^\.proverc
 pm_to_lib
-MANIFEST.bak
-MANIFEST.skip
+^MANIFEST\.
 blib
 .*.pm~$
 Makefile$
@@ -21,3 +21,4 @@ doc/tpr.pod
 \.patch$
 TODO
 Debian_CPANTS.txt
+^cpanfile
