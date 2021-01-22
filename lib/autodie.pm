@@ -306,7 +306,7 @@ return an empty list, or a list consisting only of a single undef
 element.
 
 Some builtins (e.g. C<chdir> or C<truncate>) has a call signature that
-cannot completely be representated with a Perl prototype.  This means
+cannot completely be represented with a Perl prototype.  This means
 that some valid Perl code will be invalid under autodie.  As an example:
 
   chdir(BAREWORD);
