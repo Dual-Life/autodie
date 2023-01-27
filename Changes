@@ -2,6 +2,14 @@ Revision history for autodie
 
 {{$NEXT}}
 
+        * Prepare for 5.38 changes to deprecate smartmatch
+
+	* Remove +x bit from pm and t files
+
+	* CI - Turn off Pod coverage and critic tests below 5.12
+
+2.34
+
         * Remove rt.cpan.org reference.
 
 2.33
