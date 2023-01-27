@@ -170,6 +170,7 @@ my %TAGS = (
     ':2.32'  => [qw(:default)],
     ':2.33'  => [qw(:default)],
     ':2.34'  => [qw(:default)],
+    ':2.35'  => [qw(:default)],
 );
 
 
@@ -1088,6 +1089,7 @@ sub _one_invocation {
     my $code = qq[
         no warnings qw(unopened uninitialized numeric);
         no if \$\] >= 5.017011, warnings => "experimental::smartmatch";
+        no if \$warnings::Offsets{"deprecated::smartmatch"}, warnings => "deprecated";
 
         if (wantarray) {
             my \@results = $call(@argv);
