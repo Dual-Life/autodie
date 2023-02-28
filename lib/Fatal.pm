@@ -17,7 +17,7 @@ use autodie::Util qw(
   on_end_of_compile_scope
 );
 
-use constant PERL510     => ( $] >= 5.010 );
+use constant SMARTMATCH_ALLOWED => ( $] >= 5.010 );
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -1101,24 +1101,26 @@ sub _one_invocation {
 
     my $retval_action = $Retval_action{$call} || '';
 
-    if ( $hints and ( ref($hints->{list} ) || "" ) eq 'CODE' ) {
+    if ( $hints && exists $hints->{list} ) {
+        my $match;
+        if ( ref($hints->{list}) eq 'CODE' ) {
+            # NB: Subroutine hints are passed as a full list.
+            # This differs from the 5.10.0 smart-match behaviour,
+            # but means that context unaware subroutines can use
+            # the same hints in both list and scalar context.
 
-        # NB: Subroutine hints are passed as a full list.
-        # This differs from the 5.10.0 smart-match behaviour,
-        # but means that context unaware subroutines can use
-        # the same hints in both list and scalar context.
+            $match = q[ $hints->{list}->(@results) ];
+        }
+        elsif ( SMARTMATCH_ALLOWED ) {
+            $match = q[ @results ~~ $hints->{list} ];
+        }
+        else {
+            croak sprintf(ERROR_58_HINTS, 'list', $sub);
+        }
 
         $code .= qq{
-            if ( \$hints->{list}->(\@results) ) { $die };
+            if ( $match ) { $die };
         };
-    }
-    elsif ( PERL510 and $hints ) {
-        $code .= qq{
-            if ( \@results ~~ \$hints->{list} ) { $die };
-        };
-    }
-    elsif ( $hints ) {
-        croak sprintf(ERROR_58_HINTS, 'list', $sub);
     }
     else {
         $code .= qq{
@@ -1146,28 +1148,26 @@ sub _one_invocation {
         my \$context = "scalar";
     };
 
-    if ( $hints and ( ref($hints->{scalar} ) || "" ) eq 'CODE' ) {
+    if ( $hints && exists $hints->{scalar} ) {
+        my $match;
 
-        # We always call code refs directly, since that always
-        # works in 5.8.x, and always works in 5.10.1
+        if ( ref($hints->{scalar}) eq 'CODE' ) {
+            # We always call code refs directly, since that always
+            # works in 5.8.x, and always works in 5.10.1
+            $match = q[ $hints->{scalar}->($retval) ];
+        }
+        elsif (SMARTMATCH_ALLOWED) {
+            $match = q[ $retval ~~ $hints->{scalar} ];
+        }
+        else {
+            croak sprintf(ERROR_58_HINTS, 'scalar', $sub);
+        }
 
-        return $code .= qq{
-            if ( \$hints->{scalar}->(\$retval) ) { $die };
-            $retval_action
-            return \$retval;
-        };
-
-    }
-    elsif (PERL510 and $hints) {
         return $code . qq{
-
-            if ( \$retval ~~ \$hints->{scalar} ) { $die };
+            if ( $match ) { $die };
             $retval_action
             return \$retval;
         };
-    }
-    elsif ( $hints ) {
-        croak sprintf(ERROR_58_HINTS, 'scalar', $sub);
     }
 
     return $code .
