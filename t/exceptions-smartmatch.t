@@ -1,18 +1,17 @@
 #!/usr/bin/perl -w
 use strict;
 use Test::More;
+use Fatal ();
 
-BEGIN { plan skip_all => "Perl 5.10 only tests" if $] < 5.010; }
+BEGIN { plan skip_all => "requires perl with smartmatch support" unless Fatal::SMARTMATCH_ALLOWED; }
 
-# These are tests that depend upon 5.10 (eg, smart-match).
+# These are tests that depend upon smartmatch.
 # Basic tests should go in basic_exceptions.t
 
 use 5.010;
 use warnings ();
 use constant NO_SUCH_FILE => 'this_file_had_better_not_exist_xyzzy';
-no if $] >= 5.017011, warnings => "experimental::smartmatch";
-no if exists $warnings::Offsets{"deprecated::smartmatch"},
-  warnings => "deprecated";
+no if Fatal::SMARTMATCH_CATEGORY, 'warnings', Fatal::SMARTMATCH_CATEGORY;
 
 plan 'no_plan';
 

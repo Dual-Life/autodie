@@ -17,7 +17,12 @@ use autodie::Util qw(
   on_end_of_compile_scope
 );
 
-use constant SMARTMATCH_ALLOWED => ( $] >= 5.010 );
+use constant SMARTMATCH_ALLOWED => ( $] >= 5.010 && $] < 5.041 );
+use constant SMARTMATCH_CATEGORY => (
+      !SMARTMATCH_ALLOWED || $] < 5.018 ? undef
+    : exists $warnings::Offsets{'experimental::smartmatch'} ? 'experimental::smartmatch'
+    : 'deprecated'
+);
 
 use constant LEXICAL_TAG => q{:lexical};
 use constant VOID_TAG    => q{:void};
@@ -48,7 +53,9 @@ use constant ERROR_AUTODIE_CONFLICT => q{"no autodie '%s'" is not allowed while 
 
 use constant ERROR_FATAL_CONFLICT => q{"use Fatal '%s'" is not allowed while "no autodie '%s'" is in effect};
 
-use constant ERROR_58_HINTS => q{Non-subroutine %s hints for %s are not supported under Perl 5.8.x};
+use constant ERROR_SMARTMATCH_HINTS => q{%s hints for %s must be code, regexp, or undef. Use of other values is deprecated and only supported on Perl 5.10 through 5.40.};
+
+use constant WARNING_SMARTMATCH_DEPRECATED => q{%s hints for %s must be code, regexp, or undef. Use of other values is deprecated and will be removed before Perl 5.42.};
 
 # Older versions of IPC::System::Simple don't support all the
 # features we need.
@@ -1089,8 +1096,6 @@ sub _one_invocation {
 
     my $code = qq[
         no warnings qw(unopened uninitialized numeric);
-        no if \$\] >= 5.017011, warnings => "experimental::smartmatch";
-        no if \$warnings::Offsets{"deprecated::smartmatch"}, warnings => "deprecated";
 
         if (wantarray) {
             my \@results = $call(@argv);
@@ -1111,11 +1116,21 @@ sub _one_invocation {
 
             $match = q[ $hints->{list}->(@results) ];
         }
+        elsif ( ref($hints->{list}) eq 'Regexp' ) {
+            $match = q[ grep $_ =~ $hints->{list}, @results ];
+        }
+        elsif ( !defined $hints->{list} ) {
+            $match = q[ grep !defined, @results ];
+        }
         elsif ( SMARTMATCH_ALLOWED ) {
             $match = q[ @results ~~ $hints->{list} ];
+            warnings::warnif('deprecated', sprintf(WARNING_SMARTMATCH_DEPRECATED, 'list', $sub));
+            if (SMARTMATCH_CATEGORY) {
+                $match = sprintf q[ do { no warnings '%s'; %s } ], SMARTMATCH_CATEGORY, $match;
+            }
         }
         else {
-            croak sprintf(ERROR_58_HINTS, 'list', $sub);
+            croak sprintf(ERROR_SMARTMATCH_HINTS, 'list', $sub);
         }
 
         $code .= qq{
@@ -1156,11 +1171,21 @@ sub _one_invocation {
             # works in 5.8.x, and always works in 5.10.1
             $match = q[ $hints->{scalar}->($retval) ];
         }
+        elsif ( ref($hints->{scalar}) eq 'Regexp' ) {
+            $match = q[ $retval =~ $hints->{scalar} ];
+        }
+        elsif ( !defined $hints->{scalar} ) {
+            $match = q[ !defined $retval ];
+        }
         elsif (SMARTMATCH_ALLOWED) {
             $match = q[ $retval ~~ $hints->{scalar} ];
+            warnings::warnif('deprecated', sprintf(WARNING_SMARTMATCH_DEPRECATED, 'scalar', $sub));
+            if (SMARTMATCH_CATEGORY) {
+                $match = sprintf q[ do { no warnings '%s'; %s } ], SMARTMATCH_CATEGORY, $match;
+            }
         }
         else {
-            croak sprintf(ERROR_58_HINTS, 'scalar', $sub);
+            croak sprintf(ERROR_SMARTMATCH_HINTS, 'scalar', $sub);
         }
 
         return $code . qq{

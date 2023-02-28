@@ -14,8 +14,8 @@ our $DEBUG = 0;
 use overload
     q{""} => "stringify",
     # Overload smart-match only if we're using 5.10 or up
-    ($] >= 5.010 ? ('~~'  => "matches") : ()),
-    fallback => 1
+    (( $] >= 5.010 && $] < 5.041 ) ? ('~~'  => "matches") : ()),
+    fallback => 1,
 ;
 
 my $PACKAGE = __PACKAGE__;  # Useful to have a scalar for hash keys.
