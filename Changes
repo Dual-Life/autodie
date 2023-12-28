@@ -2,6 +2,12 @@ Revision history for autodie
 
 {{$NEXT}}
 
+	* #117 - Deprecate smartmatch handling
+
+	* #118 - Remove mention of cpanratings.perl.org
+
+	* #119 - Fix typo in changelog
+
 2.36      2023-01-30 16:48:23+00:00 UTC
 
 	* Remove the use of ' as a package separator.
