@@ -396,9 +396,8 @@ L<https://github.com/pjf/autodie/issues>.
 
 =head1 FEEDBACK
 
-If you find this module useful, please consider rating it on the
-CPAN Ratings service at
-L<http://cpanratings.perl.org/rate?distribution=autodie> .
+If you find this module useful, please consider rating it on metacpan at
+L<https://metacpan.org/pod/autodie> .
 
 The module author loves to hear how C<autodie> has made your life
 better (or worse).  Feedback can be sent to
