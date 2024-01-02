@@ -23,7 +23,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        uses: perl-actions/install-with-cpm@stable
+        uses: perl-actions/install-with-cpm@v1.7
         with:
           cpanfile: "cpanfile"
       - name: Test
@@ -69,7 +69,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        uses: perl-actions/install-with-cpm@stable
+        uses: perl-actions/install-with-cpm@v1.7
         with:
           sudo: false
           cpanfile: "cpanfile"
@@ -94,7 +94,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        uses: perl-actions/install-with-cpm@stable
+        uses: perl-actions/install-with-cpm@v1.7
         with:
           sudo: false
           cpanfile: "cpanfile"
@@ -114,7 +114,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        uses: perl-actions/install-with-cpm@stable
+        uses: perl-actions/install-with-cpm@v1.7
         with:
           sudo: false
           cpanfile: "cpanfile"
